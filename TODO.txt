@@ -1,0 +1,9 @@
+描述：需要在View板块的Gui类中定义window窗体事件并设置回调函数，供ViewModel回调，由于ask窗体需要返回值，故采用Define定义。
+状态：DONE
+
+描述：需要子窗体事件可能会受主窗体的阻塞而阻塞，此时子窗体事件可以在线程中执行master.update()，达到刷新界面的目的
+状态：DONE
+
+描述：python安装目录下的 \Lib\tkinter\filedialog.py 为选择文件和存储文件的源码，可以集成到GUI中，远程获取目录结构
+状态：ING
+
