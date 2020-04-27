@@ -1,0 +1,139 @@
+{
+    "Images": {
+        "ICO": ".\\image\\item.ico",
+        "HEAD": ".\\image\\head.jpg",
+        "EYE": ".\\image\\eye.png",
+        "BINGO": ".\\image\\bingo.jpg",
+        "ABOUT": ".\\image\\about.png"
+    },
+
+    "ModelMap": {
+        "Cache": {
+            "SCREEN_SIZE_LIST": "screen_size_list",
+            "CONF_IMAGE_DICT": "conf_image_dict",
+            "LOGON_SSH_DICT": "logon_ssh_dict",
+            "SUBLOGIN_INDEX_LIST": "sublogin_index_list",
+            "GET_INFOWIN_EVT_FLAG": "get_infowin_flag",
+            "SET_INFOWIN_EVT_FLAG": "set_infowin_flag"
+        },
+
+        "Setting": {
+            "DEFAULTS_PASSWD_DATA": "default_passwd"
+        }
+        
+    },
+
+    "Pages": [
+        {
+            "name": "StatePage",
+            "text": "主备状态",
+            "shell": "collect_state.sh"
+        },
+        {
+            "name": "HALogPage",
+            "text": "主备日志",
+            "shell": "get_halogs.sh"
+        },
+        {
+            "name": "BinlogPage",
+            "text": "Bin-Log",
+            "shell": "get_binlog.sh"
+        },
+		{
+            "name": "OtherLogPage",
+            "text": "其他日志",
+            "shell": "get_otherlogs.sh"
+        },
+        {
+            "name": "LogCheckPage",
+            "text": "日志巡检",
+            "shell": "check_halogs.sh"
+        },
+        {
+            "name": "HAConfigPage",
+            "text": "主备配置",
+            "shell": "ha_config.sh"
+        },
+        {
+            "name": "DownloadPage",
+            "text": "选择下载",
+            "shell": "download_choose.sh"
+        },
+        {
+            "name": "ReservePage1",
+            "text": "快速恢复",
+            "shell": "reserve.sh"
+        },
+        {
+            "name": "ReservePage2",
+            "text": "系统监控",
+            "shell": "reserve.sh"
+        },
+        {
+            "name": "ReservePage3",
+            "text": "时区夏令时",
+            "shell": "reserve.sh"
+        }
+    ],
+
+    "StatePageStruct": [
+        {
+            "name": "OPTIONS",
+            "text": "项目  \\  IP地址"
+        },
+        {
+            "name": "HA_MODE",
+            "text": "主备模式"
+        },
+        {
+            "name": "HA_STATUS",
+            "text": "运行状态"
+        },
+        {
+            "name": "MRS_HA_MODE",
+            "text": "MRS容灾模式"
+        },
+        {
+            "name": "REMOTE_IP",
+            "text": "灾备对端IP"
+        },
+        {
+            "name": "KEEPALIVED_STATUS",
+            "text": "keepalived状态"
+        },
+        {
+            "name": "MYSQL_STATUS",
+            "text": "MySQL运行状态"
+        },
+        {
+            "name": "MYSQL_SYNC",
+            "text": "MySQL同步状态"
+        },
+        {
+            "name": "FILE_SYNC",
+            "text": "文件同步状态"
+        },
+        {
+            "name": "SSH_TRUST",
+            "text": "与对端SSH互信状态"
+        },
+        {
+            "name": "VIP_STATUS",
+            "text": "浮动IP状态"
+        },
+        {
+            "name": "HA_ALARM",
+            "text": "主备容灾告警"
+        }
+    ],
+
+    "OtherLogList": [
+        "操作系统日志(messages)",
+        "数据库日志(eappmysql.err)",
+        "deploy文件(deploy_proxy_4.0.xml)",
+        "版本信息文件(version.mdc.ini)",
+        "eApp操作日志(TBL_UserLog)",
+        "eApp所有告警(TBL_UbpSyncSsnAlarm)",
+        "monitor进程日志(ubp_monitor.log)"
+    ]
+}

@@ -52,6 +52,8 @@ class Gui(tk.Tk):
 
     def close(self):
         """ 关闭窗口 """
+        if not WinMsg.ask("请确认是否退出？"):
+            return
         self.bonder.unbond(Global.EVT_LOGIN_GUI)
         self.bonder.unbond(Global.EVT_MAIN_GUI)
         self.destroy()

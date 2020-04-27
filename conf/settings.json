@@ -1,0 +1,12 @@
+{
+	"Setting": {
+		"loglevel": "debug",
+		
+		"defaults": {
+			"username": "ubp",
+			"userpassword": "eLTE@com123",
+			"rootpassword": "eLTE@com"
+		},
+		"retry_times": 2
+	}
+}
