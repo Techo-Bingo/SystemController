@@ -108,53 +108,49 @@ class Init:
         return True
 
     @classmethod
+    def _page_details(cls, json_data):
+        # 设置state page显示的结构的全局变量
+        Global.G_STATE_PAGE_STRUCT = json_data['StatePageStruct']
+        # 其他日志的名称列表
+        Global.G_OTHER_LOG_STRUCT = json_data['OtherLogList']
+
+    @classmethod
+    def _image_init(cls, image_data):
+        _photo = {}
+        for name, path in image_data.items():
+            if not Common.is_file(path):
+                raise FileError("%s is not exist !" % path)
+            _photo[name] = path if name == 'ICO' else ImageTk.PhotoImage(image=Image.open(path))
+        ViewModel.cache('CONF_IMAGE_DICT', type='ADD', data=_photo)
+
+    @classmethod
     def conf_parser(cls):
         try:
             """ dependance.json解析 """
-            _json_data = JSONParser.parser(Global.G_DEPEND_FILE)
-            _images = _json_data['Images']
-            _page_data = _json_data['Pages']
-            _model_map = _json_data['ModelMap']
-            _state_struct = _json_data['StatePageStruct']
-            _otherlog_list = _json_data['OtherLogList']
-            _photo = {}
-            # 转换成photoImage格式
-            for name, path in _images.items():
-                if not Common.is_file(path):
-                    raise FileError("%s is not exist !" % path)
-                if name == 'ICO':
-                    _photo[name] = path
-                else:
-                    _photo[name] = ImageTk.PhotoImage(
-                        image=Image.open(path))
-            """ settings.json解析 """
-            _json_data = JSONParser.parser(Global.G_SETTING_FILE)
-            _setting_map = _json_data['Setting']
+            _depend_data = JSONParser.parser(Global.G_DEPEND_FILE)
 
-            if not ViewModel.init(_model_map, _setting_map):
+            """ settings.json解析 """
+            _setting_data = JSONParser.parser(Global.G_SETTING_FILE)
+
+            """ ViewModel初始化 """
+            if not ViewModel.init(_depend_data['ModelMap'], _setting_data['Setting']):
                 raise FileError("Settings init failed !")
+
+            """ 数据初始化 """
+            # 图片数据
+            cls._image_init(_depend_data['Images'])
+            # 页签数据
+            Global.G_PAGES_NAME_DATA = _depend_data['Pages']
+
+            """ 页面结构等数据初始化 """
+            cls._page_details(_depend_data)
         except Exception as e:
             Logger.error(e)
             Utils.windows_error(e)
             return False
 
-        # 存入images数据
-        ViewModel.cache('CONF_IMAGE_DICT', type='ADD', data=_photo)
-        # 设置page各类名全局变量
-        Global.G_PAGES_NAME_DATA = _page_data
-        # 设置state page显示的结构的全局变量
-        Global.G_STATE_PAGE_STRUCT = _state_struct
-        # 其他日志的名称列表
-        Global.G_OTHER_LOG_STRUCT = _otherlog_list
-
-        del _json_data
-        del _images
-        del _page_data
-        del _model_map
-        del _state_struct
-        del _photo
-        del _setting_map
-        del _otherlog_list
+        del _depend_data
+        del _setting_data
         return True
 
     @classmethod

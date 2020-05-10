@@ -266,7 +266,6 @@ class PageHandler:
                     raise ReportError("任务失败，详细:%s，重试:%s" % (info, __retry))
                 if cur_prog == 90:
                     filename = Common.basename(info)
-                    print(filename)
                     Utils.tell_info("%s: [90%%] Download: %s" % (ip, filename))
                     if not SSHUtil.download_file(ssh, remote=info,local=filename):
                         raise ReportError("下载失败，重试:%s" % __retry)
