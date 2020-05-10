@@ -12,7 +12,8 @@
         "CONF_IMAGE_DICT": "conf_image_dict",
         "LOGON_SSH_DICT": "logon_ssh_dict",
         "SUBLOGIN_INDEX_LIST": "sublogin_index_list",
-        "GET_INFOWIN_EVT_FLAG": "get_infowin_flag"
+        "GET_INFOWIN_EVT_FLAG": "get_infowin_flag",
+        "SET_INFOWIN_EVT_FLAG": "set_infowin_flag"
     },
 
     "Pages": [
