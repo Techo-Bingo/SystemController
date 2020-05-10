@@ -108,7 +108,7 @@ class SubLogin(object):
 
     def set_defaults(self):
         """ 设置默认用户和密码 """
-        default_info = ViewUtil.get_default_passwd()
+        default_info = Global.G_DEFAULT_PASSWORDS
         self.var_user.set(default_info[0])
         self.var_upwd.set(default_info[1])
         self.var_rpwd.set(default_info[2])

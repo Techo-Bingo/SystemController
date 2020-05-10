@@ -10,24 +10,24 @@ class Settings(Singleton):
     """ 用户设置类 """
 
     def __init__(self):
-        self._default_passwd = None
+        pass
 
-    def init(self, maps):
+    def init(self, setting_map):
         try:
-            Global.G_LOG_LEVEL = maps['loglevel']
-            _default = maps['defaults']
-            self._default_passwd = [_default['username'],
-                                    _default['userpassword'],
-                                    _default['rootpassword']
-                                    ]
-            Global.G_RETRY_TIMES = maps['retry_times']
+            Global.G_TOOL_NAMED = setting_map['tool_named']
+            Global.G_VERSION = setting_map['tool_version']
+            Global.G_LOG_LEVEL = setting_map['log_level']
+            Global.G_LOG_SIZE = setting_map['log_size']
+            Global.G_RETRY_TIMES = setting_map['retry_times']
+            Global.G_PACKAGE_NAME = setting_map['package_name']
+            _default = setting_map['passwords']
+            Global.G_DEFAULT_PASSWORDS = [_default['username'],
+                                          _default['userpassword'],
+                                          _default['rootpassword']]
+            Global.reload()
             return True
         except:
             return False
-
-    @property
-    def default_passwd(self):
-        return self._default_passwd
 
 
 class Cache(Singleton):

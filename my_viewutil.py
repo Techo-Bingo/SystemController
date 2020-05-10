@@ -127,10 +127,6 @@ class ViewUtil:
         ViewModel.cache('SUBLOGIN_INDEX_LIST', type='SUB', data=index)
 
     @classmethod
-    def get_default_passwd(cls):
-        return ViewModel.setting('DEFAULTS_PASSWD_DATA', type='QUE')
-
-    @classmethod
     def set_infowin_flag(cls):
         ViewModel.cache('SET_INFOWIN_EVT_FLAG')
 
