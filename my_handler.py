@@ -221,7 +221,6 @@ class PageHandler:
             Utils.tell_info("%s 重复点击，请耐心等待上一次结束" % ip)
             return False
         Common.write_to_file(_lock_file, 'lock')
-        Utils.tell_info('%s 正在执行%s...' % (ip, evt))
         return True
 
     @classmethod
@@ -238,55 +237,74 @@ class PageHandler:
                                  )[0].split('__BINGO__')[1:2][0]
 
     @classmethod
+    def __exec_shell(cls, ssh, ip, shell, param):
+        """ 后台执行脚本 """
+        event= shell.split('.')[0]
+        Utils.tell_info('%s: [0%%] 正在执行任务: %s' % (ip, event))
+        cmd = "%s/%s" % (Global.G_SERVER_DIR, shell)
+        cmd = "%s '%s' '%s' '%s' &" % (cmd, event, ip, param)
+        SSHUtil.exec_ret(ssh, cmd, root=True)
+
+    @classmethod
+    def __get_progress(cls, ssh, callback, ip, event):
+        """ 循环读取进度 """
+        cmd = "cat %s/%s/progress.txt" % (Global.G_SERVER_DIR, event)
+        _last_prog = 1
+        __retry = 0
+        while True:
+            sleep(1)
+            try:
+                cur_prog, status, info = cls._get_exec_info(ssh, cmd).split('|')
+                cur_prog = int(cur_prog) - 10
+                if _last_prog == cur_prog:
+                    continue
+                _last_prog = cur_prog
+
+                if not info:
+                    raise ReportError("进度信息为空，重试:%s" % __retry)
+                if status == 'FAILED':
+                    raise ReportError("任务失败，详细:%s，重试:%s" % (info, __retry))
+                if cur_prog == 90:
+                    filename = Common.basename(info)
+                    print(filename)
+                    Utils.tell_info("%s: [90%%] Download: %s" % (ip, filename))
+                    if not SSHUtil.download_file(ssh, remote=info,local=filename):
+                        raise ReportError("下载失败，重试:%s" % __retry)
+                    callback(ip, 100, False)
+                    Utils.tell_info("%s: [100%%] 下载成功" % ip)
+                    break
+                # 显示进度信息
+                callback(ip, _last_prog, False)
+                Utils.tell_info("%s: [%s%%] %s" % (ip, _last_prog, info))
+            except Exception as e:
+                print(e)
+                __retry += 1
+                if __retry < Global.G_RETRY_TIMES:
+                    continue
+                callback(ip, _last_prog + 1, 'Red')
+                Utils.tell_info("%s %s" % (ip, e), level='ERROR')
+                break
+
+    @classmethod
     def _exec_for_download(cls, callback, ip, shell, param):
         """ 本函数中callback为进度条回调 """
         event = shell.split('.')[0]
         if not cls._mutex(ip, event):
             return
-        """ 后台执行脚本 """
-        shell = "%s/%s" % (Global.G_SERVER_DIR, shell)
-        cmd = "%s '%s' '%s' '%s' &" % (shell, event, ip, param)
+
         ssh = cls._get_ssh(ip)
-        SSHUtil.exec_ret(ssh, cmd, root=True)
-        """ 循环读取进度 """
-        cmd = "cat %s/%s/progress.txt" % (Global.G_SERVER_DIR, event)
-        _last_prog = 1
-        try:
-            while 1:
-                sleep(1)
-                _cur_prog, status, info = cls._get_exec_info(ssh, cmd).split('|')
-                _cur_prog = int(_cur_prog) - 10
-                _last_prog = _cur_prog
-                callback(ip, _last_prog, False)
-                if status == 'FAILED':
-                    raise ReportError('%s 失败，详细：%s' % (ip, info))
-                # 脚本100%对应整体进度的90%
-                if _cur_prog == 90:
-                    if not info:
-                        raise Exception("输出为空")
-                    Utils.tell_info('%s 开始下载%s' % (ip, info))
-                    if not SSHUtil.download_file(ssh,
-                                                 remote=info,
-                                                 local=Common.basename(info)
-                                                 ):
-                        raise ReportError('%s 下载%s失败' % (ip, info))
-                    callback(ip, 100, False)
-                    Utils.tell_info('%s 下载成功' % ip)
-                    break
-        except ReportError as e:
-            Utils.tell_info(e, level='ERROR')
-            callback(ip, _last_prog + 1, 'Red')
-        except Exception as e:
-            Utils.tell_info('%s %s结果异常:%s' % (ip, shell, e), level='ERROR')
-            callback(ip, _last_prog + 1, 'Red')
-        finally:
-            cls._mutex(ip, event, False)
+
+        cls.__exec_shell(ssh, ip, shell, param)
+
+        cls.__get_progress(ssh, callback, ip, event)
+
+        cls._mutex(ip, event, False)
 
     @classmethod
     def _exec_for_collect(cls, callback, ip_list, shell, param):
         event = shell.split('.')[0]
         shell = "%s/%s" % (Global.G_SERVER_DIR, shell)
-        while 1:
+        while True:
             for ip in ip_list:
                 _info_dict = {}
                 ssh = cls._get_ssh(ip)
