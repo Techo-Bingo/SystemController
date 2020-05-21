@@ -102,18 +102,17 @@ def reload():
     global G_ABOUT_INFO
     G_TITLE = '%s V%s' % (G_TOOL_NAMED, G_VERSION)
     G_WELCOME_INFO= ' ' * 50 + '【 欢迎使用%s 】' % G_TOOL_NAMED
-    G_ABOUT_INFO = '''            %s
-        
+    G_ABOUT_INFO = '''%s%s
      用途：
               此工具用于对服务器进行批量远程操控；
               可实现快速部署脚本到服务器并执行；
-              工具具有高度扩展性：
+     特点:
               1. 通用下载界面，显示任务进度和进度信息；
               2. 通用复选界面，自由选择任务项并显示进度；
               3. 通用状态回显，显示任务完整打印信息；
      版本：      %s
      作者：      %s
-     联系方式：linux_bingo@163.com''' % (G_TOOL_NAMED, G_VERSION, __author__)
+     联系方式：linux_bingo@163.com''' % (' '*30, G_TOOL_NAMED, G_VERSION, __author__)
 
 
 
