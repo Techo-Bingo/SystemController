@@ -264,7 +264,7 @@ class GuiMain(GuiBase):
         # self.view_rightwin(True)
 
     def switch_page(self, name, shell):
-        self.page.swich_page(name, shell)
+        self.page.switch_page(name, shell)
 
     def view_rightwin(self, show=False):
         if show:

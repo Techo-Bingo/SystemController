@@ -345,11 +345,12 @@ class PageCtrl(object):
         # 图片
         tk.Label(self.images_fm, image=ViewUtil.get_image('BINGO')).pack()
 
+    @classmethod
     def default_page(self):
         """ 默认界面的处理 """
         PageHandler.default_page_deal()
 
-    def swich_page(self, name, shell):
+    def switch_page(self, name, shell):
         if self.current == name:
             return
         self.current = name
