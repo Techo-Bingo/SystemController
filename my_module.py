@@ -298,7 +298,7 @@ class InfoWindow(object):
                                                   relief='ridge',
                                                   fg='Blue',
                                                   bg='AliceBlue',
-                                                  height=9,
+                                                  height=12,
                                                   width=110
                                                   )
         self.infotext.insert(tk.END, Global.G_WELCOME_INFO)
@@ -462,7 +462,7 @@ class TopProgress:
 
 class TopAbout:
     """ 关于窗 """
-    _top_size = (500, 330)
+    _top_size = (500, 340)
     _toplevel = None
     _showing = False
 
@@ -480,7 +480,7 @@ class TopAbout:
         cls._toplevel.protocol("WM_DELETE_WINDOW", cls.close)
         ViewUtil.set_centered(cls._toplevel, width, height + 100)
         # 图标
-        tk.Label(cls._toplevel, image=ViewUtil.get_image('ABOUT')).pack(ipady=10)
+        tk.Label(cls._toplevel, image=ViewUtil.get_image('ABOUT')).pack(ipady=5)
         # 中间部分说明
         _infolab = tk.Label(cls._toplevel,
                             bg='Snow',
@@ -488,9 +488,9 @@ class TopAbout:
                             text=Global.G_ABOUT_INFO,
                             font=(Global.G_FONT, 10)
                             )
-        _infolab.pack(fill=tk.BOTH)
+        _infolab.pack(fill=tk.BOTH, ipady=5)
         # 底部版权说明
-        tk.Label(cls._toplevel, text=Global.G_COPYRIGHT_INFO).pack(ipady=15)
+        tk.Label(cls._toplevel, text=Global.G_COPYRIGHT_INFO).pack()
 
     @classmethod
     def close(cls, event=None):

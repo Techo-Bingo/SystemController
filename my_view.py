@@ -4,7 +4,7 @@ View板块;
 处理逻辑，不包含数据
 """
 import tkinter as tk
-from tkinter import ttk
+# from tkinter import ttk
 import my_global as Global
 from my_base import GuiBase
 from my_common import Common
@@ -33,18 +33,17 @@ class Gui(tk.Tk):
         Define.define(Global.EVT_TOP_PROG_UPDATE, TopProgress.update)
         Define.define(Global.EVT_TOP_PROG_DESTROY, TopProgress.destroy)
 
-    def set_title(self):
+    def settitle(self):
         self.title(Global.G_TITLE)
         self.iconbitmap(ViewUtil.get_image('ICO'))
         self.resizable(False, False)
         ViewUtil.set_maxsize(self.maxsize())
-        ViewUtil.set_centered(self,
-                              Global.G_LGN_WIN_WIDTH,
-                              Global.G_LGN_WIN_WIDTH
-                              )
+
+    def position(self, width, height):
+        ViewUtil.set_centered(self, width, height)
 
     def pack(self):
-        self.set_title()
+        self.settitle()
         # 默认登录窗口并绑定关闭窗口函数
         # Packer.call(Global.EVT_LOGIN_GUI)
         self.Login()
@@ -67,21 +66,22 @@ class Gui(tk.Tk):
     def Login(self, msg=None):
         """ 登录界面 """
         self._master_frame = tk.Frame(self)
-        login = GuiLogin(self._master_frame)
+        login = GuiLogin(self._master_frame, self.position)
         login.show()
 
     def Main(self, msg=None):
         """ 主操作界面 """
         self._master_frame = tk.Frame(self)
-        main = GuiMain(self._master_frame)
+        main = GuiMain(self._master_frame, self.position)
         main.show()
 
 
 class GuiLogin(GuiBase):
     """ 登录窗 """
 
-    def __init__(self, master):
+    def __init__(self, master, position):
         self.master = master
+        self.position = position
         self.head_win = None
         self.func_win = None
         self.foot_win = None
@@ -99,10 +99,13 @@ class GuiLogin(GuiBase):
         self.login_fm = tk.LabelFrame(self.func_win,
                                       text=' 用 户 登 录 ',
                                       font=('楷体', 12),
-                                      labelanchor='n'
-                                      )
+                                      labelanchor='n')
 
     def pack_frame(self):
+        self.position(Global.G_LGN_WIN_WIDTH, 
+                      Global.G_LGN_HEAD_HEIGHT + 
+                      Global.G_LGN_FUNC_HEIGHT + 
+                      Global.G_LGN_FOOT_HEIGHT)
         self.head_win.pack()
         self.func_win.pack()
         self.login_fm.pack()
@@ -196,8 +199,9 @@ class GuiLogin(GuiBase):
 
 class GuiMain(GuiBase):
     """ 操作窗 """
-    def __init__(self, master):
+    def __init__(self, master, position):
         self.master = master
+        self.position = position
         self.left_win = None
         self.midd_win = None
         self.right_win = None
@@ -220,6 +224,10 @@ class GuiMain(GuiBase):
                                        Global.G_MAIN_VIEW_HEIGHT, **fm_style)
 
     def pack_frame(self):
+        self.position(Global.G_MAIN_LEFT_WIDTH +
+                      Global.G_MAIN_MIDD_WIDTH + 
+                      Global.G_MAIN_RIGHT_WIDTH,
+                      Global.G_MAIN_WIN_HEIGHT)
         self.left_win.pack(side=tk.LEFT)
         self.midd_win.pack(side=tk.LEFT)
         self.left_win.pack_propagate(0)
@@ -253,6 +261,7 @@ class GuiMain(GuiBase):
         """ 初始化page """
         self.page = PageCtrl(self.view_fm)
         self.page.default_page()
+        # self.view_rightwin(True)
 
     def switch_page(self, name, shell):
         self.page.swich_page(name, shell)

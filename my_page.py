@@ -335,7 +335,7 @@ class PageCtrl(object):
         self.banner_fm.pack()
         self.images_fm.pack()
         # 横幅
-        tk.Label(self.banner_fm).pack(side=tk.LEFT, ipadx=345)
+        tk.Label(self.banner_fm).pack(side=tk.LEFT, ipadx=400)
         tk.Button(self.banner_fm,
                   text='？',
                   bd=0,
