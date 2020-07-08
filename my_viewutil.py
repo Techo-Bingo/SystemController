@@ -24,7 +24,7 @@ class WinMsg:
 
     @classmethod
     def ask(cls, info):
-        return messagebox.askokcancel('询问', info)
+        return messagebox.askokcancel('请确认', info)
 
     @classmethod
     def warn(cls, info):
