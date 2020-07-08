@@ -3,18 +3,20 @@ import traceback
 import tkinter as tk
 from tkinter import ttk
 import my_global as Global
+from my_logger import Logger
 from my_base import Pager
 from my_module import ProgressBar, TopAbout
 from my_handler import PageHandler
 from my_viewutil import ToolTips, ViewUtil, WinMsg
 from my_logger import Logger
+from my_timezone import TimezonePage
 
 
 class StatePage(Pager):
     """ 主备状态页面 """
 
-    def __init__(self, master, shell, ip_list):
-        self.master = master
+    def __init__(self, interface, shell, ip_list):
+        self.master = interface('get_master')
         self.shell = shell
         self.ip_list = ip_list
         self.lab_width = 20
@@ -104,8 +106,8 @@ class StatePage(Pager):
 class HALogPage(Pager):
     """ 获取主备的日志 """
 
-    def __init__(self, master, shell, ip_list):
-        self.master = master
+    def __init__(self, interface, shell, ip_list):
+        self.master = interface('get_master')
         self.shell = shell
         self.ip_list = ip_list
         self.progress = {}
@@ -146,8 +148,8 @@ class HALogPage(Pager):
 class BinlogPage(Pager):
     """ binlog日志获取 """
 
-    def __init__(self, master, shell, ip_list):
-        self.master = master
+    def __init__(self, interface, shell, ip_list):
+        self.master = interface('get_master')
         self.shell = shell
         self.ip_list = ip_list
         self.progress = {}
@@ -200,11 +202,11 @@ class BinlogPage(Pager):
             self.progress[ip].update(value, color)
 
 
-class OtherLogPage(Pager):
-    """ 其他类型日志获取 """
+class QuickLogPage(Pager):
+    """ 快速日志获取 """
 
-    def __init__(self, master, shell, ip_list):
-        self.master = master
+    def __init__(self, interface, shell, ip_list):
+        self.master = interface('get_master')
         self.shell = shell
         self.ip_list = ip_list
         self.progress = {}
@@ -326,12 +328,12 @@ class ReservePage3(Pager):
 class PageCtrl(object):
     """ 页面切换控制类 """
 
-    def __init__(self, master):
-        self.master = master
+    def __init__(self, interface):
+        self.interface = interface
         self.current = None
         self.current_page = None
-        self.banner_fm = tk.Frame(master)
-        self.images_fm = tk.Frame(master)
+        self.banner_fm = tk.Frame(interface('get_master'))
+        self.images_fm = tk.Frame(interface('get_master'))
         self.banner_fm.pack()
         self.images_fm.pack()
         # 横幅
@@ -363,7 +365,7 @@ class PageCtrl(object):
             pass
         try:
             class_name = eval(name)
-            self.current_page = class_name(master=self.master,
+            self.current_page = class_name(interface=self.interface,
                                            shell=shell,
                                            ip_list=ViewUtil.get_ssh_ip_list()
                                            )
