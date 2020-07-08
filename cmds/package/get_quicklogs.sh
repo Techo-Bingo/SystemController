@@ -31,6 +31,7 @@ function collect()
 
 function main()
 {
+    init
 	collect
 	compress_pack
 }

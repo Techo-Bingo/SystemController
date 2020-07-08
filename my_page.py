@@ -331,18 +331,8 @@ class PageCtrl(object):
         self.interface = interface
         self.current = None
         self.current_page = None
-        self.banner_fm = tk.Frame(interface('get_master'))
         self.images_fm = tk.Frame(interface('get_master'))
-        self.banner_fm.pack()
         self.images_fm.pack()
-        # 横幅
-        tk.Label(self.banner_fm).pack(side=tk.LEFT, ipadx=400)
-        tk.Button(self.banner_fm,
-                  text='？',
-                  bd=0,
-                  font=(Global.G_FONT, 9, 'bold'),
-                  command=TopAbout.show
-                  ).pack(side=tk.LEFT)
         # 图片
         tk.Label(self.images_fm, image=ViewUtil.get_image('BINGO')).pack()
 

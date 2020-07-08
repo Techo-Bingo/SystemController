@@ -297,7 +297,7 @@ class InfoWindow(object):
                                                   bd=2,
                                                   relief='ridge',
                                                   fg='Blue',
-                                                  bg='AliceBlue',
+                                                  bg='Snow', #'AliceBlue',
                                                   height=12,
                                                   width=110
                                                   )
