@@ -8,7 +8,6 @@ from my_base import Pager
 from my_module import ProgressBar, TopAbout
 from my_handler import PageHandler
 from my_viewutil import ToolTips, ViewUtil, WinMsg
-from my_logger import Logger
 from my_timezone import TimezonePage
 
 
