@@ -241,8 +241,8 @@ class PageHandler:
         """ 后台执行脚本 """
         event= shell.split('.')[0]
         Utils.tell_info('%s: [0%%] 正在执行任务: %s' % (ip, event))
-        cmd = "%s/%s" % (Global.G_SERVER_DIR, shell)
-        cmd = "%s '%s' '%s' '%s' &" % (cmd, event, ip, param)
+        cmd = "cd %s && ./%s" % (Global.G_SERVER_DIR, shell)
+        cmd = "%s '%s' '%s' &" % (cmd, ip, param)
         SSHUtil.exec_ret(ssh, cmd, root=True)
 
     @classmethod
