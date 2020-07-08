@@ -112,7 +112,7 @@ class Init:
         # 设置state page显示的结构的全局变量
         Global.G_STATE_PAGE_STRUCT = json_data['StatePageStruct']
         # 其他日志的名称列表
-        Global.G_OTHER_LOG_STRUCT = json_data['OtherLogList']
+        Global.G_OTHER_LOG_STRUCT = json_data['QuickLogList']
 
     @classmethod
     def _image_init(cls, image_data):
