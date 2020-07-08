@@ -17,53 +17,23 @@
     },
 
     "Pages": [
-        {
+		{
+            "name": "QuickLogPage",
+            "text": "快速日志",
+            "shell": "get_quicklogs.sh"
+        },
+		{
+            "name": "HALogPage",
+            "text": "快速执行",
+            "shell": "get_halogs.sh"
+        },
+		{
             "name": "StatePage",
             "text": "主备状态",
             "shell": "collect_state.sh"
         },
-        {
-            "name": "HALogPage",
-            "text": "主备日志",
-            "shell": "get_halogs.sh"
-        },
-        {
-            "name": "BinlogPage",
-            "text": "Bin-Log",
-            "shell": "get_binlog.sh"
-        },
 		{
-            "name": "OtherLogPage",
-            "text": "其他日志",
-            "shell": "get_otherlogs.sh"
-        },
-        {
-            "name": "LogCheckPage",
-            "text": "日志巡检",
-            "shell": "check_halogs.sh"
-        },
-        {
-            "name": "HAConfigPage",
-            "text": "主备配置",
-            "shell": "ha_config.sh"
-        },
-        {
-            "name": "DownloadPage",
-            "text": "选择下载",
-            "shell": "download_choose.sh"
-        },
-        {
-            "name": "ReservePage1",
-            "text": "快速恢复",
-            "shell": "reserve.sh"
-        },
-        {
-            "name": "ReservePage2",
-            "text": "系统监控",
-            "shell": "reserve.sh"
-        },
-        {
-            "name": "ReservePage3",
+            "name": "TimezonePage",
             "text": "时区夏令时",
             "shell": "reserve.sh"
         }
@@ -120,13 +90,10 @@
         }
     ],
 
-    "OtherLogList": [
-        "操作系统日志(messages)",
-        "数据库日志(eappmysql.err)",
-        "deploy文件(deploy_proxy_4.0.xml)",
-        "版本信息文件(version.mdc.ini)",
-        "eApp操作日志(TBL_UserLog)",
-        "eApp所有告警(TBL_UbpSyncSsnAlarm)",
-        "monitor进程日志(ubp_monitor.log)"
+    "QuickLogList": [
+        "PLT进程日志",
+        "MDC进程日志",
+        "UDC进程日志",
+        "系统相关日志"
     ]
 }
