@@ -18,6 +18,7 @@ from my_module import SubLogin, LabelButton, InfoWindow, TopProgress, MyButton
 class Gui(tk.Tk):
     """ 界面入口基类 """
     _master_frame = None
+    _in_main_gui = False
 
     def __init__(self):
         tk.Tk.__init__(self)
@@ -51,7 +52,7 @@ class Gui(tk.Tk):
 
     def close(self):
         """ 关闭窗口 """
-        if not WinMsg.ask("请确认是否退出？"):
+        if self._in_main_gui and not WinMsg.ask("请确认是否退出？"):
             return
         self.bonder.unbond(Global.EVT_LOGIN_GUI)
         self.bonder.unbond(Global.EVT_MAIN_GUI)
@@ -74,6 +75,7 @@ class Gui(tk.Tk):
         self._master_frame = tk.Frame(self)
         main = GuiMain(self._master_frame, self.position)
         main.show()
+        self._in_main_gui = True
 
 
 class GuiLogin(GuiBase):
@@ -213,7 +215,7 @@ class GuiMain(GuiBase):
         win_style = {'master': self.master,
                      'height': Global.G_MAIN_WIN_HEIGHT
                      }
-        self.left_win = tk.Frame(width=Global.G_MAIN_LEFT_WIDTH, **win_style)
+        self.left_win = tk.Frame(width=Global.G_MAIN_LEFT_WIDTH, bg='SkyBlue4', **win_style)
         self.midd_win = tk.Frame(width=Global.G_MAIN_MIDD_WIDTH, **win_style)
         fm_style = {'master': self.midd_win,
                     'width': Global.G_MAIN_MIDD_WIDTH,
@@ -259,9 +261,9 @@ class GuiMain(GuiBase):
         """ 初始化信息提示栏 """
         InfoWindow(self.info_fm)
         """ 初始化page """
-        self.page = PageCtrl(self.view_fm)
+        self.page = PageCtrl(self.interface)
         self.page.default_page()
-        # self.view_rightwin(True)
+        self.view_rightwin(True)
 
     def switch_page(self, name, shell):
         self.page.switch_page(name, shell)
@@ -281,4 +283,11 @@ class GuiMain(GuiBase):
                 return
             self.right_win.destroy()
             self.right_win = None
+    
+    def interface(self, key):
+        if key == 'get_master':
+            return self.view_fm
+        elif key == 'get_width_height':
+            return Global.G_MAIN_MIDD_WIDTH, Global.G_MAIN_VIEW_HEIGHT
 
+            
