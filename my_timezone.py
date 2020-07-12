@@ -8,11 +8,12 @@ from my_base import Pager
 
 class TimezonePage(Pager):
 
-	def __init__(self, interface, shell, ip_list):
+	def __init__(self, interface, shell, ip_list, params=None):
 		self.shell = shell
 		self.ip_list = ip_list
 		self.master = interface('get_master')
-		self.width, self.height = interface('get_width_height')
+		# _w, _h = interface('get_range')
+		self.width, self.height = 700, 300
 		self.row = 5
 		self.column = 3
 		self.font = '微软雅黑'
@@ -102,8 +103,6 @@ class TimezonePage(Pager):
 				if i in ['ETIMES','ETIMEH','ETIMEM'] and 'ETIME' in self.opts_dict:continue
 				outlist.append(i)
 		return outlist
-
-
 
 	def get_index_list(self,index=None):
 		tmp_list = [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2],[3,0],[3,1],[3,2],[4,0],[4,1],[4,2],[4,3],[4,4],[4,5],[4,6]]
@@ -215,14 +214,14 @@ class TimezonePage(Pager):
 				self.frame_list.append(fm)
 				# 两个时间的，需要特殊处理
 				if x == self.row-1 and y in [self.column-2,self.column-1]: 
-					lab = tk.Label(fm,text=self.get_labname(x,y),font=('-*-%s-*-*-*--*-130-*')%(self.font),width=16)
-					lab.pack(side=tk.LEFT, pady=2)
+					lab = tk.Label(fm,text=self.get_labname(x,y), font=(self.font, 16))
+					lab.pack(side='left', pady=2)
 					self.label_list[x][y] = lab
 					# 由于y在 x=row-1的时候，相对以前多加了两列，所以下次y要多加2才是正确的数组位置
 					tmp_y = y
 					if y == self.column-1:tmp_y = y+2
 					subfm = tk.Frame(fm,width=self.width/self.column/2-1,height=self.height/self.row/2-1)
-					subfm.pack(side=tk.LEFT)
+					subfm.pack(side='left')
 					for i in range(3):
 						combox_var = tk.StringVar()
 						subcmb = ttk.Combobox(subfm,textvariable=combox_var,width=2)
@@ -231,15 +230,15 @@ class TimezonePage(Pager):
 						subcmb["state"] = "readonly"
 						subcmb.bind("<<ComboboxSelected>>",func=self.handler_adaptor(self.choose_opt,cmb=subcmb,x=x,y=tmp_y+i))
 						if i == 2:
-							subcmb.pack(side=tk.LEFT,padx=1)
+							subcmb.pack(side='left',padx=1)
 						else:
-							subcmb.pack(side=tk.LEFT)
+							subcmb.pack(side='left')
 						if i != 2:
-							sublab = tk.Label(subfm,text=':').pack(side=tk.LEFT)
+							sublab = tk.Label(subfm,text=':').pack(side='left')
 						self.subcmb_list[x][tmp_y+i] = subcmb
 				else:
-					lab = tk.Label(fm,text=self.get_labname(x,y),font=('-*-%s-*-*-*--*-130-*')%(self.font),width=16)
-					lab.pack(side=tk.LEFT,padx=1,pady=2)
+					lab = tk.Label(fm,text=self.get_labname(x,y),font=(self.font, 16))
+					lab.pack(side='left',padx=1,pady=2)
 					self.label_list[x][y] = lab
 					combox_var = tk.StringVar()
 					cmb = ttk.Combobox(fm,textvariable=combox_var,width=14)
@@ -247,7 +246,7 @@ class TimezonePage(Pager):
 					cmb.current(0)
 					cmb["state"] = "readonly"
 					cmb.bind("<<ComboboxSelected>>",func=self.handler_adaptor(self.choose_opt,cmb=cmb,x=x,y=y))
-					cmb.pack(side=tk.LEFT,padx=4)
+					cmb.pack(side='left',padx=4)
 					# 子窗体中的combox存入二位数组
 					self.subcmb_list[x][y] = cmb
 

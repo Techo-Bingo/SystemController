@@ -39,6 +39,7 @@ class Cache(Singleton):
         self._sublogin_index = []
         self._logon_ssh = {}
         self._conf_image = {}
+        self._treeview_data = []
 
     @property
     def screen_size_list(self):
@@ -61,4 +62,8 @@ class Cache(Singleton):
 
     def set_infowin_flag(self, data=None):
         self._infowin_flag = True
+
+    @property
+    def treeview_data_list(self):
+        return self._treeview_data
 

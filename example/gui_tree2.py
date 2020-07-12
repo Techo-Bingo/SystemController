@@ -23,16 +23,16 @@ window.resizable(0, 0)
  
 # 定义列的名称
 tree = ttk.Treeview(window, show = "tree")
-_img = tk.PhotoImage(file="timg.gif")
-myid=tree.insert("",'end',text="中国China",image=_img,tags=('ttk1s', 'simple'))  # ""表示父节点是根
-tree.tag_configure('ttk1s', foreground='yellow', font=('黑体', 20))
-myidx1=tree.insert(myid,0,"广东",text="中国广东",values=("2"))  # text表示显示出的文本，values是隐藏的值
-myidx2=tree.insert(myid,1,"江苏",text="中国江苏",values=("3"))
-myidy=tree.insert("",1,"美国",text="美国USA",values=("4"))   
-myidy1=tree.insert(myidy,0,"加州",text="美国加州",values=("5"))
+_img = tk.PhotoImage(file="..\\image\\oam.png")
+myid=tree.insert('','end',text="中国China",image=_img,tags=('ttk1s', 'simple'))  # ""表示父节点是根
+tree.tag_configure('ttk1s', foreground='yellow', font=('黑体', 12, 'bold'))
+myidx1=tree.insert(myid,'end',"广东",text="中国广东",values=("2"))  # text表示显示出的文本，values是隐藏的值
+myidx2=tree.insert(myid,'end',"江苏",text="中国江苏",values=("3"))
+myidx3=tree.insert(myid,'end',"aaa",text="中国aa",values=("3"))
+myidy=tree.insert('','end',"美国",text="美国USA",values=("4"))
+myidy1=tree.insert(myidy,'end',"加州",text="美国加州",values=("5"))
 
-tree.tag_bind('font_1', 'aa_1')
-tree.tag_configure('font', background='yellow', font=('黑体', 16))
+#tree.tag_bind('font_1', 'aa_1')
 # 鼠标选中一行回调
 def selectTree(event):
     for item in tree.selection():

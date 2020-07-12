@@ -13,10 +13,6 @@ G_VERSION = ''
 G_FONT = '微软雅黑'
 # 登录/上传等失败重试次数
 G_RETRY_TIMES = 1
-# 日志级别
-G_LOG_LEVEL = 'info'
-# 日志回滚大小
-G_LOG_SIZE = 10485760
 # 工具标题
 G_TITLE = ''
 # 关于信息
@@ -25,37 +21,38 @@ G_ABOUT_INFO = ''
 G_WELCOME_INFO = ''
 # 默认密码
 G_DEFAULT_PASSWORDS = []
-# 脚本压缩包名
-G_PACKAGE_NAME = 'package.zip'
-""" 控件相关 """
-# 一键登录按钮的前景色
-G_LGN_BTN_FG_COLOR = 'Gray30'
-# 鼠标进入控件时控件的背景色
-G_ENTER_BG_COLOR = 'Gray70'
-# 鼠标进入控件时控件的前景色
-G_ENTER_FG_COLOR = 'DarkGreen'
-# 鼠标离开控件时控件的背景色
-G_LEAVE_BG_COLOR = 'Gray'
-# 鼠标离开控件时控件的前景色
-G_LEAVE_FG_COLOR = 'Black'
 # 控件默认颜色
 G_DEFAULT_COLOR = 'Snow'
+# 默认背景色
 G_DEFAULT_BG = 'Gray95'
-G_MAIN_VIEW_BG = 'Gray94' #''Snow'
+# 操作窗(pages)背景色
+G_MAIN_OPER_BG = 'Gray94' #''Snow'
+# 一键登录按钮的前景色
+G_LGN_BTN_FG_COLOR = 'Gray30'
+# 登录界面宽高
 G_LGN_WIN_WIDTH = 600
+G_LGN_WIN_HEIGHT = 450
+# 登陆界面图片栏高度
 G_LGN_HEAD_HEIGHT = 160
-G_LGN_FUNC_HEIGHT = 235
+# 登陆界面按钮栏高度
 G_LGN_FOOT_HEIGHT = 60
+# 登录界面登录窗高度
+G_LGN_FUNC_HEIGHT = G_LGN_WIN_HEIGHT - G_LGN_HEAD_HEIGHT - G_LGN_FOOT_HEIGHT
+# 登录界面批量登录个数限制
 G_LGN_COUNT_LIMIT = 4
-G_MAIN_WIN_HEIGHT = 700
-G_MAIN_VIEW_HEIGHT = 500
-G_MAIN_LEFT_WIDTH = 160
-G_MAIN_MIDD_WIDTH = 820
-G_MAIN_RIGHT_WIDTH = 350
-# G_LABELBTN_WIDTH = 20
-G_PAGES_NAME_DATA = None
-G_STATE_PAGE_STRUCT = None
-G_OTHER_LOG_STRUCT = None
+# 主界面宽高
+G_MAIN_WIN_WIDTH = 1500
+G_MAIN_WIN_HEIGHT = 840
+# 主界面操作窗(pages)高度
+G_MAIN_OPER_HEIGHT = 560
+# 主界面信息提示栏高度
+G_MAIN_INFO_HEIGHT = G_MAIN_WIN_HEIGHT - G_MAIN_OPER_HEIGHT
+# 主界面树形导航栏宽度
+G_MAIN_TREE_WIDTH = 280
+# 主界面操作窗(pages)宽度
+G_MAIN_OPER_WIDTH = 800
+# 主界面外部扩展栏宽度
+G_MAIN_OUTER_WIDTH = G_MAIN_WIN_WIDTH - G_MAIN_TREE_WIDTH - G_MAIN_OPER_WIDTH
 G_INFOWIN_LEVEL_COLOR = {'INFO': 'SeaGreen',
                          'TIPS': 'Purple',
                          'WARN': 'DarkOrange',
@@ -67,15 +64,21 @@ G_TIG_FG_COLOR = {'DEFAULT': 'Snow',
                   'LOGING': 'DarkGrey',
                   'FAILED': 'OrangeRed'
                   }
-""" 路径相关 """
+# 运行环境相关定义
+# 脚本压缩包名
+G_PACKAGE_NAME = 'package.zip'
 G_LOG_DIR = '.\\log'
 G_CONF_DIR = '.\\conf'
 G_CMDS_DIR = '.\\cmds'
+# 日志回滚大小
+G_LOG_SIZE = 10485760
 G_LOG_PATH = '\\'.join([G_LOG_DIR, 'tool.log'])
 G_DEPEND_FILE = '\\'.join([G_CONF_DIR, 'dependance.json'])
 G_SETTING_FILE = '\\'.join([G_CONF_DIR, 'settings.json'])
 G_SERVER_DIR = '/home/Bingo'
-""" 事件相关 """
+G_LOG_LEVEL = 'info'
+
+# 事件相关定义
 G_EVT_NAME_SUBLOGIN = 'SubLogin_%s'
 G_EVT_NAME_GUI = 'Gui'
 G_EVT_NAME_INFOWIN = 'InfoWindow'
@@ -83,7 +86,6 @@ EVT_LOGIN_GUI = 'event_login_gui'
 EVT_MAIN_GUI = 'event_main_gui'
 EVT_SEE_PSWD_ON = 'event_see_pswd_on'
 EVT_SEE_PSWD_OFF = 'event_see_pswd_off'
-# 新增登录子板块
 EVT_GET_LOGIN_INPUT = 'event_get_login_input_%s'
 EVT_SUBLOGIN_ENTRY_TIG = 'event_sublogin_entry_tig_%s'
 EVT_CHG_LOGIN_TIG_COLOR = 'event_change_login_tig_color_%s'

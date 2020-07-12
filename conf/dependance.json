@@ -4,96 +4,125 @@
         "HEAD": ".\\image\\head.jpg",
         "EYE": ".\\image\\eye.png",
         "BINGO": ".\\image\\bingo.jpg",
-        "ABOUT": ".\\image\\about.png"
+        "ABOUT": ".\\image\\about.png",
+        "OAM": ".\\image\\oam.png",
+        "STATE": ".\\image\\state.png",
+        "EXEC": ".\\image\\fast_exec.png",
+        "FASTLOG": ".\\image\\fast_log.png",
+        "TIMEZONE": ".\\image\\timezone.png",
+        "PROCSTATE": ".\\image\\proc_state.png",
+        "SYSSTATE": ".\\image\\system_state.png",
+        "MEMSTATE": ".\\image\\mem_state.png",
+        "CPUSTATE": ".\\image\\cpu_state.png",
+        "IOSTATE": ".\\image\\io_state.png",
+        "DISKSTATE": ".\\image\\disk_state.png",
+        "RUNCMD": ".\\image\\run_cmd.png",
+        "DOWNLOAD": ".\\image\\fast_download.png",
+        "UPLOAD": ".\\image\\fast_upload.png"
     },
 
-    "ModelMap": {
-        "SCREEN_SIZE_LIST": "screen_size_list",
-        "CONF_IMAGE_DICT": "conf_image_dict",
-        "LOGON_SSH_DICT": "logon_ssh_dict",
-        "SUBLOGIN_INDEX_LIST": "sublogin_index_list",
-        "GET_INFOWIN_EVT_FLAG": "get_infowin_flag",
-        "SET_INFOWIN_EVT_FLAG": "set_infowin_flag"
-    },
-
-    "Pages": [
-		{
-            "name": "QuickLogPage",
-            "text": "快速日志",
-            "shell": "get_quicklogs.sh"
+    "Tree": [
+        {
+            "PageText": "操作维护",
+            "PageType": "NA",
+            "Shell": "NA",
+            "Image": "OAM",
+            "SubTree": [
+                {
+                    "PageText": "快速日志采集",
+                    "PageType": ["OPTION_DOWNLOAD", ["PLT进程日志", "MDC进程日志", "UDC进程日志", "系统相关日志"]],
+                    "Shell": "collect_fast_logs.sh",
+                    "Image": "FASTLOG",
+                    "SubTree": []
+                },
+                {
+                    "PageText": "时区夏令时配置",
+                    "PageType": ["SELF", "TimezonePage"],
+                    "Shell": "set_timezone.sh",
+                    "Image": "TIMEZONE",
+                    "SubTree": []
+                }
+            ]
         },
-		{
-            "name": "HALogPage",
-            "text": "快速执行",
-            "shell": "get_halogs.sh"
+        {
+            "PageText": "状态巡检",
+            "PageType": "NA",
+            "Shell": "NA",
+            "Image": "STATE",
+            "SubTree": [
+                {
+                    "PageText": "进程状态",
+                    "PageType": ["ONLY_TEXT_SHOW"],
+                    "Shell": "get_process_state.sh",
+                    "Image": "PROCSTATE",
+                    "SubTree": []
+                },
+                {
+                    "PageText": "服务器状态",
+                    "PageType": "NA",
+                    "Shell": "NA",
+                    "Image": "SYSSTATE",
+                    "SubTree": [
+                        {
+                            "PageText": "内存状态",
+                            "PageType": ["ONLY_TEXT_SHOW"],
+                            "Shell": "get_system_memory_state.sh",
+                            "Image": "MEMSTATE",
+                            "SubTree": []
+                        },
+                        {
+                            "PageText": "CPU状态",
+                            "PageType": ["ONLY_TEXT_SHOW"],
+                            "Shell": "get_system_cpu_state.sh",
+                            "Image": "CPUSTATE",
+                            "SubTree": []
+                        },
+                        {
+                            "PageText": "IO状态",
+                            "PageType": ["ONLY_TEXT_SHOW"],
+                            "Shell": "get_system_io_state.sh",
+                            "Image": "IOSTATE",
+                            "SubTree": []
+                        },
+                        {
+                            "PageText": "磁盘状态",
+                            "PageType": ["ONLY_TEXT_SHOW"],
+                            "Shell": "get_system_disk_state,sh",
+                            "Image": "DISKSTATE",
+                            "SubTree": []
+                        }
+                    ]
+                }
+            ]
         },
-		{
-            "name": "StatePage",
-            "text": "主备状态",
-            "shell": "collect_state.sh"
-        },
-		{
-            "name": "TimezonePage",
-            "text": "时区夏令时",
-            "shell": "reserve.sh"
+        {
+            "PageText": "快速执行",
+            "PageType": "NA",
+            "Shell": "NA",
+            "Image": "EXEC",
+            "SubTree": [
+                {
+                    "PageText": "运行命令",
+                    "PageType": ["ONLY_TEXT_EDIT"],
+                    "Shell": "run_command.sh",
+                    "Image": "RUNCMD",
+                    "SubTree": []
+                },
+                {
+                    "PageText": "下载文件",
+                    "PageType": ["ONLY_ENTRY_EDIT"],
+                    "Shell": "NA",
+                    "Image": "DOWNLOAD",
+                    "SubTree": []
+                },
+                {
+                    "PageText": "上传文件",
+                    "PageType": ["ONLY_ENTRY_EDIT"],
+                    "Shell": "NA",
+                    "Image": "UPLOAD",
+                    "SubTree": []
+                }
+            ]
         }
-    ],
-
-    "StatePageStruct": [
-        {
-            "name": "OPTIONS",
-            "text": "项目  \\  IP地址"
-        },
-        {
-            "name": "HA_MODE",
-            "text": "主备模式"
-        },
-        {
-            "name": "HA_STATUS",
-            "text": "运行状态"
-        },
-        {
-            "name": "MRS_HA_MODE",
-            "text": "MRS容灾模式"
-        },
-        {
-            "name": "REMOTE_IP",
-            "text": "灾备对端IP"
-        },
-        {
-            "name": "KEEPALIVED_STATUS",
-            "text": "keepalived状态"
-        },
-        {
-            "name": "MYSQL_STATUS",
-            "text": "MySQL运行状态"
-        },
-        {
-            "name": "MYSQL_SYNC",
-            "text": "MySQL同步状态"
-        },
-        {
-            "name": "FILE_SYNC",
-            "text": "文件同步状态"
-        },
-        {
-            "name": "SSH_TRUST",
-            "text": "与对端SSH互信状态"
-        },
-        {
-            "name": "VIP_STATUS",
-            "text": "浮动IP状态"
-        },
-        {
-            "name": "HA_ALARM",
-            "text": "主备容灾告警"
-        }
-    ],
-
-    "QuickLogList": [
-        "PLT进程日志",
-        "MDC进程日志",
-        "UDC进程日志",
-        "系统相关日志"
     ]
 }

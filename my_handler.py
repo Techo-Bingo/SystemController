@@ -354,7 +354,7 @@ class PageHandler:
         cls.start_shell('download', callback, ip, shell, param)
 
     @classmethod
-    def get_otherlog_start(cls, callback, ip_list, shell, param):
+    def options_download_start(cls, callback, ip_list, shell, param):
         for ip in ip_list:
             cls.start_shell('download', callback, ip, shell, param)
 

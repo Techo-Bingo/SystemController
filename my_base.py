@@ -2,7 +2,7 @@
 
 import time
 import tkinter as tk
-import my_global as Global
+# import my_global as Global
 
 
 class EnvError(Exception):
@@ -99,6 +99,8 @@ class Handler(object):
 
 class Pager(object):
     master = None
+    width = None
+    height = None
     frame = None
     _showing = False
 
@@ -109,7 +111,7 @@ class Pager(object):
 
     def _init(self):
         self._showing = True
-        self.frame = tk.LabelFrame(self.master, width=Global.G_MAIN_MIDD_WIDTH-1, height=Global.G_MAIN_VIEW_HEIGHT-1)
+        self.frame = tk.LabelFrame(self.master, width=self.width-1, height=self.height-1)
         self.frame.pack()
         self.frame.pack_propagate(0)
 

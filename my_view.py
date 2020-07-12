@@ -12,7 +12,7 @@ from my_page import PageCtrl
 from my_handler import LoginHandler
 from my_viewutil import WinMsg, ViewUtil, ToolTips
 from my_bond import Bonder, Packer, Define
-from my_module import SubLogin, LabelButton, InfoWindow, TopProgress, MyButton
+from my_module import SubLogin, LabelButton, InfoWindow, TopProgress, MyButton, MyTreeView
 
 
 class Gui(tk.Tk):
@@ -99,7 +99,7 @@ class GuiLogin(GuiBase):
         self.func_win = tk.Frame(height=Global.G_LGN_FUNC_HEIGHT, **win_style)
         self.foot_win = tk.Frame(height=Global.G_LGN_FOOT_HEIGHT, **win_style)
         self.login_fm = tk.LabelFrame(self.func_win,
-                                      text=' 用 户 登 录 ',
+                                      text=' 登录服务器 ',
                                       font=('楷体', 12),
                                       labelanchor='n')
 
@@ -127,9 +127,6 @@ class GuiLogin(GuiBase):
         eye_img = ViewUtil.get_image('EYE')
         # 顶部图片
         tk.Label(self.head_win, image=head_img).pack()
-        # 2个label占位用
-        tk.Label(self.login_fm, font=(Global.G_FONT, 6)).grid(row=0, column=0)
-        tk.Label(self.login_fm).grid(row=1, column=0)
         # 输入框提示词
         tk.Label(text='IP', **lab_style).grid(row=1, column=1)
         tk.Label(text='用户名', **lab_style).grid(row=1, column=2)
@@ -152,7 +149,7 @@ class GuiLogin(GuiBase):
                   activebackground=Global.G_DEFAULT_COLOR,
                   bg=Global.G_DEFAULT_COLOR,
                   command=self.show_menu
-                  ).pack(side=tk.LEFT, padx=50)
+                  ).pack(side='left', padx=50)
         # 一键登录按钮
         self.login_btn = MyButton(self.foot_win,
                                   text='一  键  登  录',
@@ -168,7 +165,7 @@ class GuiLogin(GuiBase):
                   activebackground=Global.G_DEFAULT_COLOR,
                   bg=Global.G_DEFAULT_COLOR,
                   command=self.add_sublogin
-                  ).pack(side=tk.LEFT, padx=50)
+                  ).pack(side='left', padx=50)
 
     def add_sublogin(self):
         """ 增加登录子版块 """
@@ -204,90 +201,71 @@ class GuiMain(GuiBase):
     def __init__(self, master, position):
         self.master = master
         self.position = position
-        self.left_win = None
-        self.midd_win = None
-        self.right_win = None
+        self.tree_window = None
+        self.oper_window = None
+        self.outer_window = None
         self.info_fm = None
-        self.view_fm = None
+        self.oper_fm = None
         self.page = None
 
     def init_frame(self):
         win_style = {'master': self.master,
                      'height': Global.G_MAIN_WIN_HEIGHT
                      }
-        self.left_win = tk.Frame(width=Global.G_MAIN_LEFT_WIDTH, bg='SkyBlue4', **win_style)
-        self.midd_win = tk.Frame(width=Global.G_MAIN_MIDD_WIDTH, **win_style)
-        fm_style = {'master': self.midd_win,
-                    'width': Global.G_MAIN_MIDD_WIDTH,
-                    'background': Global.G_MAIN_VIEW_BG
+        self.tree_window = tk.Frame(width=Global.G_MAIN_TREE_WIDTH, bg='SkyBlue4', **win_style)
+        self.oper_window = tk.Frame(width=Global.G_MAIN_OPER_WIDTH, **win_style)
+        fm_style = {'master': self.oper_window,
+                    'width': Global.G_MAIN_OPER_WIDTH,
+                    'background': Global.G_MAIN_OPER_BG
                     }
-        self.view_fm = tk.Frame(height=Global.G_MAIN_VIEW_HEIGHT, **fm_style)
-        self.info_fm = tk.Frame(height=Global.G_MAIN_WIN_HEIGHT -
-                                       Global.G_MAIN_VIEW_HEIGHT, **fm_style)
+        self.oper_fm = tk.Frame(height=Global.G_MAIN_OPER_HEIGHT, **fm_style)
+        self.info_fm = tk.Frame(height=Global.G_MAIN_INFO_HEIGHT, **fm_style)
 
     def pack_frame(self):
-        self.position(Global.G_MAIN_LEFT_WIDTH +
-                      Global.G_MAIN_MIDD_WIDTH + 
-                      Global.G_MAIN_RIGHT_WIDTH,
-                      Global.G_MAIN_WIN_HEIGHT)
-        self.left_win.pack(side=tk.LEFT)
-        self.midd_win.pack(side=tk.LEFT)
-        self.left_win.pack_propagate(0)
-        self.midd_win.pack_propagate(0)
+        self.tree_window.pack(side='left')
+        self.oper_window.pack(side='left')
+        self.tree_window.pack_propagate(0)
+        self.oper_window.pack_propagate(0)
         self.pack_subframe()
+        self.position(Global.G_MAIN_WIN_WIDTH, Global.G_MAIN_WIN_HEIGHT)
+
+    def init_treeview(self):
+        MyTreeView(self.tree_window, ViewUtil.get_treeview_data(), self.switch_page)
 
     def pack_subframe(self):
-        intvar = tk.IntVar()
-        # intvar.set(1)
-        for sub in Global.G_PAGES_NAME_DATA:
-            try:
-                _name = sub['name']
-                _txt = sub['text']
-                _shell = sub['shell']
-            except Exception as e:
-                ToolTips.inner_error(e)
-                return
-            LabelButton(self.left_win,
-                        name=_name,
-                        shell=_shell,
-                        intvar=intvar,
-                        text=_txt,
-                        command=self.switch_page
-                        ).pack()
-        self.view_fm.pack()
-        self.info_fm.pack()
-        self.view_fm.pack_propagate(0)
+        self.init_treeview()
+        self.oper_fm.pack(fill='both')
+        self.info_fm.pack(fill='both')
+        self.oper_fm.pack_propagate(0)
         self.info_fm.pack_propagate(0)
         """ 初始化信息提示栏 """
         InfoWindow(self.info_fm)
         """ 初始化page """
         self.page = PageCtrl(self.interface)
         self.page.default_page()
-        self.view_rightwin(True)
+        # self.show_outer_window(True)
 
-    def switch_page(self, name, shell):
-        self.page.switch_page(name, shell)
-
-    def view_rightwin(self, show=False):
+    def show_outer_window(self, show=False):
         if show:
-            if self.right_win:
+            if self.outer_window:
                 return
-            self.right_win = tk.Frame(self.master,
-                                      width=Global.G_MAIN_RIGHT_WIDTH,
-                                      height=Global.G_MAIN_WIN_HEIGHT
-                                      )
-            self.right_win.pack(side=tk.LEFT)
-            self.right_win.pack_propagate(0)
+            self.outer_window = tk.Frame(self.master, width=Global.G_MAIN_OUTER_WIDTH, height=Global.G_MAIN_WIN_HEIGHT)
+            self.outer_window.pack(side='left')
+            self.outer_window.pack_propagate(0)
         else:
-            if not self.right_win:
+            if not self.outer_window:
                 return
-            self.right_win.destroy()
-            self.right_win = None
-    
+            self.outer_window.destroy()
+            self.outer_window = None
+
+    def switch_page(self, args_tuple):
+        page_text, page_type_info, shell = args_tuple
+        self.page.switch_page(page_text, page_type_info, shell)
+
     def interface(self, key):
         if key == 'get_master':
-            return self.view_fm
-        elif key == 'get_width_height':
-            return Global.G_MAIN_MIDD_WIDTH, Global.G_MAIN_VIEW_HEIGHT
+            return self.oper_fm
+        elif key == 'get_range':
+            return Global.G_MAIN_OPER_WIDTH, Global.G_MAIN_OPER_HEIGHT
 
             

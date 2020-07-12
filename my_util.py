@@ -98,7 +98,6 @@ class Init:
                 raise EnvError("%s is not exist" % Global.G_SETTING_FILE)
 
             package = "%s\\%s" % (Global.G_CMDS_DIR, Global.G_PACKAGE_NAME)
-
             if not Common.is_file(package):
                 raise EnvError("%s is not exist" % package)
         except EnvError as e:
@@ -110,9 +109,8 @@ class Init:
     @classmethod
     def _page_details(cls, json_data):
         # 设置state page显示的结构的全局变量
-        Global.G_STATE_PAGE_STRUCT = json_data['StatePageStruct']
-        # 其他日志的名称列表
-        Global.G_OTHER_LOG_STRUCT = json_data['QuickLogList']
+        # Global.G_STATE_PAGE_STRUCT = json_data['StatePageStruct']
+        pass
 
     @classmethod
     def _image_init(cls, image_data):
@@ -126,23 +124,18 @@ class Init:
     @classmethod
     def conf_parser(cls):
         try:
-            """ dependance.json解析 """
+            # dependance.json解析
             _depend_data = JSONParser.parser(Global.G_DEPEND_FILE)
-
-            """ settings.json解析 """
+            # settings.json解析
             _setting_data = JSONParser.parser(Global.G_SETTING_FILE)
-
-            """ ViewModel初始化 """
-            if not ViewModel.init(_depend_data['ModelMap'], _setting_data['Setting']):
+            # ViewModel初始化
+            if not ViewModel.init(_setting_data['Setting']):
                 raise FileError("Settings init failed !")
-
-            """ 数据初始化 """
             # 图片数据
             cls._image_init(_depend_data['Images'])
-            # 页签数据
-            Global.G_PAGES_NAME_DATA = _depend_data['Pages']
-
-            """ 页面结构等数据初始化 """
+            # TreeView数据
+            ViewModel.cache('TREE_VIEW_DATA_LIST', type='ADD', data=_depend_data['Tree'])
+            # 一些自定义界面的数据结构等初始化
             cls._page_details(_depend_data)
         except Exception as e:
             Logger.error(e)

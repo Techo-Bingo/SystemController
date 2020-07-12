@@ -11,6 +11,7 @@ from my_viewutil import ToolTips, ViewUtil, WinMsg
 from my_timezone import TimezonePage
 
 
+'''
 class StatePage(Pager):
     """ 主备状态页面 """
 
@@ -100,6 +101,7 @@ class StatePage(Pager):
     def call_back(self, *args):
         if self.alive():
             self.fill_data(args[0])
+'''
 
 
 class HALogPage(Pager):
@@ -201,41 +203,43 @@ class BinlogPage(Pager):
             self.progress[ip].update(value, color)
 
 
-class QuickLogPage(Pager):
+class OptionDownloadTypePage(Pager):
     """ 快速日志获取 """
 
-    def __init__(self, interface, shell, ip_list):
+    def __init__(self, interface, options, shell, ip_list):
         self.master = interface('get_master')
+        self.width, self.height = interface('get_range')
+        self.options = options
         self.shell = shell
         self.ip_list = ip_list
         self.progress = {}
-        self.selected_log = []
+        self.selected_opt = []
         self.selected_ip = []
 
     def stepper(self):
         self.pack_frame()
 
     def pack_frame(self):
-        log_fm = tk.LabelFrame(self.frame, text='日志选择')
-        ips_fm = tk.LabelFrame(self.frame)
-        log_fm.pack()
-        ips_fm.pack()
-        # tk.Checkbutton(log_fm, text='全部').grid(row=0, column=0)
+        opt_fm = tk.LabelFrame(self.frame, width=self.width, height=self.height/5*4, text='选项列表')
+        ips_fm = tk.LabelFrame(self.frame, width=self.width, height=self.height/5, text='服务器列表')
+        opt_fm.pack(fill='both', pady=5)
+        ips_fm.pack(fill='both')
         max_column = 3
         index, row, column = 0, 0, 0
         """ 日志类型布局 """
-        for name in Global.G_OTHER_LOG_STRUCT:
-            self.selected_log.append(0)
+        for opt in self.options:
+
+            self.selected_opt.append(0)
             column = index - (row * max_column)
             index += 1
             if column == max_column:
                 row += 1
                 column = 0
-            tk.Checkbutton(log_fm,
-                           text=name,
+            tk.Checkbutton(opt_fm,
+                           text=opt,
                            anchor='w',
                            width=30,
-                           command=lambda _x=index: self.select_log(_x)
+                           command=lambda _x=index: self.select_opt(_x)
                            ).grid(row=row, column=column)
         """ IP和按钮等布局 """
         row = 0
@@ -267,61 +271,31 @@ class QuickLogPage(Pager):
         if ip not in self.selected_ip:
             self.selected_ip.append(ip)
 
-    def select_log(self, index):
-        value = self.selected_log[index - 1]
+    def select_opt(self, index):
+        value = self.selected_opt[index - 1]
         if value:
-            self.selected_log[index - 1] = 0
+            self.selected_opt[index - 1] = 0
         else:
-            self.selected_log[index - 1] = 1
+            self.selected_opt[index - 1] = 1
 
     def start_wrapper(self, event=None):
-        if not any(self.selected_log):
+        if not any(self.selected_opt):
             WinMsg.warn("请至少选择一项日志")
             return
         if not self.selected_ip:
             WinMsg.warn("请勾选IP地址")
             return
-        param = '|'.join([str(x) for x in self.selected_log])
-        PageHandler.get_otherlog_start(self.call_back,
+        param = '|'.join([str(x) for x in self.selected_opt])
+        PageHandler.options_download_start(self.call_back,
                                        self.selected_ip,
                                        self.shell,
-                                       param
-                                       )
+                                       param)
 
     def call_back(self, *args):
         ip, value, color = args
         if self.alive():
             self.progress[ip].update(value, color)
 
-
-class LogCheckPage(Pager):
-    def __init__(self, master, shell, ip_list):
-        ToolTips.inner_warn("暂不支持")
-
-
-class HAConfigPage(Pager):
-    def __init__(self, master, shell, ip_list):
-        ToolTips.inner_warn("暂不支持")
-
-
-class DownloadPage(Pager):
-    def __init__(self, master, shell, ip_list):
-        ToolTips.inner_warn("暂不支持")
-
-
-class ReservePage1(Pager):
-    def __init__(self, master, shell, ip_list):
-        ToolTips.inner_warn("暂不支持")
-
-
-class ReservePage2(Pager):
-    def __init__(self, master, shell, ip_list):
-        ToolTips.inner_warn("暂不支持")
-
-
-class ReservePage3(Pager):
-    def __init__(self, master, shell, ip_list):
-        ToolTips.inner_warn("暂不支持")
 
 
 class PageCtrl(object):
@@ -333,18 +307,18 @@ class PageCtrl(object):
         self.current_page = None
         self.images_fm = tk.Frame(interface('get_master'))
         self.images_fm.pack()
-        # 图片
-        tk.Label(self.images_fm, image=ViewUtil.get_image('BINGO')).pack()
+        # 首页图片
+        tk.Label(self.images_fm, image=ViewUtil.get_image('BINGO')).pack(fill='both')
 
     @classmethod
     def default_page(self):
         """ 默认界面的处理 """
         PageHandler.default_page_deal()
 
-    def switch_page(self, name, shell):
-        if self.current == name:
+    def switch_page(self, page_text, page_type_info, shell):
+        if self.current == page_text:
             return
-        self.current = name
+        self.current = page_text
         if self.images_fm:
             self.images_fm.destroy()
             self.images_fm = None
@@ -352,8 +326,40 @@ class PageCtrl(object):
             self.current_page.destroy()
         except:
             pass
+        page_type_info = page_type_info.replace('\\{', '(').replace('\\}', ')').replace('{', '').replace('}', '').replace(',', '')
+        page_type, page_options = page_type_info.split()[0], page_type_info.split()[1:]
         try:
-            class_name = eval(name)
+            if page_type == 'ONLY_DOWNLOAD':
+                return
+            elif page_type == 'OPTION_DOWNLOAD':
+                self.current_page = OptionDownloadTypePage(self.interface,
+                                                           page_options,
+                                                           shell,
+                                                           ViewUtil.get_ssh_ip_list())
+            elif page_type == 'ONLY_TEXT_SHOW':
+                return
+            elif page_type == 'ONLY_TEXT_EDIT':
+                return
+            elif page_type == 'ONLY_ENTRY_EDIT':
+                return
+            elif page_type == 'SELF':
+                # 自定义界面，page_options第一个元素为类名，后面的为参数
+                class_name = eval(page_options[0])
+                params = [] if len(page_options) == 1 else page_options[1:]
+                self.current_page = class_name(interface=self.interface,
+                                               shell=shell,
+                                               ip_list=ViewUtil.get_ssh_ip_list(),
+                                               params=params)
+            else:
+                raise Exception("未知界面类型： %s" % page_type)
+            self.current_page.pack()
+        except Exception as e:
+            ToolTips.inner_error(e)
+            Logger.error(traceback.format_exc())
+
+        '''
+        try:
+            class_name = eval(page_name)
             self.current_page = class_name(interface=self.interface,
                                            shell=shell,
                                            ip_list=ViewUtil.get_ssh_ip_list()
@@ -362,7 +368,7 @@ class PageCtrl(object):
         except Exception as e:
             ToolTips.inner_error(e)
             Logger.error(traceback.format_exc())
-
+        '''
 
 
 

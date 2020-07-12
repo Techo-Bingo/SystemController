@@ -2,7 +2,7 @@
 	"Setting": {
 		"tool_named": "通用远程工具",
 
-		"tool_version": "2.0",
+		"tool_version": "2.1",
 
 		"log_level": "debug",
 		
@@ -15,7 +15,7 @@
 		"passwords": {
 			"username": "ubp",
 			"userpassword": "eLTE@com123",
-			"rootpassword": "eLTE@com"
+			"rootpassword": "eLTE@com123"
 		}
 	}
 }

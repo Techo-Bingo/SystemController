@@ -10,10 +10,16 @@ class ViewModel:
     _cache_map = {}
     _cache = None
     _setting = None
+    _ModelMap = {"SCREEN_SIZE_LIST": "screen_size_list",
+                 "CONF_IMAGE_DICT": "conf_image_dict",
+                 "LOGON_SSH_DICT": "logon_ssh_dict",
+                 "SUBLOGIN_INDEX_LIST": "sublogin_index_list",
+                 "GET_INFOWIN_EVT_FLAG": "get_infowin_flag",
+                 "SET_INFOWIN_EVT_FLAG": "set_infowin_flag",
+                 "TREE_VIEW_DATA_LIST": "treeview_data_list"}
 
     @classmethod
-    def init(cls, modelmap, settingmap):
-        cls._cache_map = modelmap
+    def init(cls, settingmap):
         cls._cache = Cache()
         cls._setting = Settings()
         return cls._setting.init(settingmap)
@@ -24,9 +30,9 @@ class ViewModel:
         数据操作；
         根据消息字串映射成具体的model函数名
         """
-        if message not in cls._cache_map:
+        if message not in cls._ModelMap:
             return None
-        func_str = "cls._cache.%s" % cls._cache_map[message]
+        func_str = "cls._cache.%s" % cls._ModelMap[message]
         func = eval(func_str)
 
         if type == 'ADD':

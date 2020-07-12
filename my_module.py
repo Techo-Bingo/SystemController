@@ -278,6 +278,53 @@ class ProgressBar(object):
         self.fglab.destroy()
 
 
+class MyTreeView(object):
+    """ 侧边折叠菜单栏 """
+    def __init__(self, master, treelist, callback):
+        self.master = master
+        self.treelist = treelist
+        self.callback = callback
+        self.treeview = None
+        self.init_event()
+        self.init_frame()
+
+    def init_event(self):
+        pass
+
+    def _add_subtree(self, root, id=''):
+        page_text = ' ' + root['PageText']
+        page_type = root['PageType']
+        shell = root['Shell']
+        img_key = root['Image']
+        subtree = root['SubTree']
+        if page_type == 'NA':
+            tag, values = 'tree.root', ()
+        else:
+            tag, values = 'tree.sub', (page_text, page_type, shell)
+        img = ViewUtil.get_image(img_key)
+        sub_id = self.treeview.insert(id, 'end', text=page_text, image=img, tags=(tag, 'simple'), values=values)
+        # TODO 设置项 或者 工具栏快捷键
+        # 展开所有子树
+        # self.treeview.item(sub_id, open=True)
+        if isinstance(subtree, list) and len(subtree) != 0:
+            [self._add_subtree(sub, sub_id) for sub in subtree]
+
+    def init_frame(self):
+        self.treeview = ttk.Treeview(self.master, height=50, show="tree")
+        self.treeview.tag_configure('tree.sub', font=('宋体', 12))
+        self.treeview.tag_configure('tree.root', font=('宋体', 12, 'bold'))
+        self.treeview.bind('<<TreeviewSelect>>', self.command)
+        [self._add_subtree(root) for root in self.treelist]
+        self.treeview.pack(fill='both')
+
+    def command(self, event=None):
+        args_tuple = self.treeview.item(self.treeview.selection()[-1], "values")
+        # (page_name, page_type, shell)
+        if len(args_tuple) != 3:
+            return
+        self.callback(args_tuple)
+
+
 class InfoWindow(object):
     """ 消息提示栏 """
 
@@ -298,7 +345,7 @@ class InfoWindow(object):
                                                   relief='ridge',
                                                   fg='Blue',
                                                   bg='Snow', #'AliceBlue',
-                                                  height=12,
+                                                  height=20,
                                                   width=110
                                                   )
         self.infotext.insert(tk.END, Global.G_WELCOME_INFO)
@@ -321,9 +368,9 @@ class InfoWindow(object):
                                       str(info)
                                       )
         self.infotext['stat'] = 'normal'
-        self.infotext.insert(tk.END, info)
+        self.infotext.insert('end', info)
         self.index += 1
-        line = self.infotext.index(tk.END)
+        line = self.infotext.index('end')
         line = int(line.split('.')[0]) - 1
         self.infotext.tag_add('BINGO{}'.format(self.index),
                               '{}.0'.format(line),
@@ -332,7 +379,7 @@ class InfoWindow(object):
         self.infotext.tag_config('BINGO{}'.format(self.index),
                                  foreground=color
                                  )
-        self.infotext.see(tk.END)
+        self.infotext.see('end')
         self.infotext['stat'] = 'disabled'
 
 
@@ -353,12 +400,13 @@ class LabelButton(object):
                                      indicatoron=0,
                                      value=name,
                                      text=text,
-                                     justify=tk.LEFT,
+                                     justify='left',
                                      font=('宋体', 14),
-                                     command=self.click
+                                     command=self._click
                                      )
         self.button.bind("<Enter>", self.enter)
         self.button.bind("<Leave>", self.leave)
+        self.button.pack(fill='both')
 
     def enter(self, event=None):
         self.button['fg'] = 'Brown1'
@@ -368,10 +416,7 @@ class LabelButton(object):
         self.button['fg'] = 'Snow'
         self.button['bg'] = 'SkyBlue4'
 
-    def pack(self):
-        self.button.pack(ipady=12)
-
-    def click(self, event=None):
+    def _click(self, event=None):
         self.command(self.name, self.shell)
 
 
@@ -395,7 +440,7 @@ class MyButton(object):
                                 )
         self.button.bind("<Enter>", self.enter)
         self.button.bind("<Leave>", self.leave)
-        self.button.pack(side=tk.LEFT)
+        self.button.pack(side='left')
 
     def enter(self, event=None):
         self.button['bg'] = 'Grey27'  # 'DodgerBlue4'
@@ -480,7 +525,7 @@ class TopAbout:
         cls._toplevel.protocol("WM_DELETE_WINDOW", cls.close)
         ViewUtil.set_centered(cls._toplevel, width, height + 100)
         # 图标
-        tk.Label(cls._toplevel, image=ViewUtil.get_image('ABOUT')).pack(ipady=5)
+        tk.Label(cls._toplevel, image=ViewUtil.get_image('ABOUT')).pack()
         # 中间部分说明
         _infolab = tk.Label(cls._toplevel,
                             bg='Snow',
@@ -488,7 +533,7 @@ class TopAbout:
                             text=Global.G_ABOUT_INFO,
                             font=(Global.G_FONT, 10)
                             )
-        _infolab.pack(fill=tk.BOTH, ipady=5)
+        _infolab.pack(fill='both', ipady=5)
         # 底部版权说明
         tk.Label(cls._toplevel, text=Global.G_COPYRIGHT_INFO).pack()
 
@@ -496,3 +541,6 @@ class TopAbout:
     def close(cls, event=None):
         cls._showing = False
         cls._toplevel.destroy()
+
+
+

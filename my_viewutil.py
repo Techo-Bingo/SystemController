@@ -134,3 +134,6 @@ class ViewUtil:
     def get_ssh_ip_list(cls):
         return list(ViewModel.cache('LOGON_SSH_DICT', type='QUE').keys())
 
+    @classmethod
+    def get_treeview_data(cls):
+        return ViewModel.cache('TREE_VIEW_DATA_LIST', type='QUE')[-1]
