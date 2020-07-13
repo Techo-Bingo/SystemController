@@ -46,10 +46,7 @@ class ToolTips:
         cls._infowin_msg(info, 'WARN')
 
     @classmethod
-    def widget_tips(cls,
-                    widget,
-                    region='background',
-                    back=Global.G_DEFAULT_COLOR):
+    def widget_tips(cls, widget, region='background', back=Global.G_DEFAULT_COLOR):
         Common.create_thread(cls._change_color, args=(widget, region, back))
 
     @classmethod
@@ -77,7 +74,7 @@ class ToolTips:
 class ViewUtil:
     """
     view板块数据获取接口
-    函数名要求：<动词>_xx
+    函数名要求：<动词>_<宾语>
     """
 
     @classmethod
@@ -87,17 +84,15 @@ class ViewUtil:
     @classmethod
     def set_centered(cls, widget, width=None, height=None):
         try:
-            s_width, s_height = ViewModel.cache('SCREEN_SIZE_LIST',
-                                                type='QUE'
-                                                )[-1]
+            s_width, s_height = ViewModel.cache('SCREEN_SIZE_LIST', type='QUE')[-1]
             if not width:
                 width = widget.width
             if not height:
                 height = widget.height
-            widget.geometry('+%d+%d' % (
-                           (s_width - width) / 2,
-                           (s_height - height) / 2)
-                            )
+            # 太大可能是多屏，中间显示效果不好，只在单屏上显示
+            if s_width > 3000:
+                s_width = s_width // 2
+            widget.geometry('%sx%s+%s+%s' % (width, height, (s_width-width)//2, (s_height-height)//2))
         except:
             pass
 
