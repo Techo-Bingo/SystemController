@@ -415,7 +415,10 @@ class LabelButton(object):
     def leave(self, event=None):
         self.button['fg'] = 'Snow'
         self.button['bg'] = 'SkyBlue4'
-
+    
+    def pack(self):
+        self.button.pack(ipady=12)
+        
     def _click(self, event=None):
         self.command(self.name, self.shell)
 
@@ -463,24 +466,16 @@ class TopProgress:
 
     @classmethod
     def start(cls, msg=None):
-        try:
-            width, height = msg
-        except:
-            width, height = cls._top_size
+        width, height = cls._top_size
         cls._toplevel = tk.Toplevel()
         cls._toplevel.title('请稍候')
         cls._toplevel.resizable(False, False)
-        # cls._toplevel.overrideredirect(True)
         cls._toplevel.wm_attributes('-topmost', 1)
-        cls._toplevel.geometry('%sx%s' % (width, height))
         cls._toplevel.protocol("WM_DELETE_WINDOW", cls.close)
-        ViewUtil.set_centered(cls._toplevel, width, height+100)
+        ViewUtil.set_centered(cls._toplevel, width, height)
         cls._infolab = tk.Label(cls._toplevel, font=(Global.G_FONT, 11))
         cls._infolab.pack(pady=8)
-        cls._progress = ttk.Progressbar(cls._toplevel,
-                                        mode='indeterminate',
-                                        length=250
-                                        )
+        cls._progress = ttk.Progressbar(cls._toplevel, mode='indeterminate', length=250)
         cls._progress.pack(ipady=3)
         """ 开始滑块，并设置速度 """
         cls._progress.start(10)
@@ -521,9 +516,8 @@ class TopAbout:
         cls._toplevel.title('关于软件')
         cls._toplevel.resizable(False, False)
         cls._toplevel.wm_attributes('-topmost', 1)
-        cls._toplevel.geometry('%sx%s' % (width, height))
         cls._toplevel.protocol("WM_DELETE_WINDOW", cls.close)
-        ViewUtil.set_centered(cls._toplevel, width, height + 100)
+        ViewUtil.set_centered(cls._toplevel, width, height)
         # 图标
         tk.Label(cls._toplevel, image=ViewUtil.get_image('ABOUT')).pack()
         # 中间部分说明
