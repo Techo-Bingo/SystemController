@@ -4,7 +4,7 @@ View板块;
 处理逻辑，不包含数据
 """
 import tkinter as tk
-# from tkinter import ttk
+from tkinter import ttk
 import my_global as Global
 from my_base import GuiBase
 from my_common import Common
@@ -17,7 +17,6 @@ from my_module import SubLogin, LabelButton, InfoWindow, TopProgress, MyButton, 
 
 class Gui(tk.Tk):
     """ 界面入口基类 """
-    _master_frame = None
     _in_main_gui = False
 
     def __init__(self):
@@ -40,8 +39,11 @@ class Gui(tk.Tk):
         self.resizable(False, False)
         ViewUtil.set_maxsize(self.maxsize())
 
-    def position(self, width, height):
-        ViewUtil.set_centered(self, width, height)
+    def setsize(self, width, height, reposition=True):
+        if reposition:
+            ViewUtil.set_centered(self, width, height)
+        else:
+            self.geometry('%sx%s' % (width, height))
 
     def pack(self):
         self.settitle()
@@ -57,23 +59,25 @@ class Gui(tk.Tk):
         self.bonder.unbond(Global.EVT_LOGIN_GUI)
         self.bonder.unbond(Global.EVT_MAIN_GUI)
         self.destroy()
-        """
-        Define.undefine(Global.EVT_CALL_WIN_INFO)
-        Define.undefine(Global.EVT_CALL_WIN_WARN)
-        Define.undefine(Global.EVT_CALL_WIN_ERROR)
-        Define.undefine(Global.EVT_CALL_WIN_ASK)
-        """
 
     def Login(self, msg=None):
         """ 登录界面 """
-        self._master_frame = tk.Frame(self)
-        login = GuiLogin(self._master_frame, self.position)
+        master_frame = tk.Frame(self)
+        master_frame.pack()
+        login = GuiLogin(master_frame, self.setsize)
         login.show()
 
     def Main(self, msg=None):
-        """ 主操作界面 """
-        self._master_frame = tk.Frame(self)
-        main = GuiMain(self._master_frame, self.position)
+        # 菜单栏
+        menu_bar = tk.Menu(self)
+        self.config(menu=menu_bar)
+        # 工具栏
+        tool_frame = tk.Frame(self)
+        tool_frame.pack(fill='x')
+        # 主界面
+        master_frame = tk.Frame(self)
+        master_frame.pack()
+        main = GuiMain(menu_bar, tool_frame, master_frame, self.setsize)
         main.show()
         self._in_main_gui = True
 
@@ -81,9 +85,9 @@ class Gui(tk.Tk):
 class GuiLogin(GuiBase):
     """ 登录窗 """
 
-    def __init__(self, master, position):
+    def __init__(self, master, setsize):
         self.master = master
-        self.position = position
+        self.setsize = setsize
         self.head_win = None
         self.func_win = None
         self.foot_win = None
@@ -93,8 +97,7 @@ class GuiLogin(GuiBase):
     def init_frame(self):
         win_style = {'master': self.master,
                      'width': Global.G_LGN_WIN_WIDTH,
-                     'background': Global.G_DEFAULT_COLOR
-                     }
+                     'background': Global.G_DEFAULT_COLOR}
         self.head_win = tk.Frame(height=Global.G_LGN_HEAD_HEIGHT, **win_style)
         self.func_win = tk.Frame(height=Global.G_LGN_FUNC_HEIGHT, **win_style)
         self.foot_win = tk.Frame(height=Global.G_LGN_FOOT_HEIGHT, **win_style)
@@ -104,29 +107,23 @@ class GuiLogin(GuiBase):
                                       labelanchor='n')
 
     def pack_frame(self):
-        self.position(Global.G_LGN_WIN_WIDTH, 
-                      Global.G_LGN_HEAD_HEIGHT + 
-                      Global.G_LGN_FUNC_HEIGHT + 
-                      Global.G_LGN_FOOT_HEIGHT)
-        self.head_win.pack()
-        self.func_win.pack()
-        self.login_fm.pack()
-        self.foot_win.pack()
+        self.head_win.pack(fill='both')
+        self.func_win.pack(fill='both')
+        self.login_fm.pack(fill='both')
+        self.foot_win.pack(fill='both')
         '''固定Frame的长和宽，不会随其中的控件多少改变'''
         self.head_win.pack_propagate(0)
         self.func_win.pack_propagate(0)
         self.foot_win.pack_propagate(0)
         # 子控件布局
         self.pack_subframe()
+        self.setsize(Global.G_LGN_WIN_WIDTH, Global.G_LGN_WIN_HEIGHT)
 
     def pack_subframe(self):
         lab_style = {'master': self.login_fm,
-                     'font': (Global.G_FONT, 10)
-                     }
-        head_img = ViewUtil.get_image('HEAD')
-        eye_img = ViewUtil.get_image('EYE')
+                     'font': (Global.G_FONT, 10)}
         # 顶部图片
-        tk.Label(self.head_win, image=head_img).pack()
+        tk.Label(self.head_win, image=ViewUtil.get_image('HEAD')).pack(fill='both')
         # 输入框提示词
         tk.Label(text='IP', **lab_style).grid(row=1, column=1)
         tk.Label(text='用户名', **lab_style).grid(row=1, column=2)
@@ -135,20 +132,20 @@ class GuiLogin(GuiBase):
         # 添加一个登录子版块
         self.add_sublogin()
         # 小眼睛
-        eyebtn = tk.Button(self.login_fm, image=eye_img, bd=0)
+        eyebtn = tk.Button(self.login_fm, image=ViewUtil.get_image('EYE'), bd=0)
         eyebtn.grid(row=2, column=5, padx=3)
         eyebtn.bind("<Button-1>",
                     lambda event: Packer.call(Global.EVT_SEE_PSWD_ON))
         eyebtn.bind("<ButtonRelease-1>",
                     lambda event: Packer.call(Global.EVT_SEE_PSWD_OFF))
-        # 菜单按钮
+        # 选项按钮
         tk.Button(self.foot_win,
                   text='☰',
                   font=(Global.G_FONT, 18),
                   bd=0,
                   activebackground=Global.G_DEFAULT_COLOR,
                   bg=Global.G_DEFAULT_COLOR,
-                  command=self.show_menu
+                  command=self.show_options
                   ).pack(side='left', padx=50)
         # 一键登录按钮
         self.login_btn = MyButton(self.foot_win,
@@ -189,7 +186,7 @@ class GuiLogin(GuiBase):
         self.login_btn.config('state', 'disable')
         Common.create_thread(func=self._background_login)
 
-    def show_menu(self):
+    def show_options(self):
         WinMsg.warn('敬请期待')
 
     def close(self):
@@ -198,20 +195,56 @@ class GuiLogin(GuiBase):
 
 class GuiMain(GuiBase):
     """ 操作窗 """
-    def __init__(self, master, position):
+    def __init__(self, menubar, toolbar, master, setsize):
+        self.menubar = menubar
+        self.toolbar = toolbar
         self.master = master
-        self.position = position
+        self.setsize = setsize
         self.tree_window = None
         self.oper_window = None
         self.outer_window = None
         self.info_fm = None
         self.oper_fm = None
         self.page = None
+        self.outer_flag = False
+
+    def init_menubar(self):
+        filemenu = tk.Menu(self.menubar, tearoff=0)
+        self.menubar.add_cascade(label="文件", menu=filemenu)
+        filemenu.add_command(label=" 打开 ", command=self.hello)
+        filemenu.add_separator()
+        filemenu.add_command(label=" 导入 ", command=self.hello)
+        filemenu.add_command(label=" 导出 ", command=self.hello)
+        filemenu.add_separator()
+        filemenu.add_command(label=" 退出 ", command=self.destroy)
+        toolmenu = tk.Menu(self.menubar, tearoff=0)
+        self.menubar.add_cascade(label="工具", menu=toolmenu)
+        toolmenu.add_separator()
+        toolmenu.add_command(label=" 选项 ", command=self.hello)
+        helpmenu = tk.Menu(self.menubar, tearoff=0)
+        self.menubar.add_cascade(label="帮助", menu=helpmenu)
+        helpmenu.add_command(label=" 说明 ", command=self.hello)
+        helpmenu.add_command(label=" 关于 ", command=self.hello)
+
+    def init_toolbar(self):
+        btn_style = ttk.Style()
+        btn_style.theme_use('clam')
+        btn_style.configure("C.TButton", borderwidth=0)
+        ttk.Button(self.toolbar, image=ViewUtil.get_image('OPTIONS'), style="C.TButton", command=self.hello).pack(side=tk.LEFT)
+        ttk.Button(self.toolbar, image=ViewUtil.get_image('DOWNLOAD'), style="C.TButton", command=self.hello).pack(side=tk.LEFT)
+        ttk.Button(self.toolbar, image=ViewUtil.get_image('LAST_ONE'), style="C.TButton", command=self.hello).pack(side=tk.LEFT)
+        ttk.Button(self.toolbar, image=ViewUtil.get_image('NEXT_ONE'), style="C.TButton", command=self.hello).pack(side=tk.LEFT)
+        ttk.Button(self.toolbar, image=ViewUtil.get_image('SCREEN_LOCK'), style="C.TButton", command=self.hello).pack(side=tk.LEFT)
+        ttk.Button(self.toolbar, image=ViewUtil.get_image('SCREEN_CUT'), style="C.TButton", command=self.hello).pack(side=tk.LEFT)
+        ttk.Button(self.toolbar, image=ViewUtil.get_image('OUTER_WIN'), style="C.TButton", command=self.outer).pack(side=tk.LEFT)
+        ttk.Button(self.toolbar, image=ViewUtil.get_image('HELP'), style="C.TButton", command=self.hello).pack(side=tk.LEFT)
+        ttk.Button(self.toolbar, image=ViewUtil.get_image('INFO'), style="C.TButton", command=self.hello).pack(side=tk.LEFT)
 
     def init_frame(self):
+        self.init_menubar()
+        self.init_toolbar()
         win_style = {'master': self.master,
-                     'height': Global.G_MAIN_WIN_HEIGHT
-                     }
+                     'height': Global.G_MAIN_WIN_HEIGHT}
         self.tree_window = tk.Frame(width=Global.G_MAIN_TREE_WIDTH, bg='SkyBlue4', **win_style)
         self.oper_window = tk.Frame(width=Global.G_MAIN_OPER_WIDTH, **win_style)
         fm_style = {'master': self.oper_window,
@@ -227,7 +260,7 @@ class GuiMain(GuiBase):
         self.tree_window.pack_propagate(0)
         self.oper_window.pack_propagate(0)
         self.pack_subframe()
-        self.position(Global.G_MAIN_WIN_WIDTH, Global.G_MAIN_WIN_HEIGHT)
+        self.setsize(Global.G_MAIN_WIN_WIDTH-Global.G_MAIN_OUTER_WIDTH, Global.G_MAIN_WIN_HEIGHT)
 
     def init_treeview(self):
         MyTreeView(self.tree_window, ViewUtil.get_treeview_data(), self.switch_page)
@@ -247,14 +280,18 @@ class GuiMain(GuiBase):
 
     def show_outer_window(self, show=False):
         if show:
+            self.outer_flag = True
             if self.outer_window:
                 return
+            self.setsize(Global.G_MAIN_WIN_WIDTH, Global.G_MAIN_WIN_HEIGHT, False)
             self.outer_window = tk.Frame(self.master, width=Global.G_MAIN_OUTER_WIDTH, height=Global.G_MAIN_WIN_HEIGHT)
             self.outer_window.pack(side='left')
             self.outer_window.pack_propagate(0)
         else:
+            self.outer_flag = False
             if not self.outer_window:
                 return
+            self.setsize(Global.G_MAIN_WIN_WIDTH-Global.G_MAIN_OUTER_WIDTH, Global.G_MAIN_WIN_HEIGHT)
             self.outer_window.destroy()
             self.outer_window = None
 
@@ -267,5 +304,17 @@ class GuiMain(GuiBase):
             return self.oper_fm
         elif key == 'get_range':
             return Global.G_MAIN_OPER_WIDTH, Global.G_MAIN_OPER_HEIGHT
+        elif key == 'show_outer':
+            self.show_outer_window(True)
+        elif key == 'hide_outer':
+            self.show_outer_window(False)
 
-            
+    def outer(self, event=None):
+        print(self.outer_flag)
+        if self.outer_flag:
+            self.show_outer_window(False)
+        else:
+            self.show_outer_window(True)
+
+    def hello(self):
+        print('hello')       
