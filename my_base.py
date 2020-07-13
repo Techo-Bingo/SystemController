@@ -66,7 +66,7 @@ class GuiBase(Singleton):
         self.master.destroy()
 
     def show(self):
-        self.master.pack()
+        # self.master.pack()
         self.init_viewmodel()
         self.init_frame()
         self.pack_frame()
