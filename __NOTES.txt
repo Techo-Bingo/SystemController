@@ -3,4 +3,6 @@
     btn_style.theme_use('clam')
     btn_style.configure("C.TButton", borderwidth=0)
     ttk.Button(frame, text='无边框按钮', style="C.TButton").pack()
-    
+
+2. 获取控件的位置：
+    widget.winfo_rootx(),widget.winfo_rooty()

@@ -12,7 +12,7 @@ from my_page import PageCtrl
 from my_handler import LoginHandler
 from my_viewutil import WinMsg, ViewUtil, ToolTips
 from my_bond import Bonder, Packer, Define
-from my_module import SubLogin, LabelButton, InfoWindow, TopProgress, MyButton, MyTreeView
+from my_module import SubLogin, InfoWindow, TopProgress, MyButton, MyTreeView, MyToolBar
 
 
 class Gui(tk.Tk):
@@ -123,7 +123,7 @@ class GuiLogin(GuiBase):
         lab_style = {'master': self.login_fm,
                      'font': (Global.G_FONT, 10)}
         # 顶部图片
-        tk.Label(self.head_win, image=ViewUtil.get_image('HEAD')).pack(fill='both')
+        tk.Label(self.head_win, image=ViewUtil.get_image('LGN_HEAD')).pack(fill='both')
         # 输入框提示词
         tk.Label(text='IP', **lab_style).grid(row=1, column=1)
         tk.Label(text='用户名', **lab_style).grid(row=1, column=2)
@@ -132,7 +132,7 @@ class GuiLogin(GuiBase):
         # 添加一个登录子版块
         self.add_sublogin()
         # 小眼睛
-        eyebtn = tk.Button(self.login_fm, image=ViewUtil.get_image('EYE'), bd=0)
+        eyebtn = tk.Button(self.login_fm, image=ViewUtil.get_image('LGN_EYE'), bd=0)
         eyebtn.grid(row=2, column=5, padx=3)
         eyebtn.bind("<Button-1>",
                     lambda event: Packer.call(Global.EVT_SEE_PSWD_ON))
@@ -197,60 +197,60 @@ class GuiMain(GuiBase):
     """ 操作窗 """
     def __init__(self, menubar, toolbar, master, setsize):
         self.menubar = menubar
-        self.toolbar = toolbar
-        self.master = master
         self.setsize = setsize
         self.tree_window = None
         self.oper_window = None
-        self.outer_window = None
+        self.help_window = None
+        self.treeview = None
         self.info_fm = None
         self.oper_fm = None
-        self.page = None
-        self.outer_flag = False
+        self.help_fm = None
+        self.pager = None
+        self.init_menubar(menubar)
+        self.init_toolbar(toolbar)
 
-    def init_menubar(self):
-        filemenu = tk.Menu(self.menubar, tearoff=0)
-        self.menubar.add_cascade(label="文件", menu=filemenu)
-        filemenu.add_command(label=" 打开 ", command=self.hello)
+    def init_menubar(self, menubar):
+        filemenu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="文件", menu=filemenu)
+        filemenu.add_command(label=" 打开 ", command=lambda x='MENU_OPEN': self.callback(x))
         filemenu.add_separator()
-        filemenu.add_command(label=" 导入 ", command=self.hello)
-        filemenu.add_command(label=" 导出 ", command=self.hello)
+        filemenu.add_command(label=" 导入 ", command=lambda x='MENU_IMPORT': self.callback(x))
+        filemenu.add_command(label=" 导出 ", command=lambda x='MENU_EXPORT': self.callback(x))
         filemenu.add_separator()
-        filemenu.add_command(label=" 退出 ", command=self.destroy)
-        toolmenu = tk.Menu(self.menubar, tearoff=0)
-        self.menubar.add_cascade(label="工具", menu=toolmenu)
+        filemenu.add_command(label=" 退出 ", command=lambda x='MENU_EXIT': self.callback(x))
+        toolmenu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="工具", menu=toolmenu)
         toolmenu.add_separator()
-        toolmenu.add_command(label=" 选项 ", command=self.hello)
-        helpmenu = tk.Menu(self.menubar, tearoff=0)
-        self.menubar.add_cascade(label="帮助", menu=helpmenu)
-        helpmenu.add_command(label=" 说明 ", command=self.hello)
-        helpmenu.add_command(label=" 关于 ", command=self.hello)
+        toolmenu.add_command(label=" 选项 ", command=lambda x='MENU_OPTION': self.callback(x))
+        helpmenu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="帮助", menu=helpmenu)
+        helpmenu.add_command(label=" 说明 ", command=lambda x='MENU_HELP': self.callback(x))
+        helpmenu.add_command(label=" 关于 ", command=lambda x='MENU_ABOUT': self.callback(x))
 
-    def init_toolbar(self):
-        btn_style = ttk.Style()
-        btn_style.theme_use('clam')
-        btn_style.configure("C.TButton", borderwidth=0)
-        ttk.Button(self.toolbar, image=ViewUtil.get_image('OPTIONS'), style="C.TButton", command=self.hello).pack(side=tk.LEFT)
-        ttk.Button(self.toolbar, image=ViewUtil.get_image('DOWNLOAD'), style="C.TButton", command=self.hello).pack(side=tk.LEFT)
-        ttk.Button(self.toolbar, image=ViewUtil.get_image('LAST_ONE'), style="C.TButton", command=self.hello).pack(side=tk.LEFT)
-        ttk.Button(self.toolbar, image=ViewUtil.get_image('NEXT_ONE'), style="C.TButton", command=self.hello).pack(side=tk.LEFT)
-        ttk.Button(self.toolbar, image=ViewUtil.get_image('SCREEN_LOCK'), style="C.TButton", command=self.hello).pack(side=tk.LEFT)
-        ttk.Button(self.toolbar, image=ViewUtil.get_image('SCREEN_CUT'), style="C.TButton", command=self.hello).pack(side=tk.LEFT)
-        ttk.Button(self.toolbar, image=ViewUtil.get_image('OUTER_WIN'), style="C.TButton", command=self.outer).pack(side=tk.LEFT)
-        ttk.Button(self.toolbar, image=ViewUtil.get_image('HELP'), style="C.TButton", command=self.hello).pack(side=tk.LEFT)
-        ttk.Button(self.toolbar, image=ViewUtil.get_image('INFO'), style="C.TButton", command=self.hello).pack(side=tk.LEFT)
+    def hello(self, event=None):
+        pass
+
+    def init_toolbar(self, toolbar):
+        images = ['TB_EXPAND',
+                  'TB_LAST_ONE',
+                  'TB_NEXT_ONE',
+                  'TB_RUN_CMD',
+                  'TB_DOWNLOAD',
+                  'TB_UPLOAD',
+                  'TB_SCREEN_CUT',
+                  'TB_SETTING',
+                  'TB_HELP',
+                  'TB_INFO']
+        MyToolBar(toolbar, images, self.callback)
 
     def init_frame(self):
-        self.init_menubar()
-        self.init_toolbar()
         win_style = {'master': self.master,
                      'height': Global.G_MAIN_WIN_HEIGHT}
         self.tree_window = tk.Frame(width=Global.G_MAIN_TREE_WIDTH, bg='SkyBlue4', **win_style)
         self.oper_window = tk.Frame(width=Global.G_MAIN_OPER_WIDTH, **win_style)
         fm_style = {'master': self.oper_window,
                     'width': Global.G_MAIN_OPER_WIDTH,
-                    'background': Global.G_MAIN_OPER_BG
-                    }
+                    'background': Global.G_MAIN_OPER_BG}
         self.oper_fm = tk.Frame(height=Global.G_MAIN_OPER_HEIGHT, **fm_style)
         self.info_fm = tk.Frame(height=Global.G_MAIN_INFO_HEIGHT, **fm_style)
 
@@ -260,10 +260,12 @@ class GuiMain(GuiBase):
         self.tree_window.pack_propagate(0)
         self.oper_window.pack_propagate(0)
         self.pack_subframe()
-        self.setsize(Global.G_MAIN_WIN_WIDTH-Global.G_MAIN_OUTER_WIDTH, Global.G_MAIN_WIN_HEIGHT)
+        # 先设置最大窗口的中心布局，后进行初始窗体大小设置
+        self.setsize(Global.G_MAIN_WIN_WIDTH, Global.G_MAIN_WIN_HEIGHT)
+        self.setsize(Global.G_MAIN_WIN_WIDTH-Global.G_MAIN_HELP_WIDTH, Global.G_MAIN_WIN_HEIGHT, False)
 
     def init_treeview(self):
-        MyTreeView(self.tree_window, ViewUtil.get_treeview_data(), self.switch_page)
+        self.treeview = MyTreeView(self.tree_window, ViewUtil.get_treeview_data(), self.switch_page)
 
     def pack_subframe(self):
         self.init_treeview()
@@ -271,50 +273,43 @@ class GuiMain(GuiBase):
         self.info_fm.pack(fill='both')
         self.oper_fm.pack_propagate(0)
         self.info_fm.pack_propagate(0)
-        """ 初始化信息提示栏 """
+        # 初始化信息提示栏
         InfoWindow(self.info_fm)
-        """ 初始化page """
-        self.page = PageCtrl(self.interface)
-        self.page.default_page()
-        # self.show_outer_window(True)
+        # 初始化page
+        self.pager = PageCtrl(self.interface)
+        # self.show_help_window(True)
 
-    def show_outer_window(self, show=False):
+    def show_help_window(self, show=False):
         if show:
-            self.outer_flag = True
-            if self.outer_window:
-                return
             self.setsize(Global.G_MAIN_WIN_WIDTH, Global.G_MAIN_WIN_HEIGHT, False)
-            self.outer_window = tk.Frame(self.master, width=Global.G_MAIN_OUTER_WIDTH, height=Global.G_MAIN_WIN_HEIGHT)
-            self.outer_window.pack(side='left')
-            self.outer_window.pack_propagate(0)
+            self.help_window = tk.Frame(self.master, width=Global.G_MAIN_HELP_WIDTH, height=Global.G_MAIN_WIN_HEIGHT)
+
+            self.help_window.pack(side='left')
+            self.help_window.pack_propagate(0)
         else:
-            self.outer_flag = False
-            if not self.outer_window:
-                return
-            self.setsize(Global.G_MAIN_WIN_WIDTH-Global.G_MAIN_OUTER_WIDTH, Global.G_MAIN_WIN_HEIGHT, False)
-            self.outer_window.destroy()
-            self.outer_window = None
+            self.setsize(Global.G_MAIN_WIN_WIDTH-Global.G_MAIN_HELP_WIDTH, Global.G_MAIN_WIN_HEIGHT, False)
+            self.help_window.destroy()
+            self.help_window = None
 
     def switch_page(self, args_tuple):
         page_text, page_type_info, shell = args_tuple
-        self.page.switch_page(page_text, page_type_info, shell)
+        self.pager.switch_page(page_text, page_type_info, shell)
 
     def interface(self, key):
         if key == 'get_master':
             return self.oper_fm
         elif key == 'get_range':
             return Global.G_MAIN_OPER_WIDTH, Global.G_MAIN_OPER_HEIGHT
-        elif key == 'show_outer':
-            self.show_outer_window(True)
-        elif key == 'hide_outer':
-            self.show_outer_window(False)
+        elif key == 'show_help':
+            self.show_help_window(True)
+        elif key == 'hide_help':
+            self.show_help_window(False)
 
-    def outer(self, event=None):
-        print(self.outer_flag)
-        if self.outer_flag:
-            self.show_outer_window(False)
-        else:
-            self.show_outer_window(True)
+    def callback(self, text):
+        print(text)
+        if text == 'TB_EXPAND':
+            self.treeview.expand_trees()
+        elif text == 'TB_HELP':
+            self.show_help_window(False) if self.help_window else self.show_help_window(True)
 
-    def hello(self):
-        print('hello')       
+

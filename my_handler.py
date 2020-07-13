@@ -70,8 +70,7 @@ class LoginHandler:
             cls._sublogin_entry_tig(seq, cls._widget)
             # window弹窗提示
             Utils.windows_error(e)
-            Logger.error('SubLogin_{} ip:{}, err_info:{}'.format(
-                seq, ip_passwd_tuple[0], e))
+            Logger.error('SubLogin_{} ip:{}, err_info:{}'.format(seq, ip_passwd_tuple[0], e))
             return False
         else:
             cls._sublogin_status_tig(seq, 'LOGING')
@@ -89,13 +88,11 @@ class LoginHandler:
                 ret, err = _user_login(ssh, user)
                 if not ret:
                     cls._widget = 'userpwd'
-                    raise ExecError("%s %s登录失败!\n详细:%s 重试:%s"
-                                    % (ip, user, err, times))
+                    raise ExecError("%s %s登录失败!\n详细:%s 重试:%s" % (ip, user, err, times))
                 ret, err = _user_login(ssh, 'root')
                 if not ret:
                     cls._widget = 'rootpwd'
-                    raise ExecError("%s root登录失败!\n详细:%s 重试:%s"
-                                    % (ip, err, times))
+                    raise ExecError("%s root登录失败!\n详细:%s 重试:%s" % (ip, err, times))
             except ExecError as e:
                 Logger.warn(e)
                 if times == _retry_times:
@@ -167,6 +164,16 @@ class LoginHandler:
                     Utils.tell_info(info)
                     break
         del _ip_ssh_dict
+        # ssh保活
+        cls._keep_ssh_alive()
+
+    @classmethod
+    def _keep_ssh_alive(cls, args=None):
+        while True:
+            sleep(60)
+            for ip, ssh in cls._logon_ssh_inst('QUE', None).items():
+                ret, err = SSHUtil.exec_ret(ssh, 'echo')
+                Logger.debug("(keepalive) ip:%s ret:%s err:%s" % (ip, ret, err))
 
     @classmethod
     def prepare_env(cls):
@@ -174,11 +181,11 @@ class LoginHandler:
 
     @classmethod
     def try_login(cls):
-        # return True
+        # return True  # DEBUG
         cls._ip_list = []
         _input_info = {}
 
-        """ 输入校验 """
+        # 输入校验
         for seq in ViewModel.cache('SUBLOGIN_INDEX_LIST', type='QUE'):
             ip_passwd_tuple = cls._sublogin_callback(
                 Global.EVT_GET_LOGIN_INPUT % seq)
@@ -187,7 +194,7 @@ class LoginHandler:
                 return False
             _input_info[seq] = ip_passwd_tuple
 
-        """ 登录校验，开启进度条 """
+        # 登录校验，开启进度条
         Utils.top_progress_start('登录中')
 
         for seq, ip_passwd_tuple in _input_info.items():
@@ -197,7 +204,7 @@ class LoginHandler:
         # 清理用不到的数据，节省内存
         ViewModel.cache('SUBLOGIN_INDEX_LIST', type='DEL')
 
-        """ 关闭进度条并开始后台上传文件 """
+        # 关闭进度条并开始后台上传文件
         cls.prepare_env()
         Utils.top_progress_stop()
         del _input_info
@@ -301,13 +308,12 @@ class PageHandler:
 
     @classmethod
     def _exec_for_collect(cls, callback, ip_list, shell, param):
-        event = shell.split('.')[0]
-        shell = "%s/%s" % (Global.G_SERVER_DIR, shell)
+        shell = "cd %s && ./%s" % (Global.G_SERVER_DIR, shell)
         while True:
             for ip in ip_list:
                 _info_dict = {}
                 ssh = cls._get_ssh(ip)
-                cmd = "%s '%s' '%s' '%s'" % (shell, event, ip, param)
+                cmd = "%s '%s' '%s'" % (shell, ip, param)
                 try:
                     lines = cls._get_exec_info(ssh, cmd).split('\n')
                     for line in lines:
@@ -318,18 +324,6 @@ class PageHandler:
                     Utils.tell_info('%s %s结果异常:%s' % (ip, shell, e),
                                     level='ERROR')
             sleep(10)
-
-    @classmethod
-    def _keep_ssh_alive(cls, args=None):
-        while 1:
-            sleep(60)
-            for ip, ssh in cls._get_ssh().items():
-                ret, err = SSHUtil.exec_ret(ssh, 'ls')
-                Logger.debug("(keepalive) ip:%s ret:%s err:%s" % (ip, ret, err))
-
-    @classmethod
-    def default_page_deal(cls):
-        Common.create_thread(func=cls._keep_ssh_alive, args=())
 
     @classmethod
     def start_shell(cls, type, *args):

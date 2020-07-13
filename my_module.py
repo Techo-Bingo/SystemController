@@ -11,6 +11,50 @@ from my_viewutil import ToolTips, ViewUtil
 # from my_logger import Logger
 
 
+class ToolTip(object):
+    def __init__(self, widget):
+        self.widget = widget
+        self.tipwindow = None
+        self.id = None
+        self.x = self.y = 0
+
+    def showtip(self, text):
+        # Display text in tooltip window
+        self.text = text
+        if self.tipwindow or not self.text:
+            return
+        x, y, _cx, cy = self.widget.bbox("insert")
+        x = x + self.widget.winfo_rootx() + 27
+        y = y + cy + self.widget.winfo_rooty() - 10
+        tw = self.tipwindow = tk.Toplevel(self.widget)
+        tw.wm_overrideredirect(1)
+        tw.wm_geometry("+%d+%d" % (x, y))
+        tk.Label(tw,
+                 text=self.text,
+                 justify='left',
+                 background="#ffffe0",
+                 relief=tk.SOLID,
+                 borderwidth=1,
+                 font=("tahoma", "8")
+                 ).pack(ipadx=1)
+
+    def hidetip(self):
+        tw = self.tipwindow
+        self.tipwindow = None
+        if tw:
+            tw.destroy()
+
+
+def createToolTip(widget, text):
+    toolTip = ToolTip(widget)
+    def enter(event):
+        toolTip.showtip(text)
+    def leave(event):
+        toolTip.hidetip()
+    widget.bind('<Enter>', enter)
+    widget.bind('<Leave>', leave)
+
+
 class SubLogin(object):
     """ 登录子板块，不可为单例 """
 
@@ -278,6 +322,19 @@ class ProgressBar(object):
         self.fglab.destroy()
 
 
+class MyToolBar(object):
+    """ 快捷工具栏 """
+    def __init__(self, master, images, callback):
+        btn_style = ttk.Style()
+        btn_style.theme_use('clam')
+        btn_style.configure("C.TButton", borderwidth=0, background=Global.G_MAIN_OPER_BG)
+        for image in images:
+            ttk.Button(master,
+                       image=ViewUtil.get_image(image),
+                       style="C.TButton",
+                       command=lambda x=image: callback(x)).pack(side='left')
+
+
 class MyTreeView(object):
     """ 侧边折叠菜单栏 """
     def __init__(self, master, treelist, callback):
@@ -285,11 +342,8 @@ class MyTreeView(object):
         self.treelist = treelist
         self.callback = callback
         self.treeview = None
-        self.init_event()
+        self.sub_id = []
         self.init_frame()
-
-    def init_event(self):
-        pass
 
     def _add_subtree(self, root, id=''):
         page_text = ' ' + root['PageText']
@@ -303,19 +357,25 @@ class MyTreeView(object):
             tag, values = 'tree.sub', (page_text, page_type, shell)
         img = ViewUtil.get_image(img_key)
         sub_id = self.treeview.insert(id, 'end', text=page_text, image=img, tags=(tag, 'simple'), values=values)
-        # TODO 设置项 或者 工具栏快捷键
-        # 展开所有子树
-        # self.treeview.item(sub_id, open=True)
+        self.sub_id.append(sub_id)
         if isinstance(subtree, list) and len(subtree) != 0:
             [self._add_subtree(sub, sub_id) for sub in subtree]
 
     def init_frame(self):
-        self.treeview = ttk.Treeview(self.master, height=50, show="tree")
+        self.treeview = ttk.Treeview(self.master, height=50, show="tree", selectmode='browse')
         self.treeview.tag_configure('tree.sub', font=('宋体', 12))
         self.treeview.tag_configure('tree.root', font=('宋体', 12, 'bold'))
         self.treeview.bind('<<TreeviewSelect>>', self.command)
         [self._add_subtree(root) for root in self.treelist]
         self.treeview.pack(fill='both')
+        # 可选绑定滑块
+        # vbar = tk.Scrollbar(self.master, orient=tk.VERTICAL, command=self.treeview.yview)
+        # self.treeview.configure(yscrollcommand=vbar.set)
+        # vbar.pack(side='left', fill='y')
+
+    def expand_trees(self):
+        # 展开所有子树
+        [self.treeview.item(id, open=True) for id in self.sub_id]
 
     def command(self, event=None):
         args_tuple = self.treeview.item(self.treeview.selection()[-1], "values")
@@ -344,7 +404,7 @@ class InfoWindow(object):
                                                   bd=2,
                                                   relief='ridge',
                                                   fg='Blue',
-                                                  bg='Snow', #'AliceBlue',
+                                                  bg=Global.G_DEFAULT_BG,  #'Snow', #'AliceBlue',
                                                   height=20,
                                                   width=110
                                                   )
@@ -365,8 +425,7 @@ class InfoWindow(object):
         """ 信息中加入时间戳 """
         info = "\n{} [{}]: {}".format(Common.get_time(),
                                       level.upper(),
-                                      str(info)
-                                      )
+                                      str(info))
         self.infotext['stat'] = 'normal'
         self.infotext.insert('end', info)
         self.index += 1

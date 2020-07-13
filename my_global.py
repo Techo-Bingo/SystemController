@@ -24,7 +24,7 @@ G_DEFAULT_PASSWORDS = []
 # 控件默认颜色
 G_DEFAULT_COLOR = 'Snow'
 # 默认背景色
-G_DEFAULT_BG = 'Gray95'
+G_DEFAULT_BG = 'Gray94'
 # 操作窗(pages)背景色
 G_MAIN_OPER_BG = 'Gray94' #''Snow'
 # 一键登录按钮的前景色
@@ -52,7 +52,7 @@ G_MAIN_TREE_WIDTH = 280
 # 主界面操作窗(pages)宽度
 G_MAIN_OPER_WIDTH = 800
 # 主界面外部扩展栏宽度
-G_MAIN_OUTER_WIDTH = G_MAIN_WIN_WIDTH - G_MAIN_TREE_WIDTH - G_MAIN_OPER_WIDTH
+G_MAIN_HELP_WIDTH = G_MAIN_WIN_WIDTH - G_MAIN_TREE_WIDTH - G_MAIN_OPER_WIDTH
 G_INFOWIN_LEVEL_COLOR = {'INFO': 'SeaGreen',
                          'TIPS': 'Purple',
                          'WARN': 'DarkOrange',
@@ -103,7 +103,7 @@ def reload():
     global G_WELCOME_INFO
     global G_ABOUT_INFO
     G_TITLE = '%s V%s' % (G_TOOL_NAMED, G_VERSION)
-    G_WELCOME_INFO= ' ' * 50 + '【 欢迎使用%s 】' % G_TOOL_NAMED
+    G_WELCOME_INFO= ' ' * 70 + '【 欢迎使用%s 】' % G_TOOL_NAMED
     G_ABOUT_INFO = '''%s%s
      用途：
               此工具用于对服务器进行批量远程操控；

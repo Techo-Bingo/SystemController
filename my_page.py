@@ -131,14 +131,11 @@ class HALogPage(Pager):
             # 开始按钮
             ttk.Button(self.frame,
                        text='开始获取',
-                       command=lambda ip=ip:
-                       PageHandler.get_halog_start(
-                           self.call_back, ip, self.shell)
+                       command=lambda ip=ip: PageHandler.get_halog_start(self.call_back, ip, self.shell)
                        ).grid(row=index,
                               column=3,
                               padx=10,
-                              pady=10
-                              )
+                              pady=10)
 
     def call_back(self, *args):
         ip, value, color = args
@@ -309,11 +306,6 @@ class PageCtrl(object):
         self.images_fm.pack()
         # 首页图片
         tk.Label(self.images_fm, image=ViewUtil.get_image('BINGO')).pack(fill='both')
-
-    @classmethod
-    def default_page(self):
-        """ 默认界面的处理 """
-        PageHandler.default_page_deal()
 
     def switch_page(self, page_text, page_type_info, shell):
         if self.current == page_text:
