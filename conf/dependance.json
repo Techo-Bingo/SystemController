@@ -17,8 +17,17 @@
         "IOSTATE": ".\\image\\io_state.png",
         "DISKSTATE": ".\\image\\disk_state.png",
         "RUNCMD": ".\\image\\run_cmd.png",
-        "DOWNLOAD": ".\\image\\fast_download.png",
-        "UPLOAD": ".\\image\\fast_upload.png"
+        "FASTDOWN": ".\\image\\fast_download.png",
+        "UPLOAD": ".\\image\\fast_upload.png",
+        "OPTIONS": ".\\image\\options.png",
+        "DOWNLOAD": ".\\image\\download.png",
+        "LAST_ONE": ".\\image\\last_one.png",
+        "NEXT_ONE": ".\\image\\next_one.png",
+        "SCREEN_LOCK": ".\\image\\screen_lock.png",
+        "SCREEN_CUT": ".\\image\\screen_cut.png",
+        "OUTER_WIN": ".\\image\\outer_win.png",
+        "HELP": ".\\image\\help.png",
+        "INFO": ".\\image\\info.png"
     },
 
     "Tree": [
