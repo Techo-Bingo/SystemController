@@ -291,7 +291,7 @@ class GuiMain(GuiBase):
             self.outer_flag = False
             if not self.outer_window:
                 return
-            self.setsize(Global.G_MAIN_WIN_WIDTH-Global.G_MAIN_OUTER_WIDTH, Global.G_MAIN_WIN_HEIGHT)
+            self.setsize(Global.G_MAIN_WIN_WIDTH-Global.G_MAIN_OUTER_WIDTH, Global.G_MAIN_WIN_HEIGHT, False)
             self.outer_window.destroy()
             self.outer_window = None
 
