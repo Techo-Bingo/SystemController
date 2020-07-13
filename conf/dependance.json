@@ -121,7 +121,7 @@
                     "PageText": "下载文件",
                     "PageType": ["ONLY_ENTRY_EDIT"],
                     "Shell": "NA",
-                    "Image": "DOWNLOAD",
+                    "Image": "FASTDOWN",
                     "SubTree": []
                 },
                 {
