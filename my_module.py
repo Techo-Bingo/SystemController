@@ -328,11 +328,14 @@ class MyToolBar(object):
         btn_style = ttk.Style()
         btn_style.theme_use('clam')
         btn_style.configure("C.TButton", borderwidth=0, background=Global.G_MAIN_OPER_BG)
-        for image in images:
-            ttk.Button(master,
-                       image=ViewUtil.get_image(image),
-                       style="C.TButton",
-                       command=lambda x=image: callback(x)).pack(side='left')
+        for image_set in images:
+            image, text = image_set
+            btn = ttk.Button(master,
+                             image=ViewUtil.get_image(image),
+                             style="C.TButton",
+                             command=lambda x=image: callback(x))
+            btn.pack(side='left')
+            createToolTip(btn, text)
 
 
 class MyTreeView(object):
