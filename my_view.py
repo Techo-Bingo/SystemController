@@ -231,16 +231,16 @@ class GuiMain(GuiBase):
         pass
 
     def init_toolbar(self, toolbar):
-        images = ['TB_EXPAND',
-                  'TB_LAST_ONE',
-                  'TB_NEXT_ONE',
-                  'TB_RUN_CMD',
-                  'TB_DOWNLOAD',
-                  'TB_UPLOAD',
-                  'TB_SCREEN_CUT',
-                  'TB_SETTING',
-                  'TB_HELP',
-                  'TB_INFO']
+        images = [('TB_EXPAND', "展开目录树"),
+                  ('TB_LAST_ONE', "上一页面"),
+                  ('TB_NEXT_ONE', "下一页面"),
+                  ('TB_RUN_CMD', "运行命令"),
+                  ('TB_DOWNLOAD', "快速下载"),
+                  ('TB_UPLOAD', "快速上传"),
+                  ('TB_SCREEN_CUT', "截取屏幕"),
+                  ('TB_SETTING', "设置"),
+                  ('TB_HELP', "帮忙信息"),
+                  ('TB_INFO', "关于软件")]
         MyToolBar(toolbar, images, self.callback)
 
     def init_frame(self):
