@@ -1,5 +1,5 @@
 #!/bin/bash
-. common_function.sh
+source $(dirname $0)/common_function.sh
 
 IP=$1
 LOG_FLAGS=$2

@@ -84,6 +84,8 @@ class Init:
         # 创建日志目录
         if not Common.is_exists(Global.G_LOG_DIR):
             Common.mkdir(Global.G_LOG_DIR)
+        if not Common.is_exists(Global.G_DOWNLOAD_DIR):
+            Common.mkdir(Global.G_DOWNLOAD_DIR)
         # 日志大于阈值，清空
         if Common.file_size(Global.G_LOG_PATH) > Global.G_LOG_SIZE:
             Common.write_to_file(Global.G_LOG_PATH, 'Rollback init')

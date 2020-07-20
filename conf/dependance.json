@@ -113,7 +113,7 @@
             "SubTree": [
                 {
                     "PageText": "运行命令",
-                    "PageType": ["ONLY_TEXT_EDIT"],
+                    "PageType": ["SELF", "FastRunCommandPage"],
                     "Shell": "run_command.sh",
                     "Image": "TV_RUN_CMD",
                     "SubTree": []

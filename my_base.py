@@ -98,18 +98,21 @@ class Handler(object):
 
 
 class Pager(object):
+    interface = None
     master = None
     width = None
     height = None
     frame = None
     _showing = False
 
-    def __new__(cls, *args, **kwargs):
-        if not hasattr(cls, '_instance'):
-            cls._instance = super(Pager, cls).__new__(cls)
-        return cls._instance
+    #def __new__(cls, *args, **kwargs):
+    #    if not hasattr(cls, '_instance'):
+    #        cls._instance = super(Pager, cls).__new__(cls)
+    #    return cls._instance
 
     def _init(self):
+        self.master = self.interface('get_master')
+        self.width, self.height = self.interface('get_range')
         self._showing = True
         self.frame = tk.LabelFrame(self.master, width=self.width-1, height=self.height-1)
         self.frame.pack()

@@ -1,18 +1,12 @@
 #!/bin/bash
-cd $(dirname $0)
-g_home_path=$(pwd)
-g_task_dir=''
+g_task_dir=$(pwd)
 
 
 function init()
 {
 	ps -ef|grep $(basename $0)|grep -v grep|grep -wv $$|awk '{print $2}'|xargs kill -9
-	local task_name=$(echo $(basename $0)|awk -F"." '{print $1}')
-	local task_dir=${g_home_path}/${task_name}
-	mkdir ${task_dir}
-	chmod 777 ${task_dir}
-	rm -rf ${task_dir}/*
-	g_task_dir=${task_dir}
+	chmod 777 ${g_task_dir}
+	rm -rf ${g_task_dir}/*
 }
 
 function _report()

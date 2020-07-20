@@ -406,11 +406,10 @@ class InfoWindow(object):
                                                   font=(Global.G_FONT, 10),
                                                   bd=2,
                                                   relief='ridge',
-                                                  fg='Blue',
+                                                  # fg='Blue',
                                                   bg=Global.G_DEFAULT_BG,  #'Snow', #'AliceBlue',
                                                   height=20,
-                                                  width=110
-                                                  )
+                                                  width=110)
         self.infotext.insert(tk.END, Global.G_WELCOME_INFO)
         self.infotext['stat'] = 'disabled'
         self.infotext.pack()
@@ -425,22 +424,17 @@ class InfoWindow(object):
         except KeyError as e:
             color = Global.G_INFOWIN_LEVEL_COLOR['INFO']
             # Logger.error(e)
+
         """ 信息中加入时间戳 """
-        info = "\n{} [{}]: {}".format(Common.get_time(),
-                                      level.upper(),
-                                      str(info))
+        info = "\n{} [{}]: {}".format(Common.get_time(), level.upper(), str(info))
         self.infotext['stat'] = 'normal'
         self.infotext.insert('end', info)
         self.index += 1
-        line = self.infotext.index('end')
-        line = int(line.split('.')[0]) - 1
-        self.infotext.tag_add('BINGO{}'.format(self.index),
-                              '{}.0'.format(line),
-                              '{}.end'.format(line)
-                              )
-        self.infotext.tag_config('BINGO{}'.format(self.index),
-                                 foreground=color
-                                 )
+        line_num = len(info.split('\n'))
+        line_end = int(self.infotext.index('end').split('.')[0])
+        line_start = line_end - line_num + 1
+        self.infotext.tag_add('BINGO%s' % self.index, '%s.0' % line_start, '%s.end' % line_end)
+        self.infotext.tag_config('BINGO%s' % self.index, foreground=color)
         self.infotext.see('end')
         self.infotext['stat'] = 'disabled'
 

@@ -12,7 +12,13 @@ from my_page import PageCtrl
 from my_handler import LoginHandler
 from my_viewutil import WinMsg, ViewUtil, ToolTips
 from my_bond import Bonder, Packer, Define
-from my_module import SubLogin, InfoWindow, TopProgress, MyButton, MyTreeView, MyToolBar
+from my_module import (SubLogin,
+                       InfoWindow,
+                       TopProgress,
+                       MyButton,
+                       MyTreeView,
+                       MyToolBar,
+                       TopAbout)
 
 
 class Gui(tk.Tk):
@@ -196,7 +202,7 @@ class GuiLogin(GuiBase):
 class GuiMain(GuiBase):
     """ 操作窗 """
     def __init__(self, menubar, toolbar, master, setsize):
-        self.menubar = menubar
+        self.master = master
         self.setsize = setsize
         self.tree_window = None
         self.oper_window = None
@@ -311,5 +317,6 @@ class GuiMain(GuiBase):
             self.treeview.expand_trees()
         elif text == 'TB_HELP':
             self.show_help_window(False) if self.help_window else self.show_help_window(True)
-
+        elif text == 'TB_INFO':
+            TopAbout.show()
 

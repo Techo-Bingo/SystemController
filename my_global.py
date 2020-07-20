@@ -53,11 +53,10 @@ G_MAIN_TREE_WIDTH = 280
 G_MAIN_OPER_WIDTH = 800
 # 主界面外部扩展栏宽度
 G_MAIN_HELP_WIDTH = G_MAIN_WIN_WIDTH - G_MAIN_TREE_WIDTH - G_MAIN_OPER_WIDTH
-G_INFOWIN_LEVEL_COLOR = {'INFO': 'SeaGreen',
-                         'TIPS': 'Purple',
+G_INFOWIN_LEVEL_COLOR = {'INFO': 'DarkGreen',
+                         'TIPS': 'Blue',
                          'WARN': 'DarkOrange',
-                         'ERROR': 'Red'
-                         }
+                         'ERROR': 'Red'}
 # 登录结果提示的前景色
 G_TIG_FG_COLOR = {'DEFAULT': 'Snow',
                   'SUCCESS': 'SeaGreen1',
@@ -70,6 +69,7 @@ G_PACKAGE_NAME = 'package.zip'
 G_LOG_DIR = '.\\log'
 G_CONF_DIR = '.\\conf'
 G_CMDS_DIR = '.\\cmds'
+G_DOWNLOAD_DIR = '.\\download'
 # 日志回滚大小
 G_LOG_SIZE = 10485760
 G_LOG_PATH = '\\'.join([G_LOG_DIR, 'tool.log'])

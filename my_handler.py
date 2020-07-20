@@ -122,8 +122,12 @@ class LoginHandler:
     def _upload_package(cls, args=None):
         pack_path = "%s\\%s" % (Global.G_CMDS_DIR, Global.G_PACKAGE_NAME)
         remote_path = '%s/%s' % (Global.G_SERVER_DIR, Global.G_PACKAGE_NAME)
-        unzip_cmd = 'cd {0} && unzip -o {1} && chmod 777 {0}/*'.format(
-            Global.G_SERVER_DIR, Global.G_PACKAGE_NAME)
+        unzip_cmd = '''
+        cd {0};
+        unzip -o {1}; 
+        chmod 777 {0}/*; 
+        dos2unix {0}/*
+        '''.format(Global.G_SERVER_DIR, Global.G_PACKAGE_NAME)
         _retry_times = Global.G_RETRY_TIMES
         # for循环中会对ssh实例字典操作，
         # 所以用一个临时变量接收ssh实例字典数据进行for，否则会报错
@@ -140,13 +144,11 @@ class LoginHandler:
                     # 上传文件
                     ret, err = SSHUtil.upload_file(ssh, pack_path, remote_path)
                     if not ret:
-                        raise ExecError('%s 上传package失败，详细:%s，重试:%s'
-                                        % (ip, err, times))
+                        raise ExecError('%s 上传package失败，详细:%s，重试:%s' % (ip, err, times))
                     # 解压文件, 成功返回0
                     ret, err = SSHUtil.exec_ret(ssh, unzip_cmd)
                     if ret:
-                        raise ExecError('%s 解压package失败，详细:%s，重试:%s'
-                                        % (ip, err, times))
+                        raise ExecError('%s 解压package失败，详细:%s，重试:%s' % (ip, err, times))
                 except ExecError as e:
                     # 失败则从字典中删除该IP的ssh实例
                     cls._logon_ssh_inst('SUB', ip)
@@ -161,7 +163,7 @@ class LoginHandler:
                     cls._logon_ssh_inst('ADD', {ip: ssh})
                     info = '%s 环境准备就绪' % ip
                     Logger.info(info)
-                    Utils.tell_info(info)
+                    Utils.tell_info(info, 'TIPS')
                     break
         del _ip_ssh_dict
         # ssh保活
@@ -213,12 +215,12 @@ class LoginHandler:
 
 class PageHandler:
     """ 页面事件处理类 """
-    _collect_state_flag = False
+    stop_get_print = []
 
     @classmethod
-    def _mutex(cls, ip, evt, lock=True):
+    def _mutex(cls, ip, task, lock=True):
         """ 防重入 """
-        _lock_file = '%s\\%s-%s.lock' % (Global.G_CMDS_DIR, evt, ip)
+        _lock_file = '%s\\%s-%s.lock' % (Global.G_CMDS_DIR, task, ip)
         # 释放锁
         if not lock:
             Common.remove(_lock_file)
@@ -237,31 +239,36 @@ class PageHandler:
         return ViewModel.cache('LOGON_SSH_DICT', type='QUE')
 
     @classmethod
-    def _get_exec_info(cls, ssh, cmd):
-        return SSHUtil.exec_info(ssh,
-                                 cmd,
-                                 root=True
-                                 )[0].split('__BINGO__')[1:2][0]
+    def _get_exec_info(cls, ssh, cmd, root):
+        return SSHUtil.exec_info(ssh, cmd, root)[0].split('__BINGO__')[1:2][0]
 
     @classmethod
-    def __exec_shell(cls, ssh, ip, shell, param):
+    def _exec_shell(cls, ssh, ip, shell, task, param, root, loop):
         """ 后台执行脚本 """
-        event= shell.split('.')[0]
-        Utils.tell_info('%s: [0%%] 正在执行任务: %s' % (ip, event))
-        cmd = "cd %s && ./%s" % (Global.G_SERVER_DIR, shell)
-        cmd = "%s '%s' '%s' &" % (cmd, ip, param)
-        SSHUtil.exec_ret(ssh, cmd, root=True)
+        Utils.tell_info('%s: [0%%] 正在执行任务: %s' % (ip, task))
+        task_dir = "%s/%s" % (Global.G_SERVER_DIR, task)
+        shell_path = "%s/%s" % (Global.G_SERVER_DIR, shell)
+        back_flag = '&' if loop else ''
+        cmd = '''
+        mkdir -p {0} 2>/dev/null;
+        chmod 777 {0} 2>/dev/null;
+        dos2unix {1} 2>/dev/null;
+        chmod 777 {1} 2>/dev/null;
+        cd {0} 2>/dev/null;
+        sh {1} '{2}' '{3}' > {0}/print.txt 2>&1 {4}
+        '''.format(task_dir, shell_path, ip, param, back_flag)
+        SSHUtil.exec_ret(ssh, cmd, root)
 
     @classmethod
-    def __get_progress(cls, ssh, callback, ip, event):
+    def _get_progress(cls, ssh, callback, ip, task, root):
         """ 循环读取进度 """
-        cmd = "cat %s/%s/progress.txt" % (Global.G_SERVER_DIR, event)
+        cmd = "cat %s/%s/progress.txt" % (Global.G_SERVER_DIR, task)
         _last_prog = 1
         __retry = 0
         while True:
             sleep(1)
             try:
-                cur_prog, status, info = cls._get_exec_info(ssh, cmd).split('|')
+                cur_prog, status, info = cls._get_exec_info(ssh, cmd, root).split('|')
                 cur_prog = int(cur_prog) - 10
                 if _last_prog == cur_prog:
                     continue
@@ -272,7 +279,7 @@ class PageHandler:
                 if status == 'FAILED':
                     raise ReportError("任务失败，详细:%s，重试:%s" % (info, __retry))
                 if cur_prog == 90:
-                    filename = Common.basename(info)
+                    filename = ".\\%s\\%s" % (Global.G_DOWNLOAD_DIR, Common.basename(info))
                     Utils.tell_info("%s: [90%%] Download: %s" % (ip, filename))
                     if not SSHUtil.download_file(ssh, remote=info,local=filename):
                         raise ReportError("下载失败，重试:%s" % __retry)
@@ -292,20 +299,81 @@ class PageHandler:
                 break
 
     @classmethod
-    def _exec_for_download(cls, callback, ip, shell, param):
-        """ 本函数中callback为进度条回调 """
-        event = shell.split('.')[0]
-        if not cls._mutex(ip, event):
+    def _get_print(cls, ssh, callback, ip, task, root, loop):
+        cls.stop_get_print.clear()
+        cmd = "cat %s/%s/print.txt" % (Global.G_SERVER_DIR, task)
+        def get_print():
+            ret_info = SSHUtil.exec_info(ssh, cmd, root)[0]
+            Utils.tell_info("%s:[100%%] 执行结果：\n%s" % (ip, ret_info))
+            if callback:
+                try:
+                    callback(ret_info)
+                except:
+                    pass
+        if loop:
+            while True:
+                if ip in cls.stop_get_print:
+                    Utils.tell_info("%s 已停止循环读取" % ip)
+                    break
+                sleep(2)
+                get_print()
+        else:
+            get_print()
+
+    @classmethod
+    def _exec_shell_impl(cls, shell_type, callback, ip, shell, param, root=True, loop=False):
+        """
+        shell_type:
+            download，下载类型的脚本，回调函数为进度条
+            showing，打印回显类型的脚本，回调函数为回显框
+        """
+        task = shell.split('.')[0]
+        if not cls._mutex(ip, task):
             return
 
         ssh = cls._get_ssh(ip)
 
-        cls.__exec_shell(ssh, ip, shell, param)
+        cls._exec_shell(ssh, ip, shell, task, param, root, loop)
 
-        cls.__get_progress(ssh, callback, ip, event)
+        if shell_type == 'download':
+            cls._get_progress(ssh, callback, ip, task, root)
+        elif shell_type == 'showing':
+            cls._get_print(ssh, callback, ip, task, root, loop)
 
-        cls._mutex(ip, event, False)
+        cls._mutex(ip, task, False)
 
+    @classmethod
+    def start_shell(cls, *args):
+        Common.create_thread(func=cls._exec_shell_impl, args=args)
+
+    @classmethod
+    def execute_download_start(cls, callback, ip_list, shell, param):
+        for ip in ip_list:
+            cls.start_shell('download', callback, ip, shell, param, True, False)
+
+    @classmethod
+    def execute_showing_start(cls, callback, ip_list, text, root, loop):
+        shell = "execute_for_print.sh"
+        local_path = ".\\%s\\%s" % (Global.G_CMDS_DIR, shell)
+        remote_path = "%s/%s" % (Global.G_SERVER_DIR, shell)
+        Common.write_to_file(local_path, text)
+        for ip in ip_list:
+            ssh = cls._get_ssh(ip)
+            ret, err = SSHUtil.upload_file(ssh, local_path, remote_path)
+            if not ret:
+                Utils.tell_info("%s:[50%%] 上传脚本文件失败，执行命令失败！" % ip, level='ERROR')
+                continue
+            cls.start_shell('showing', callback, ip, shell, None, root, loop)
+
+    @classmethod
+    def execute_showing_stop(cls, ip_list):
+        for ip in ip_list:
+            ssh = cls._get_ssh(ip)
+            SSHUtil.exec_ret(ssh, "killall execute_for_print.sh", True)
+            if ip not in cls.stop_get_print:
+                cls.stop_get_print.append(ip)
+
+    '''
     @classmethod
     def _exec_for_collect(cls, callback, ip_list, shell, param):
         shell = "cd %s && ./%s" % (Global.G_SERVER_DIR, shell)
@@ -324,14 +392,7 @@ class PageHandler:
                     Utils.tell_info('%s %s结果异常:%s' % (ip, shell, e),
                                     level='ERROR')
             sleep(10)
-
-    @classmethod
-    def start_shell(cls, type, *args):
-        function = cls._exec_for_download
-        if type == 'collect':
-            function = cls._exec_for_collect
-        Common.create_thread(func=function, args=args)
-
+    
     @classmethod
     def collect_state_start(cls, callback, ip_list, shell):
         if cls._collect_state_flag:
@@ -346,9 +407,5 @@ class PageHandler:
     @classmethod
     def get_binlog_start(cls, callback, ip, shell, param):
         cls.start_shell('download', callback, ip, shell, param)
-
-    @classmethod
-    def options_download_start(cls, callback, ip_list, shell, param):
-        for ip in ip_list:
-            cls.start_shell('download', callback, ip, shell, param)
+    '''
 
