@@ -163,7 +163,7 @@ class LoginHandler:
                     cls._logon_ssh_inst('ADD', {ip: ssh})
                     info = '%s 环境准备就绪' % ip
                     Logger.info(info)
-                    Utils.tell_info(info, 'TIPS')
+                    Utils.tell_info(info)
                     break
         del _ip_ssh_dict
         # ssh保活
@@ -215,7 +215,7 @@ class LoginHandler:
 
 class PageHandler:
     """ 页面事件处理类 """
-    stop_get_print = []
+    _stop_task_ips = {}
 
     @classmethod
     def _mutex(cls, ip, task, lock=True):
@@ -239,16 +239,32 @@ class PageHandler:
         return ViewModel.cache('LOGON_SSH_DICT', type='QUE')
 
     @classmethod
+    def _stop_task(cls, task, ip, op='get'):
+        if op == 'remove':
+            if task not in cls._stop_task_ips:
+                cls._stop_task_ips[task] = []
+                return
+            if ip in cls._stop_task_ips[task]:
+                cls._stop_task_ips[task].remove(ip)
+        elif op == 'append':
+            if task not in cls._stop_task_ips:
+                cls._stop_task_ips[task] = []
+            if ip not in cls._stop_task_ips[task]:
+                cls._stop_task_ips[task].append(ip)
+        else:
+            return True if ip in cls._stop_task_ips[task] else False
+    
+    @classmethod
     def _get_exec_info(cls, ssh, cmd, root):
         return SSHUtil.exec_info(ssh, cmd, root)[0].split('__BINGO__')[1:2][0]
 
     @classmethod
-    def _exec_shell(cls, ssh, ip, shell, task, param, root, loop):
+    def _exec_shell(cls, ssh, ip, shell, task, param, root, back=False):
         """ 后台执行脚本 """
         Utils.tell_info('%s: [0%%] 正在执行任务: %s' % (ip, task))
         task_dir = "%s/%s" % (Global.G_SERVER_DIR, task)
         shell_path = "%s/%s" % (Global.G_SERVER_DIR, shell)
-        back_flag = '&' if loop else ''
+        back_flag = '&' if back else ''
         cmd = '''
         mkdir -p {0} 2>/dev/null;
         chmod 777 {0} 2>/dev/null;
@@ -278,16 +294,16 @@ class PageHandler:
                     raise ReportError("进度信息为空，重试:%s" % __retry)
                 if status == 'FAILED':
                     raise ReportError("任务失败，详细:%s，重试:%s" % (info, __retry))
+                # 显示进度信息
+                callback(ip, _last_prog, False)
                 if cur_prog == 90:
                     filename = ".\\%s\\%s" % (Global.G_DOWNLOAD_DIR, Common.basename(info))
-                    Utils.tell_info("%s: [90%%] Download: %s" % (ip, filename))
+                    Utils.tell_info("%s: [90%%] 开始下载: %s" % (ip, filename))
                     if not SSHUtil.download_file(ssh, remote=info,local=filename):
                         raise ReportError("下载失败，重试:%s" % __retry)
                     callback(ip, 100, False)
                     Utils.tell_info("%s: [100%%] 下载成功" % ip)
                     break
-                # 显示进度信息
-                callback(ip, _last_prog, False)
                 Utils.tell_info("%s: [%s%%] %s" % (ip, _last_prog, info))
             except Exception as e:
                 print(e)
@@ -300,7 +316,6 @@ class PageHandler:
 
     @classmethod
     def _get_print(cls, ssh, callback, ip, task, root, loop):
-        cls.stop_get_print.clear()
         cmd = "cat %s/%s/print.txt" % (Global.G_SERVER_DIR, task)
         def get_print():
             ret_info = SSHUtil.exec_info(ssh, cmd, root)[0]
@@ -312,7 +327,7 @@ class PageHandler:
                     pass
         if loop:
             while True:
-                if ip in cls.stop_get_print:
+                if cls._stop_task(task, ip):
                     Utils.tell_info("%s 已停止循环读取" % ip)
                     break
                 sleep(2)
@@ -334,6 +349,8 @@ class PageHandler:
         ssh = cls._get_ssh(ip)
 
         cls._exec_shell(ssh, ip, shell, task, param, root, loop)
+        
+        cls._stop_task(task, ip, 'remove')
 
         if shell_type == 'download':
             cls._get_progress(ssh, callback, ip, task, root)
@@ -352,8 +369,8 @@ class PageHandler:
             cls.start_shell('download', callback, ip, shell, param, True, False)
 
     @classmethod
-    def execute_showing_start(cls, callback, ip_list, text, root, loop):
-        shell = "execute_for_print.sh"
+    def execute_fast_cmd_start(cls, callback, ip_list, text, root, loop):
+        shell = "fast_commands.sh"
         local_path = ".\\%s\\%s" % (Global.G_CMDS_DIR, shell)
         remote_path = "%s/%s" % (Global.G_SERVER_DIR, shell)
         Common.write_to_file(local_path, text)
@@ -363,15 +380,16 @@ class PageHandler:
             if not ret:
                 Utils.tell_info("%s:[50%%] 上传脚本文件失败，执行命令失败！" % ip, level='ERROR')
                 continue
-            cls.start_shell('showing', callback, ip, shell, None, root, loop)
+            cls.start_shell('showing', None, ip, shell, None, root, loop)
 
     @classmethod
-    def execute_showing_stop(cls, ip_list):
+    def execute_fast_cmd_stop(cls, ip_list):
         for ip in ip_list:
             ssh = cls._get_ssh(ip)
-            SSHUtil.exec_ret(ssh, "killall execute_for_print.sh", True)
+            Utils.tell_info("%s 杀死任务fast_commands" % ip)
+            SSHUtil.exec_ret(ssh, "killall fast_commands.sh", True)
             if ip not in cls.stop_get_print:
-                cls.stop_get_print.append(ip)
+                cls._stop_task('fast_commands', ip, 'append')
 
     '''
     @classmethod
