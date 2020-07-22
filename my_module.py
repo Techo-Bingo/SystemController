@@ -403,13 +403,13 @@ class InfoWindow(object):
 
     def init_frame(self):
         self.infotext = scrolledtext.ScrolledText(self.master,
-                                                  font=(Global.G_FONT, 10),
+                                                  font=(Global.G_FONT, 9),
                                                   bd=2,
                                                   relief='ridge',
                                                   # fg='Blue',
                                                   bg=Global.G_DEFAULT_BG,  #'Snow', #'AliceBlue',
-                                                  height=20,
-                                                  width=110)
+                                                  height=24,
+                                                  width=114)
         self.infotext.insert(tk.END, Global.G_WELCOME_INFO)
         self.infotext['stat'] = 'disabled'
         self.infotext.pack()
