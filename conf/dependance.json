@@ -114,20 +114,20 @@
                 {
                     "PageText": "运行命令",
                     "PageType": ["SELF", "FastRunCommandPage"],
-                    "Shell": "run_command.sh",
+                    "Shell": "fast_commands.sh",
                     "Image": "TV_RUN_CMD",
                     "SubTree": []
                 },
                 {
                     "PageText": "下载文件",
-                    "PageType": ["ONLY_ENTRY_EDIT"],
-                    "Shell": "NA",
+                    "PageType": ["ONLY_ENTRY_EDIT", ["NO_SHELL_TIPS", "服务器文件(夹)路径", "路径为文件夹时将会打包下载（本地下载路径:./download）"]],
+                    "Shell": "fast_download.sh",
                     "Image": "TV_DOWNLOAD",
                     "SubTree": []
                 },
                 {
                     "PageText": "上传文件",
-                    "PageType": ["ONLY_ENTRY_EDIT"],
+                    "PageType": ["SELF", "FastUploadFilePage"],
                     "Shell": "NA",
                     "Image": "TV_UPLOAD",
                     "SubTree": []

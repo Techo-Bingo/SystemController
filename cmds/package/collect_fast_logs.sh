@@ -32,6 +32,7 @@ function collect()
 function main()
 {
     init
+	parser_param
 	collect
 	compress_pack
 }

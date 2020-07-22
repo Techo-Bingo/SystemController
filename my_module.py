@@ -94,28 +94,15 @@ class SubLogin(object):
     def init_frame(self):
         entry_style = {'master': self.master,
                        'background': Global.G_DEFAULT_COLOR,
-                       'font': (Global.G_FONT, 12)
-                       }
+                       'font': (Global.G_FONT, 12)}
         self.tiglab = tk.Label(self.master,
                                text='●',
                                font=(Global.G_FONT, 16),
-                               fg=Global.G_TIG_FG_COLOR['DEFAULT']
-                               )
-        self.ip_en = tk.Entry(width=15,
-                              **entry_style
-                              )
-        self.user_en = tk.Entry(width=13,
-                                textvariable=self.var_user,
-                                **entry_style
-                                )
-        self.userpwd_en = tk.Entry(width=14,
-                                   textvariable=self.var_upwd,
-                                   **entry_style
-                                   )
-        self.rootpwd_en = tk.Entry(width=13,
-                                   textvariable=self.var_rpwd,
-                                   **entry_style
-                                   )
+                               fg=Global.G_TIG_FG_COLOR['DEFAULT'])
+        self.ip_en = tk.Entry(width=15, **entry_style)
+        self.user_en = tk.Entry(width=13, textvariable=self.var_user, **entry_style)
+        self.userpwd_en = tk.Entry(width=14, textvariable=self.var_upwd, **entry_style)
+        self.rootpwd_en = tk.Entry(width=13, textvariable=self.var_rpwd, **entry_style)
         self.delbtn = tk.Button(self.master,
                                 text='×',
                                 font=(Global.G_FONT, 13, 'bold'),
@@ -129,26 +116,14 @@ class SubLogin(object):
                       'pady': 6,
                       'ipady': 3
                       }
-        self.tiglab.grid(row=self.index + 1,
-                         column=0
-                         )
-        self.ip_en.grid(column=1,
-                        **grid_style
-                        )
-        self.user_en.grid(column=2,
-                          **grid_style
-                          )
-        self.userpwd_en.grid(column=3,
-                             **grid_style
-                             )
-        self.rootpwd_en.grid(column=4,
-                             **grid_style
-                             )
+        self.tiglab.grid(row=self.index + 1, column=0)
+        self.ip_en.grid(column=1, **grid_style)
+        self.user_en.grid(column=2, **grid_style)
+        self.userpwd_en.grid(column=3, **grid_style)
+        self.rootpwd_en.grid(column=4, **grid_style)
         if self.index == 1:
             return
-        self.delbtn.grid(row=self.index + 1,
-                         column=5
-                         )
+        self.delbtn.grid(row=self.index + 1, column=5)
 
     def set_defaults(self):
         """ 设置默认用户和密码 """
@@ -216,8 +191,7 @@ class TtkProgress(object):
         self.prog = ttk.Progressbar(master,
                                     length=width,
                                     mode="determinate",
-                                    orient=tk.HORIZONTAL
-                                    )
+                                    orient=tk.HORIZONTAL)
         self.prog["maximum"] = 100
         self.prog["value"] = 0
         _lab = tk.Label(master,
@@ -226,8 +200,7 @@ class TtkProgress(object):
                         ).grid(row=row, column=column)
         self.val_lab = tk.Label(master,
                                 text='0%',
-                                font=(Global.G_FONT, 9+size)
-                                )
+                                font=(Global.G_FONT, 9+size))
         self.prog.grid(row=row, column=column+1, ipady=size)
         self.val_lab.grid(row=row, column=column+2)
 
@@ -265,21 +238,9 @@ class ProgressBar(object):
                        'sticky': tk.W
                        }
 
-        self.namelab = tk.Label(master,
-                                text=name,
-                                font=(Global.G_FONT, size),
-                                bg=bg
-                                )
-        self.namelab.grid(row=row,
-                          column=column,
-                          padx=5,
-                          pady=5
-                          )
-        self.bglab = tk.Label(width=width,
-                              bg='snow',
-                              anchor=tk.E,
-                              **_lab_style
-                              )
+        self.namelab = tk.Label(master, text=name, font=(Global.G_FONT, size), bg=bg)
+        self.namelab.grid(row=row, column=column, padx=5, pady=5)
+        self.bglab = tk.Label(width=width, bg='snow', anchor=tk.E, **_lab_style)
         self.fglab = tk.Label(**_lab_style)
         self.bglab.grid(**_grid_style)
         self.fglab.grid(**_grid_style)
@@ -458,8 +419,7 @@ class LabelButton(object):
                                      text=text,
                                      justify='left',
                                      font=('宋体', 14),
-                                     command=self._click
-                                     )
+                                     command=self._click)
         self.button.bind("<Enter>", self.enter)
         self.button.bind("<Leave>", self.leave)
         self.button.pack(fill='both')
@@ -495,8 +455,7 @@ class MyButton(object):
                                 width=width,
                                 bd=0,
                                 relief='groove',
-                                command=command
-                                )
+                                command=command)
         self.button.bind("<Enter>", self.enter)
         self.button.bind("<Leave>", self.leave)
         self.button.pack(side='left')
@@ -581,8 +540,7 @@ class TopAbout:
                             bg='Snow',
                             justify='left',
                             text=Global.G_ABOUT_INFO,
-                            font=(Global.G_FONT, 10)
-                            )
+                            font=(Global.G_FONT, 10))
         _infolab.pack(fill='both', ipady=5)
         # 底部版权说明
         tk.Label(cls._toplevel, text=Global.G_COPYRIGHT_INFO).pack()

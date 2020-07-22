@@ -286,18 +286,17 @@ class PageHandler:
             try:
                 cur_prog, status, info = cls._get_exec_info(ssh, cmd, root).split('|')
                 cur_prog = int(cur_prog) - 10
-                if _last_prog == cur_prog:
-                    continue
-                _last_prog = cur_prog
-
                 if not info:
                     raise ReportError("进度信息为空，重试:%s" % __retry)
                 if status == 'FAILED':
                     raise ReportError("任务失败，详细:%s，重试:%s" % (info, __retry))
+                if _last_prog == cur_prog:
+                    continue
+                _last_prog = cur_prog
                 # 显示进度信息
                 callback(ip, _last_prog, False)
                 if cur_prog == 90:
-                    filename = ".\\%s\\%s" % (Global.G_DOWNLOAD_DIR, Common.basename(info))
+                    filename = "%s\\%s" % (Global.G_DOWNLOAD_DIR, Common.basename(info))
                     Utils.tell_info("%s: [90%%] 开始下载: %s" % (ip, filename))
                     if not SSHUtil.download_file(ssh, remote=info,local=filename):
                         raise ReportError("下载失败，重试:%s" % __retry)
@@ -306,7 +305,6 @@ class PageHandler:
                     break
                 Utils.tell_info("%s: [%s%%] %s" % (ip, _last_prog, info))
             except Exception as e:
-                print(e)
                 __retry += 1
                 if __retry < Global.G_RETRY_TIMES:
                     continue
@@ -369,8 +367,7 @@ class PageHandler:
             cls.start_shell('download', callback, ip, shell, param, True, False)
 
     @classmethod
-    def execute_fast_cmd_start(cls, callback, ip_list, text, root, loop):
-        shell = "fast_commands.sh"
+    def execute_fast_cmd_start(cls, ip_list, text, shell, root, loop):
         local_path = ".\\%s\\%s" % (Global.G_CMDS_DIR, shell)
         remote_path = "%s/%s" % (Global.G_SERVER_DIR, shell)
         Common.write_to_file(local_path, text)
@@ -383,13 +380,11 @@ class PageHandler:
             cls.start_shell('showing', None, ip, shell, None, root, loop)
 
     @classmethod
-    def execute_fast_cmd_stop(cls, ip_list):
+    def execute_fast_cmd_stop(cls, ip_list, shell):
         for ip in ip_list:
             ssh = cls._get_ssh(ip)
-            Utils.tell_info("%s 杀死任务fast_commands" % ip)
-            SSHUtil.exec_ret(ssh, "killall fast_commands.sh", True)
-            if ip not in cls.stop_get_print:
-                cls._stop_task('fast_commands', ip, 'append')
+            SSHUtil.exec_ret(ssh, "killall %s" % shell, True)
+            cls._stop_task('fast_commands', ip, 'append')
 
     '''
     @classmethod
