@@ -292,6 +292,10 @@ class OptionDownloadTypePage(Pager):
             self.progress[ip].update(value, color)
 
 
+class OnlyEntryEditTypePage(Pager):
+    pass
+
+
 class FastRunCommandPage(Pager):
 
     def __init__(self, interface, shell, ip_list, params=None):
@@ -347,7 +351,7 @@ class FastRunCommandPage(Pager):
         if not select_ip:
             WinMsg.warn("请勾选IP地址")
             return
-        PageHandler.execute_showing_start(None, select_ip, text, self.is_root.get(), self.is_loop.get())
+        PageHandler.execute_fast_cmd_start(None, select_ip, text, self.is_root.get(), self.is_loop.get())
 
     def stop_execute(self, var_list):
         select_ip, index = [], 0
@@ -358,7 +362,11 @@ class FastRunCommandPage(Pager):
         if not select_ip:
             WinMsg.warn("请勾选IP地址")
             return
-        PageHandler.execute_showing_stop(select_ip)
+        PageHandler.execute_fast_cmd_stop(select_ip)
+
+
+class FastUploadFilePage(Pager):
+    pass
 
 
 class PageCtrl(object):
@@ -400,7 +408,7 @@ class PageCtrl(object):
                 return
                 # self.current_page = OnlyTextEditTypePage(**pager_params)
             elif page_type == 'ONLY_ENTRY_EDIT':
-                return
+                self.current_page = OnlyEntryEditTypePage()
             elif page_type == 'SELF':
                 # 自定义界面，page_options第一个元素为类名，后面的为参数
                 class_name = eval(page_options[0])
@@ -415,19 +423,4 @@ class PageCtrl(object):
         except Exception as e:
             ToolTips.inner_error(e)
             Logger.error(traceback.format_exc())
-
-        '''
-        try:
-            class_name = eval(page_name)
-            self.current_page = class_name(interface=self.interface,
-                                           shell=shell,
-                                           ip_list=ViewUtil.get_ssh_ip_list()
-                                           )
-            self.current_page.pack()
-        except Exception as e:
-            ToolTips.inner_error(e)
-            Logger.error(traceback.format_exc())
-        '''
-
-
 
