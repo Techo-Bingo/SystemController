@@ -42,9 +42,9 @@ G_LGN_FUNC_HEIGHT = G_LGN_WIN_HEIGHT - G_LGN_HEAD_HEIGHT - G_LGN_FOOT_HEIGHT
 G_LGN_COUNT_LIMIT = 4
 # 主界面宽高
 G_MAIN_WIN_WIDTH = 1500
-G_MAIN_WIN_HEIGHT = 840
+G_MAIN_WIN_HEIGHT = 900
 # 主界面操作窗(pages)高度
-G_MAIN_OPER_HEIGHT = 560
+G_MAIN_OPER_HEIGHT = 500
 # 主界面信息提示栏高度
 G_MAIN_INFO_HEIGHT = G_MAIN_WIN_HEIGHT - G_MAIN_OPER_HEIGHT
 # 主界面树形导航栏宽度
@@ -53,7 +53,7 @@ G_MAIN_TREE_WIDTH = 280
 G_MAIN_OPER_WIDTH = 800
 # 主界面外部扩展栏宽度
 G_MAIN_HELP_WIDTH = G_MAIN_WIN_WIDTH - G_MAIN_TREE_WIDTH - G_MAIN_OPER_WIDTH
-G_INFOWIN_LEVEL_COLOR = {'INFO': 'DarkGreen',
+G_INFOWIN_LEVEL_COLOR = {'INFO': 'Blue',  # 'DarkGreen',
                          'TIPS': 'Blue',
                          'WARN': 'DarkOrange',
                          'ERROR': 'Red'}
