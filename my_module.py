@@ -83,39 +83,32 @@ class SubLogin(object):
         self.bonder = Bonder(_name)
         self.bonder.bond(Global.EVT_SEE_PSWD_ON, self.see_passwd_on)
         self.bonder.bond(Global.EVT_SEE_PSWD_OFF, self.see_passwd_off)
-
-        Define.define(Global.EVT_GET_LOGIN_INPUT % _index,
-                      self.get_inputs)
-        Define.define(Global.EVT_CHG_LOGIN_TIG_COLOR % _index,
-                      self.status_tig)
-        Define.define(Global.EVT_SUBLOGIN_ENTRY_TIG % _index,
-                      self.widget_tips)
+        Define.define(Global.EVT_GET_LOGIN_INPUT % _index, self.get_inputs)
+        Define.define(Global.EVT_CHG_LOGIN_TIG_COLOR % _index, self.status_tig)
+        Define.define(Global.EVT_SUBLOGIN_ENTRY_TIG % _index, self.widget_tips)
 
     def init_frame(self):
         entry_style = {'master': self.master,
-                       'background': Global.G_DEFAULT_COLOR,
-                       'font': (Global.G_FONT, 12)}
+                       'font': (Global.G_FONT, 11)}
         self.tiglab = tk.Label(self.master,
                                text='●',
                                font=(Global.G_FONT, 16),
                                fg=Global.G_TIG_FG_COLOR['DEFAULT'])
-        self.ip_en = tk.Entry(width=15, **entry_style)
-        self.user_en = tk.Entry(width=13, textvariable=self.var_user, **entry_style)
-        self.userpwd_en = tk.Entry(width=14, textvariable=self.var_upwd, **entry_style)
-        self.rootpwd_en = tk.Entry(width=13, textvariable=self.var_rpwd, **entry_style)
+        self.ip_en = ttk.Entry(width=15, **entry_style)
+        self.user_en = ttk.Entry(width=13, textvariable=self.var_user, **entry_style)
+        self.userpwd_en = ttk.Entry(width=14, textvariable=self.var_upwd, **entry_style)
+        self.rootpwd_en = ttk.Entry(width=13, textvariable=self.var_rpwd, **entry_style)
         self.delbtn = tk.Button(self.master,
                                 text='×',
                                 font=(Global.G_FONT, 13, 'bold'),
                                 bd=0,
-                                command=self.destroy
-                                )
+                                command=self.destroy)
 
     def pack_frame(self):
         grid_style = {'row': self.index + 1,
                       'padx': 4,
                       'pady': 6,
-                      'ipady': 3
-                      }
+                      'ipady': 3}
         self.tiglab.grid(row=self.index + 1, column=0)
         self.ip_en.grid(column=1, **grid_style)
         self.user_en.grid(column=2, **grid_style)
@@ -217,7 +210,6 @@ class TtkProgress(object):
 
 class ProgressBar(object):
     """ 进度条/比例条 """
-
     def __init__(self,
                  master,
                  name,
@@ -229,21 +221,17 @@ class ProgressBar(object):
         self.width = width
         self.value = 0
         _lab_style = {'master': master,
-                      # 'relief': 'solid',
-                      'font': (Global.G_FONT, size-2),
-                      # 'bd': 1
-                      }
+                      'relief': 'solid',
+                      'font': (Global.G_FONT, size-2)}
         _grid_style = {'row': row,
                        'column': column + 1,
-                       'sticky': tk.W
-                       }
-
+                       'sticky': tk.W}
         self.namelab = tk.Label(master, text=name, font=(Global.G_FONT, size), bg=bg)
         self.namelab.grid(row=row, column=column, padx=5, pady=5)
-        self.bglab = tk.Label(width=width, bg='snow', anchor=tk.E, **_lab_style)
-        self.fglab = tk.Label(**_lab_style)
-        self.bglab.grid(**_grid_style)
-        self.fglab.grid(**_grid_style)
+        self.bglab = tk.Label(width=width, anchor=tk.E, bd=1, **_lab_style) #bg='snow',
+        self.fglab = tk.Label(bd=0, **_lab_style)
+        self.bglab.grid(padx=10, ipady=1, **_grid_style)
+        self.fglab.grid(padx=11, **_grid_style)
 
     def update(self, value, color=False):
         if self.value == value:
@@ -368,7 +356,7 @@ class InfoWindow(object):
                                                   bd=2,
                                                   relief='ridge',
                                                   # fg='Blue',
-                                                  bg=Global.G_DEFAULT_BG,  #'Snow', #'AliceBlue',
+                                                  bg=Global.G_DEFAULT_COLOR,
                                                   height=24,
                                                   width=114)
         self.infotext.insert(tk.END, Global.G_WELCOME_INFO)

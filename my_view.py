@@ -252,7 +252,7 @@ class GuiMain(GuiBase):
     def init_frame(self):
         win_style = {'master': self.master,
                      'height': Global.G_MAIN_WIN_HEIGHT}
-        self.tree_window = tk.Frame(width=Global.G_MAIN_TREE_WIDTH, bg='SkyBlue4', **win_style)
+        self.tree_window = tk.Frame(width=Global.G_MAIN_TREE_WIDTH, **win_style)
         self.oper_window = tk.Frame(width=Global.G_MAIN_OPER_WIDTH, **win_style)
         fm_style = {'master': self.oper_window,
                     'width': Global.G_MAIN_OPER_WIDTH,
