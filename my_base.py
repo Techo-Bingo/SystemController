@@ -112,11 +112,10 @@ class Pager(object):
 
     def _init(self):
         self.master = self.interface('get_master')
-        _w, _h = self.interface('get_range')
-        self.width, self.height = _w - 20, _h - 20
+        self.width, self.height = self.interface('get_range')
         self._showing = True
-        self.frame = tk.LabelFrame(self.master, width=_w-2, height=_h-2)
-        self.frame.pack()
+        self.frame = tk.LabelFrame(self.master, width=self.width, height=self.height)
+        self.frame.pack(padx=2, pady=5)
         self.frame.pack_propagate(0)
 
     def pack(self):
