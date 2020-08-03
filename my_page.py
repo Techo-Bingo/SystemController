@@ -444,7 +444,7 @@ class FastUploadFilePage(Pager):
     """ 自定义界面：快速上传界面 """
     def __init__(self, interface, shell, ip_list, params=None):
         self.interface = interface
-        self.shell = shell
+        # self.shell = shell
         self.ip_list = ip_list
         self.local_en = None
         self.server_en = None
@@ -498,7 +498,6 @@ class FastUploadFilePage(Pager):
         ttk.Button(btn_fm, text='执行', width=20, command=lambda x=var_list: self.start_execute(x)).grid(row=0, column=0, pady=15)
         ttk.Button(btn_fm, text='停止', width=20, command=lambda x=var_list: self.stop_execute(x)).grid(row=1, column=0, pady=15)
 
-
     def choose_file(self, entry_var):
         local_path = filedialog.askopenfilename()
         entry_var.set(local_path)
@@ -528,10 +527,15 @@ class FastUploadFilePage(Pager):
         if not select_ip:
             WinMsg.warn("请勾选IP地址")
             return
-        PageHandler.execute_fast_upload_start(self.callback, select_ip, self.shell, local_path, remote_path, chmod_str, chown_str)
+        PageHandler.execute_fast_upload_start(self.callback, select_ip, local_path, remote_path, chmod_str, chown_str)
 
     def stop_execute(self, var_list):
-        print(var_list)
+        select_ip, index = [], 0
+        for v in var_list:
+            if int(v.get()):
+                select_ip.append(self.ip_list[index])
+            index += 1
+        PageHandler.execute_fast_upload_stop(select_ip)
 
     def callback(self, *args):
         ip, value, color = args

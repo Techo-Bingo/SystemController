@@ -36,3 +36,5 @@ function compress()
 	which zip &>/dev/null && { echo "${dst_file}.zip"; zip ${dst_file}.zip * &>/dev/null && { chmod 777 ${dst_file}.zip; return 0; } || return 1; }
 	return 1
 }
+
+

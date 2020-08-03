@@ -199,6 +199,7 @@ class LoginHandler:
 class PageHandler:
     """ 页面事件处理类 """
     _stop_task_ips = {}
+    _inner_caller = "sh %s/inner_function.sh" % (Global.G_SERVER_DIR)
 
     @classmethod
     def _mutex(cls, ip, task, lock=True):
@@ -206,7 +207,10 @@ class PageHandler:
         _lock_file = '%s\\%s-%s.lock' % (Global.G_LOCKS_DIR, task, ip)
         # 释放锁
         if not lock:
-            Common.remove(_lock_file)
+            try:
+                Common.remove(_lock_file)
+            except:
+                pass
             return
         # 尝试加锁
         if Common.is_file(_lock_file):
@@ -246,17 +250,10 @@ class PageHandler:
     def _exec_shell(cls, ssh, ip, shell, task, param, root, back=False):
         """ 后台执行脚本 """
         Utils.tell_info('%s: [0%%] 正在执行任务: %s' % (ip, task))
-        task_dir = "%s/%s" % (Global.G_SERVER_DIR, task)
-        shell_path = "%s/%s" % (Global.G_SERVER_DIR, shell)
-        back_flag = '&' if back else ''
-        cmd = '''
-        mkdir -p {0} 2>/dev/null;
-        chmod 777 {0} 2>/dev/null;
-        dos2unix {1} 2>/dev/null;
-        chmod 777 {1} 2>/dev/null;
-        cd {0} 2>/dev/null;
-        sh {1} '{2}' '{3}' > {0}/print.txt 2>&1 {4}
-        '''.format(task_dir, shell_path, ip, param, back_flag)
+        if back:
+            cmd = "{0} async_call_shell {1} {2} {3} {4}".format(cls._inner_caller, ip, task, shell, param)
+        else:
+            cmd = "{0} sync_call_shell {1} {2} {3} {4}".format(cls._inner_caller, ip, task, shell, param)
         SSHUtil.exec_ret(ssh, cmd, root)
 
     @classmethod
@@ -298,7 +295,7 @@ class PageHandler:
 
     @classmethod
     def _get_print(cls, ssh, callback, ip, task, root, loop):
-        cmd = "cat %s/%s/print.txt" % (Global.G_SERVER_DIR, task)
+        cmd = "{0} get_task_stdout {1}".format(cls._inner_caller, task)
         def get_print():
             ret_info = SSHUtil.exec_info(ssh, cmd, root)[0]
             Utils.tell_info("%s:[100%%] 执行结果：\n%s" % (ip, ret_info))
@@ -346,6 +343,12 @@ class PageHandler:
         Common.create_thread(func=cls._exec_shell_impl, args=args)
 
     @classmethod
+    def kill_shell(cls, ip, task, shell):
+        ssh = cls._get_ssh(ip)
+        SSHUtil.exec_ret(ssh, "{0} kill_shell {1}".format(cls._inner_caller, shell), True)
+        cls._mutex(ip, task, False)
+
+    @classmethod
     def execute_download_start(cls, callback, ip_list, shell, param):
         for ip in ip_list:
             cls.start_shell('download', callback, ip, shell, param, True, False)
@@ -366,41 +369,55 @@ class PageHandler:
     @classmethod
     def execute_fast_cmd_stop(cls, ip_list, shell):
         for ip in ip_list:
-            ssh = cls._get_ssh(ip)
-            SSHUtil.exec_ret(ssh, "killall %s" % shell, True)
+            task = shell.split('.')[0]
+            cls.kill_shell(ip, task, shell)
             # 暂停循环读取打印线程
-            cls._stop_task(shell.split('.')[0], ip, 'append')
+            cls._stop_task(task, ip, 'append')
 
     @classmethod
-    def execute_fast_upload_start(cls, callback, ip_list, shell, local, remote, chmod, chown):
-        # Common.create_thread(func=cls._exec_shell_impl, args=args)
-        tmp_upload = "%s/UPLOAD/%s" % (Global.G_SERVER_DIR, Common.basename(local))
-        check_cmd = """
-        [ ! -d {0} ] && exit 1
-        mkdir {1}/UPLOAD
-        chmod 777 {1}/UPLOAD
-        exit 0
-        """.format(remote, Global.G_SERVER_DIR)
-        for ip in ip_list:
-            ssh = cls._get_ssh(ip)
-            ret, err = SSHUtil.exec_ret(ssh, check_cmd, True)
-            if ret:
-                Utils.tell_info("%s: 服务器目录不存在" % ip, level='ERROR')
-                callback(ip, 20, 'Red')
-                continue
-            ret, err = SSHUtil.upload_file(ssh, local, tmp_upload)
-            if not ret:
-                Utils.tell_info("%s:[50%%] 上传脚本文件失败，执行命令失败！" % ip, level='ERROR')
-                callback(ip, 50, 'Red')
-                continue
-            cls._exec_shell_impl('showing', None, ip, shell, "%s|%s|%s|%s" % (tmp_upload, remote, chmod, chown))
-            callback(ip, 100, False)
+    def _fast_upload_impl(cls, ip, callback, local, tmp_upload, check_cmd, move_cmd):
+        Utils.tell_info("%s:[10%%] 开始上传%s" % (ip, local))
+        cls._stop_task('fast_upload', ip, 'remove')
+        ssh = cls._get_ssh(ip)
+        ret, err = SSHUtil.exec_ret(ssh, check_cmd, True)
+        if ret:
+            Utils.tell_info("%s:[20%%] 服务器目录不存在" % ip, level='ERROR')
+            callback(ip, 20, 'Red')
+            return
+        callback(ip, 20, False)
+        ret, err = SSHUtil.upload_file(ssh, local, tmp_upload)
+        if cls._stop_task('fast_upload', ip):
+            return
+        if not ret:
+            Utils.tell_info("%s:[70%%] 上传失败！" % ip, level='ERROR')
+            callback(ip, 70, 'Red')
+            return
+        callback(ip, 70, False)
+        ret, err = SSHUtil.exec_ret(ssh, move_cmd, True)
+        if ret:
+            Utils.tell_info("%s:[90%%] 移动至目标目录失败或修改属性失败" % ip, level='ERROR')
+            callback(ip, 90, 'Red')
+        callback(ip, 100, False)
+        Utils.tell_info("%s:[100%%] %s上传成功" % (ip, local))
 
     @classmethod
-    def execute_fast_upload_stop(cls, ip_list, shell):
+    def execute_fast_upload_start(cls, callback, ip_list, local, remote, chmod, chown):
+        base_name = Common.basename(local)
+        upload_dir = "%s/UPLOAD" % Global.G_SERVER_DIR
+        tmp_upload = "%s/%s" % (upload_dir, base_name)
+        dest_path = "%s/%s" % (remote, base_name)
+        check_cmd = "{0} upload_prev_check {1} {2}".format(cls._inner_caller, remote, upload_dir)
+        move_cmd = "{0} move_file {1} {2} {3} {4}".format(cls._inner_caller, tmp_upload, dest_path, chmod, chown)
         for ip in ip_list:
-            ssh = cls._get_ssh(ip)
-            SSHUtil.exec_ret(ssh, "killall %s" % shell, True)
+            args=(ip, callback, local, tmp_upload, check_cmd, move_cmd)
+            Common.create_thread(func=cls._fast_upload_impl, args=args)
+
+    @classmethod
+    def execute_fast_upload_stop(cls, ip_list):
+        for ip in ip_list:
+            task = 'fast_upload'
+            cls._stop_task(task, ip, 'append')
+            Utils.tell_info("%s: 停止%s成功" % (ip, task))
 
     '''
     @classmethod
