@@ -62,6 +62,8 @@ class Gui(tk.Tk):
         """ 关闭窗口 """
         if self._in_main_gui and not WinMsg.ask("请确认是否退出？"):
             return
+        # 清空lock文件夹
+        Common.rm_dir(Global.G_LOCKS_DIR)
         self.bonder.unbond(Global.EVT_LOGIN_GUI)
         self.bonder.unbond(Global.EVT_MAIN_GUI)
         self.destroy()
