@@ -3,6 +3,8 @@
 import os
 import re
 import time
+import shutil
+import zipfile
 import threading
 from json import load
 from my_base import JSONError
@@ -30,6 +32,10 @@ class Common:
     @classmethod
     def is_file(cls, file_path):
         return os.path.isfile(file_path)
+
+    @classmethod
+    def rm_dir(cls, path):
+        return shutil.rmtree(path)
 
     @classmethod
     def remove(cls, file_path):
@@ -85,6 +91,17 @@ class Common:
         time.sleep(sec)
 
     @classmethod
-    def find_val_in_str(cls, in_str, key):
-        return re.findall(r'%s:.*' % (key), in_str)[0].split(':')[-1]
+    def zip_dir(cls, dirname, zipname):
+        filelist = []
+        if os.path.isfile(dirname):
+            filelist.append(dirname)
+        else:
+            for root, dirs, files in os.walk(dirname):
+                for name in files:
+                    filelist.append(os.path.join(root, name))
+        zf = zipfile.ZipFile(zipname, "w", zipfile.zlib.DEFLATED)
+        for tar in filelist:
+            arcname = tar[len(dirname):]
+            zf.write(tar, arcname)
+        zf.close()
 
