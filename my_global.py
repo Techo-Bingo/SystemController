@@ -69,6 +69,8 @@ G_PACKAGE_NAME = 'package.zip'
 G_LOG_DIR = '.\\log'
 G_CONF_DIR = '.\\conf'
 G_CMDS_DIR = '.\\cmds'
+G_SHELL_DIR = '.\\cmds\\shell'
+G_LOCKS_DIR = '.\\cmds\\lock'
 G_DOWNLOAD_DIR = '.\\download'
 # 日志回滚大小
 G_LOG_SIZE = 10485760
