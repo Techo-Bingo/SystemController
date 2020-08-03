@@ -2,7 +2,6 @@
 """
 ViewModel板块，处理各种用户操作
 """
-from time import sleep
 import my_global as Global
 from my_logger import Logger
 from my_viewmodel import ViewModel
@@ -78,24 +77,21 @@ class LoginHandler:
 
     @classmethod
     def _login_server(cls, seq, ip_passwd_tuple):
-        _retry_times = Global.G_RETRY_TIMES
-        _user_login = SSHUtil.user_login
         ip, user, userpwd, rootpwd = ip_passwd_tuple
-
-        for times in range(1, _retry_times + 1):
+        for times in range(1, Global.G_RETRY_TIMES + 1):
             ssh = SSH(ip, user, userpwd, rootpwd)
             try:
-                ret, err = _user_login(ssh, user)
+                ret, err = SSHUtil.user_login(ssh, user)
                 if not ret:
                     cls._widget = 'userpwd'
                     raise ExecError("%s %s登录失败!\n详细:%s 重试:%s" % (ip, user, err, times))
-                ret, err = _user_login(ssh, 'root')
+                ret, err = SSHUtil.user_login(ssh, 'root')
                 if not ret:
                     cls._widget = 'rootpwd'
                     raise ExecError("%s root登录失败!\n详细:%s 重试:%s" % (ip, err, times))
             except ExecError as e:
                 Logger.warn(e)
-                if times == _retry_times:
+                if times == Global.G_RETRY_TIMES:
                     # 删除IP对应的ssh实例
                     cls._logon_ssh_inst('SUB', ip)
                     # 登录子模块状态提示器显示失败
@@ -120,29 +116,20 @@ class LoginHandler:
 
     @classmethod
     def _upload_package(cls, args=None):
-        pack_path = "%s\\%s" % (Global.G_CMDS_DIR, Global.G_PACKAGE_NAME)
-        remote_path = '%s/%s' % (Global.G_SERVER_DIR, Global.G_PACKAGE_NAME)
-        unzip_cmd = '''
-        cd {0};
-        unzip -o {1}; 
-        chmod 777 {0}/*; 
-        dos2unix {0}/*
-        '''.format(Global.G_SERVER_DIR, Global.G_PACKAGE_NAME)
-        _retry_times = Global.G_RETRY_TIMES
-        # for循环中会对ssh实例字典操作，
-        # 所以用一个临时变量接收ssh实例字典数据进行for，否则会报错
-        _ip_ssh_dict = {}
-        _ip_ssh_dict.update(cls._logon_ssh_inst('QUE', None))
-
-        for ip, ssh in _ip_ssh_dict.items():
-            """ 按照重试次数进行上传和解压文件 """
-            for times in range(1, _retry_times + 1):
-                # 如果上次登录用户跟这次不一致，会导致后面解压失败
-                # 这里刚登录时，每次清空目录
-                SSHUtil.exec_ret(ssh, 'rm -rf %s/*' % Global.G_SERVER_DIR, root=True)
+        # 先压缩脚本再上传
+        zip_name = "package.zip"
+        zip_file = "%s\\%s" % (Global.G_CMDS_DIR, zip_name)
+        remote_path = '%s/%s' % (Global.G_SERVER_DIR, zip_name)
+        Common.zip_dir(Global.G_SHELL_DIR, zip_file)
+        unzip_cmd = '''cd {0}; unzip -o {1}; chmod 777 {0}/*; dos2unix {0}/*'''.format(Global.G_SERVER_DIR, zip_name)
+        _ip_del_list = []
+        for ip, ssh in cls._logon_ssh_inst('QUE', None).items():
+            # 如果上次登录用户跟这次不一致，会导致后面解压失败; 这里每次登录都清空目录
+            SSHUtil.exec_ret(ssh, 'rm -rf %s/*' % Global.G_SERVER_DIR, root=True)
+            for times in range(1, Global.G_RETRY_TIMES + 1):
                 try:
                     # 上传文件
-                    ret, err = SSHUtil.upload_file(ssh, pack_path, remote_path)
+                    ret, err = SSHUtil.upload_file(ssh, zip_file, remote_path)
                     if not ret:
                         raise ExecError('%s 上传package失败，详细:%s，重试:%s' % (ip, err, times))
                     # 解压文件, 成功返回0
@@ -150,29 +137,25 @@ class LoginHandler:
                     if ret:
                         raise ExecError('%s 解压package失败，详细:%s，重试:%s' % (ip, err, times))
                 except ExecError as e:
-                    # 失败则从字典中删除该IP的ssh实例
-                    cls._logon_ssh_inst('SUB', ip)
+                    if times == Global.G_RETRY_TIMES:
+                        _ip_del_list.append(ip)
                     Utils.tell_info(e, level='ERROR')
                     Logger.warn(e)
                     continue
                 else:
-                    # bug fix
-                    # 场景：登录成功，但是第一次上传失败时，上面的Except会删除该IP
-                    # 待第二次上传成功后，LOGON_SSH_DICT中其实已经没有该IP,界面将显示为空
-                    # 解决：这里成功后也加一次IP
-                    cls._logon_ssh_inst('ADD', {ip: ssh})
                     info = '%s 环境准备就绪' % ip
                     Logger.info(info)
                     Utils.tell_info(info)
                     break
-        del _ip_ssh_dict
+        [cls._logon_ssh_inst('SUB', ip) for ip in _ip_del_list]
+        Common.remove(zip_file)
         # ssh保活
         cls._keep_ssh_alive()
 
     @classmethod
     def _keep_ssh_alive(cls, args=None):
         while True:
-            sleep(60)
+            Common.sleep(60)
             for ip, ssh in cls._logon_ssh_inst('QUE', None).items():
                 ret, err = SSHUtil.exec_ret(ssh, 'echo')
                 Logger.debug("(keepalive) ip:%s ret:%s err:%s" % (ip, ret, err))
@@ -220,7 +203,7 @@ class PageHandler:
     @classmethod
     def _mutex(cls, ip, task, lock=True):
         """ 防重入 """
-        _lock_file = '%s\\%s-%s.lock' % (Global.G_CMDS_DIR, task, ip)
+        _lock_file = '%s\\%s-%s.lock' % (Global.G_LOCKS_DIR, task, ip)
         # 释放锁
         if not lock:
             Common.remove(_lock_file)
@@ -240,6 +223,7 @@ class PageHandler:
 
     @classmethod
     def _stop_task(cls, task, ip, op='get'):
+        # 暂停后台循环任务
         if op == 'remove':
             if task not in cls._stop_task_ips:
                 cls._stop_task_ips[task] = []
@@ -282,7 +266,7 @@ class PageHandler:
         _last_prog = 1
         __retry = 0
         while True:
-            sleep(1)
+            Common.sleep(1)
             try:
                 cur_prog, status, info = cls._get_exec_info(ssh, cmd, root).split('|')
                 cur_prog = int(cur_prog) - 10
@@ -328,7 +312,7 @@ class PageHandler:
                 if cls._stop_task(task, ip):
                     Utils.tell_info("%s 已停止循环读取" % ip)
                     break
-                sleep(2)
+                Common.sleep(2)
                 get_print()
         else:
             get_print()
@@ -368,7 +352,7 @@ class PageHandler:
 
     @classmethod
     def execute_fast_cmd_start(cls, ip_list, text, shell, root, loop):
-        local_path = ".\\%s\\%s" % (Global.G_CMDS_DIR, shell)
+        local_path = ".\\%s\\%s" % (Global.G_SHELL_DIR, shell)
         remote_path = "%s/%s" % (Global.G_SERVER_DIR, shell)
         Common.write_to_file(local_path, text)
         for ip in ip_list:
@@ -384,7 +368,39 @@ class PageHandler:
         for ip in ip_list:
             ssh = cls._get_ssh(ip)
             SSHUtil.exec_ret(ssh, "killall %s" % shell, True)
-            cls._stop_task('fast_commands', ip, 'append')
+            # 暂停循环读取打印线程
+            cls._stop_task(shell.split('.')[0], ip, 'append')
+
+    @classmethod
+    def execute_fast_upload_start(cls, callback, ip_list, shell, local, remote, chmod, chown):
+        # Common.create_thread(func=cls._exec_shell_impl, args=args)
+        tmp_upload = "%s/UPLOAD/%s" % (Global.G_SERVER_DIR, Common.basename(local))
+        check_cmd = """
+        [ ! -d {0} ] && exit 1
+        mkdir {1}/UPLOAD
+        chmod 777 {1}/UPLOAD
+        exit 0
+        """.format(remote, Global.G_SERVER_DIR)
+        for ip in ip_list:
+            ssh = cls._get_ssh(ip)
+            ret, err = SSHUtil.exec_ret(ssh, check_cmd, True)
+            if ret:
+                Utils.tell_info("%s: 服务器目录不存在" % ip, level='ERROR')
+                callback(ip, 20, 'Red')
+                continue
+            ret, err = SSHUtil.upload_file(ssh, local, tmp_upload)
+            if not ret:
+                Utils.tell_info("%s:[50%%] 上传脚本文件失败，执行命令失败！" % ip, level='ERROR')
+                callback(ip, 50, 'Red')
+                continue
+            cls._exec_shell_impl('showing', None, ip, shell, "%s|%s|%s|%s" % (tmp_upload, remote, chmod, chown))
+            callback(ip, 100, False)
+
+    @classmethod
+    def execute_fast_upload_stop(cls, ip_list, shell):
+        for ip in ip_list:
+            ssh = cls._get_ssh(ip)
+            SSHUtil.exec_ret(ssh, "killall %s" % shell, True)
 
     '''
     @classmethod
