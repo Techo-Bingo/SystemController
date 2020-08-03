@@ -86,10 +86,15 @@ class Init:
             Common.mkdir(Global.G_LOG_DIR)
         if not Common.is_exists(Global.G_DOWNLOAD_DIR):
             Common.mkdir(Global.G_DOWNLOAD_DIR)
+        if not Common.is_exists(Global.G_LOCKS_DIR):
+            Common.mkdir(Global.G_LOCKS_DIR)
         # 日志大于阈值，清空
         if Common.file_size(Global.G_LOG_PATH) > Global.G_LOG_SIZE:
             Common.write_to_file(Global.G_LOG_PATH, 'Rollback init')
         try:
+            if not Common.is_exists(Global.G_SHELL_DIR):
+                raise EnvError("%s is not exist" % Global.G_SHELL_DIR)
+
             if not Common.is_exists(Global.G_CONF_DIR):
                 raise EnvError("%s is not exist" % Global.G_CONF_DIR)
 
@@ -98,10 +103,6 @@ class Init:
 
             if not Common.is_file(Global.G_SETTING_FILE):
                 raise EnvError("%s is not exist" % Global.G_SETTING_FILE)
-
-            package = "%s\\%s" % (Global.G_CMDS_DIR, Global.G_PACKAGE_NAME)
-            if not Common.is_file(package):
-                raise EnvError("%s is not exist" % package)
         except EnvError as e:
             Logger.error(e)
             Utils.windows_error(e)
