@@ -339,15 +339,19 @@ class OnlyEntryEditTypePage(Pager):
                    ).grid(row=row+1, column=0)
 
     def start_execute(self, var_list):
+        param = self.entry.get()
         select_ip, index = [], 0
         for v in var_list:
             if int(v.get()):
                 select_ip.append(self.ip_list[index])
             index += 1
+        if param == '':
+            WinMsg.warn("输入为空！")
+            return
         if not select_ip:
             WinMsg.warn("请勾选IP地址")
             return
-        PageHandler.execute_download_start(self.callback, select_ip, self.shell, self.entry.get())
+        PageHandler.execute_download_start(self.callback, select_ip, self.shell, param)
 
     def callback(self, *args):
         ip, value, color = args
@@ -442,10 +446,13 @@ class FastUploadFilePage(Pager):
         self.interface = interface
         self.shell = shell
         self.ip_list = ip_list
+        self.local_en = None
         self.server_en = None
         self.chmod_en = None
         self.chown_en = None
         self.progress = {}
+        self.chmod_var = tk.StringVar()
+        self.chown_var = tk.StringVar()
 
     def stepper(self):
         self.pack_frame()
@@ -458,33 +465,24 @@ class FastUploadFilePage(Pager):
         edt_fm.pack(fill='x', padx=5, pady=5)
         opr_fm.pack(fill='x', padx=5, pady=5)
         ips_fm.pack(fill='both', side='left')
-        btn_fm.pack(fill='x', side='left', padx=10)
+        btn_fm.pack(fill='x', side='left', padx=30)
         # 输入栏
         tk.Label(edt_fm, text="本地文件：").grid(row=0, column=0, sticky='w', padx=5)
         entry_var = tk.StringVar()
-        ttk.Entry(edt_fm,
-                  width=60,
-                  font=(Global.G_FONT, 10),
-                  textvariable=entry_var,
-                  state='disabled'
-                  ).grid(row=0, column=1, pady=5)
-        ttk.Button(edt_fm,
-                   text=". . .",
-                   width=3,
-                   command=lambda x=entry_var: self.choose_file(x)
-                   ).grid(row=0, column=3, padx=5)
-        tk.Label(edt_fm, text="服务器：").grid(row=1, column=0, sticky='w', padx=5)
+        self.local_en = ttk.Entry(edt_fm, width=60, font=(Global.G_FONT, 10), textvariable=entry_var, state='disabled')
+        self.local_en.grid(row=0, column=1, pady=5)
+        ttk.Button(edt_fm, text=". . .", width=3, command=lambda x=entry_var: self.choose_file(x)).grid(row=0, column=3, padx=5)
+        tk.Label(edt_fm, text="服务器路径：").grid(row=1, column=0, sticky='w', padx=5)
         self.server_en = ttk.Entry(edt_fm, width=60, font=(Global.G_FONT, 10))
         self.server_en.grid(row=1, column=1, pady=5)
-        chmod_var, chown_var = tk.StringVar(), tk.StringVar()
         tk.Label(edt_fm, text="设置权限：").grid(row=2, column=0, sticky='w', padx=5)
         tk.Label(edt_fm, text="设置属主/组：").grid(row=3, column=0, sticky='w', padx=5)
-        self.chmod_en = ttk.Entry(edt_fm, textvariable=chmod_var)
-        self.chown_en = ttk.Entry(edt_fm, textvariable=chown_var)
+        self.chmod_en = ttk.Entry(edt_fm, textvariable=self.chmod_var)
+        self.chown_en = ttk.Entry(edt_fm, textvariable=self.chown_var)
         self.chmod_en.grid(row=2, column=1, sticky='w', pady=5)
         self.chown_en.grid(row=3, column=1, sticky='w', pady=5)
-        chmod_var.set("0640")
-        chown_var.set("root:root")
+        self.chmod_var.set("0640")
+        self.chown_var.set("root:root")
         # 按钮栏
         row, var_list = 0, []
         for ip in self.ip_list:
@@ -500,16 +498,45 @@ class FastUploadFilePage(Pager):
         ttk.Button(btn_fm, text='执行', width=20, command=lambda x=var_list: self.start_execute(x)).grid(row=0, column=0, pady=15)
         ttk.Button(btn_fm, text='停止', width=20, command=lambda x=var_list: self.stop_execute(x)).grid(row=1, column=0, pady=15)
 
+
     def choose_file(self, entry_var):
         local_path = filedialog.askopenfilename()
         entry_var.set(local_path)
-        print(self.server_en.get())
 
     def start_execute(self, var_list):
-        print(var_list)
+        local_path = self.local_en.get()
+        remote_path = self.server_en.get()
+        chmod_str = self.chmod_en.get()
+        chown_str = self.chown_en.get()
+        select_ip, index = [], 0
+        for v in var_list:
+            if int(v.get()):
+                select_ip.append(self.ip_list[index])
+            index += 1
+        if local_path == "":
+            WinMsg.warn("请选择本地上传文件")
+            return
+        if remote_path == "" or remote_path[0] != "/":
+            WinMsg.warn("请输入服务器绝对路径")
+            return
+        if chmod_str == "":
+            WinMsg.warn("请设置文件上传后的权限")
+            return
+        if chown_str == "" or len(chown_str.split(":")) != 2:
+            WinMsg.warn("请正确设置文件上传后的属主/组")
+            return
+        if not select_ip:
+            WinMsg.warn("请勾选IP地址")
+            return
+        PageHandler.execute_fast_upload_start(self.callback, select_ip, self.shell, local_path, remote_path, chmod_str, chown_str)
 
     def stop_execute(self, var_list):
         print(var_list)
+
+    def callback(self, *args):
+        ip, value, color = args
+        if self.alive():
+            self.progress[ip].update(value, color)
 
 
 class PageCtrl(object):
