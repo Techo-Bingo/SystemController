@@ -1,7 +1,6 @@
 # -*- coding: UTF-8 -*-
 
 import os
-# import traceback
 import paramiko
 from time import sleep
 from my_base import SSHError
