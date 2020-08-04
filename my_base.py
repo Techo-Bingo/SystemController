@@ -2,7 +2,6 @@
 
 import time
 import tkinter as tk
-# import my_global as Global
 
 
 class EnvError(Exception):
@@ -51,8 +50,7 @@ class Singleton(object):
 
 class GuiBase(Singleton):
     """ 子窗体的基类 """
-    master = None
-
+    
     def init_viewmodel(self):
         pass
 
@@ -66,7 +64,6 @@ class GuiBase(Singleton):
         self.master.destroy()
 
     def show(self):
-        # self.master.pack()
         self.init_viewmodel()
         self.init_frame()
         self.pack_frame()
