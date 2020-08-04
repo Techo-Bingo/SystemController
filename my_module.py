@@ -228,7 +228,7 @@ class ProgressBar(object):
                        'sticky': tk.W}
         self.namelab = tk.Label(master, text=name, font=(Global.G_FONT, size), bg=bg)
         self.namelab.grid(row=row, column=column, padx=5, pady=5)
-        self.bglab = tk.Label(width=width, anchor=tk.E, bd=1, **_lab_style) #bg='snow',
+        self.bglab = tk.Label(width=width, anchor=tk.E, bd=1, **_lab_style)
         self.fglab = tk.Label(bd=0, **_lab_style)
         self.bglab.grid(padx=10, ipady=1, **_grid_style)
         self.fglab.grid(padx=11, **_grid_style)
