@@ -4,21 +4,15 @@ View板块;
 处理逻辑，不包含数据
 """
 import tkinter as tk
-from tkinter import ttk
+# from tkinter import ttk
 import my_global as Global
 from my_base import GuiBase
 from my_common import Common
 from my_page import PageCtrl
 from my_handler import LoginHandler
-from my_viewutil import WinMsg, ViewUtil, ToolTips
+from my_viewutil import WinMsg, ViewUtil
 from my_bond import Bonder, Packer, Define
-from my_module import (SubLogin,
-                       InfoWindow,
-                       TopProgress,
-                       MyButton,
-                       MyTreeView,
-                       MyToolBar,
-                       TopAbout)
+from my_module import SubLogin, InfoWindow, TopProgress, MyButton, MyTreeView, MyToolBar, TopAbout
 
 
 class Gui(tk.Tk):
@@ -277,7 +271,7 @@ class GuiMain(GuiBase):
 
     def pack_subframe(self):
         self.init_treeview()
-        self.oper_fm.pack(fill='both')
+        self.oper_fm.pack(fill='both', padx=5)
         self.info_fm.pack(fill='both')
         self.oper_fm.pack_propagate(0)
         self.info_fm.pack_propagate(0)
@@ -285,7 +279,6 @@ class GuiMain(GuiBase):
         InfoWindow(self.info_fm)
         # 初始化page
         self.pager = PageCtrl(self.interface)
-        # self.show_help_window(True)
 
     def show_help_window(self, show=False):
         if show:
