@@ -354,7 +354,13 @@ class PageHandler:
             cls.start_shell('download', callback, ip, shell, param, True, False)
 
     @classmethod
-    def execute_fast_cmd_start(cls, ip_list, text, shell, root, loop):
+    def execute_download_stop(cls, ip_list, shell):
+        task = shell.split('.')[0]
+        for ip in ip_list:
+            cls.kill_shell(ip, task, shell)
+
+    @classmethod
+    def execute_fast_cmd_start(cls, callback, ip_list, shell, text, root, loop):
         local_path = ".\\%s\\%s" % (Global.G_SHELL_DIR, shell)
         remote_path = "%s/%s" % (Global.G_SERVER_DIR, shell)
         Common.write_to_file(local_path, text)
@@ -363,13 +369,15 @@ class PageHandler:
             ret, err = SSHUtil.upload_file(ssh, local_path, remote_path)
             if not ret:
                 Utils.tell_info("%s:[50%%] 上传脚本文件失败，执行命令失败！" % ip, level='ERROR')
+                callback(ip, 50, 'Red')
                 continue
             cls.start_shell('showing', None, ip, shell, None, root, loop)
+            callback(ip, 100, False)
 
     @classmethod
     def execute_fast_cmd_stop(cls, ip_list, shell):
+        task = shell.split('.')[0]
         for ip in ip_list:
-            task = shell.split('.')[0]
             cls.kill_shell(ip, task, shell)
             # 暂停循环读取打印线程
             cls._stop_task(task, ip, 'append')
@@ -409,13 +417,13 @@ class PageHandler:
         check_cmd = "{0} upload_prev_check {1} {2}".format(cls._inner_caller, remote, upload_dir)
         move_cmd = "{0} move_file {1} {2} {3} {4}".format(cls._inner_caller, tmp_upload, dest_path, chmod, chown)
         for ip in ip_list:
-            args=(ip, callback, local, tmp_upload, check_cmd, move_cmd)
+            args = (ip, callback, local, tmp_upload, check_cmd, move_cmd)
             Common.create_thread(func=cls._fast_upload_impl, args=args)
 
     @classmethod
     def execute_fast_upload_stop(cls, ip_list):
+        task = 'fast_upload'
         for ip in ip_list:
-            task = 'fast_upload'
             cls._stop_task(task, ip, 'append')
             Utils.tell_info("%s: 停止%s成功" % (ip, task))
 
