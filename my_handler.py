@@ -1,465 +1,600 @@
 # -*- coding: UTF-8 -*-
-"""
-ViewModel板块，处理各种用户操作
-"""
+import traceback
+import tkinter as tk
+from tkinter import ttk, scrolledtext, filedialog
 import my_global as Global
 from my_logger import Logger
-from my_viewmodel import ViewModel
-from my_bond import Caller
-from my_util import Utils
-from my_common import Common
-from my_ssh import SSH, SSHUtil
-from my_base import InputError, ExecError, ReportError
+from my_base import Pager
+from my_module import ProgressBar
+from my_handler import PageHandler
+from my_viewutil import ToolTips, ViewUtil, WinMsg
+from my_timezone import TimezonePage
 
 
-class LoginHandler:
-    """ 登录处理类 """
-    _ip_list = []
-    _widget = None
+'''
+class StatePage(Pager):
+    """ 主备状态页面 """
 
-    @classmethod
-    def _logon_ssh_inst(cls, type, data):
-        return ViewModel.cache('LOGON_SSH_DICT', type=type, data=data)
+    def __init__(self, interface, shell, ip_list):
+        self.master = interface('get_master')
+        self.shell = shell
+        self.ip_list = ip_list
+        self.lab_width = 20
+        self.ip_width = 16
+        self.state_lab_inst = {}
 
-    @classmethod
-    def _sublogin_callback(cls, event, msg=None):
-        """ SubLogin事件回调(caller类) """
-        return Caller.call(event=event, msg=msg)
+    def stepper(self):
+        self.pack_frame()
+        PageHandler.collect_state_start(self.call_back,
+                                        self.ip_list,
+                                        self.shell
+                                        )
 
-    @classmethod
-    def _sublogin_status_tig(cls, seq, status):
-        cls._sublogin_callback(Global.EVT_CHG_LOGIN_TIG_COLOR % seq, status)
-
-    @classmethod
-    def _sublogin_entry_tig(cls, seq, widget):
-        cls._sublogin_callback(Global.EVT_SUBLOGIN_ENTRY_TIG % seq, widget)
-
-    @classmethod
-    def _check_ip_passwd_vaild(cls, ip):
-        cls._widget = 'ip'
-        if not ip:
-            raise InputError("请输入服务器IP地址")
-        if not Common.is_ip(ip):
-            raise InputError("请输入正确的IP地址")
-        if ip in cls._ip_list:
-            raise InputError("%s 输入重复" % ip)
-        cls._ip_list.append(ip)
-
-    @classmethod
-    def _check_user_and_password(cls, ip_tuple):
-        if not ip_tuple[1]:
-            cls._widget = 'user'
-            raise InputError("请输入用户名")
-        if not ip_tuple[2]:
-            cls._widget = 'userpwd'
-            raise InputError("请输入用户密码")
-        if not ip_tuple[3]:
-            cls._widget = 'rootpwd'
-            raise InputError("请输入root密码")
-
-    @classmethod
-    def _check_inputs(cls, seq, ip_passwd_tuple):
-        try:
-            cls._check_ip_passwd_vaild(ip_passwd_tuple[0])
-            cls._check_user_and_password(ip_passwd_tuple)
-        except InputError as e:
-            # 登录子模块状态提示器显示红色(失败)
-            cls._sublogin_status_tig(seq, 'FAILED')
-            # 对应输入框控件闪烁提示
-            cls._sublogin_entry_tig(seq, cls._widget)
-            # window弹窗提示
-            Utils.windows_error(e)
-            Logger.error('SubLogin_{} ip:{}, err_info:{}'.format(seq, ip_passwd_tuple[0], e))
-            return False
-        else:
-            cls._sublogin_status_tig(seq, 'LOGING')
-            return True
-
-    @classmethod
-    def _login_server(cls, seq, ip_passwd_tuple):
-        ip, user, userpwd, rootpwd = ip_passwd_tuple
-        for times in range(1, Global.G_RETRY_TIMES + 1):
-            ssh = SSH(ip, user, userpwd, rootpwd)
-            try:
-                ret, err = SSHUtil.user_login(ssh, user)
-                if not ret:
-                    cls._widget = 'userpwd'
-                    raise ExecError("%s %s登录失败!\n详细:%s 重试:%s" % (ip, user, err, times))
-                ret, err = SSHUtil.user_login(ssh, 'root')
-                if not ret:
-                    cls._widget = 'rootpwd'
-                    raise ExecError("%s root登录失败!\n详细:%s 重试:%s" % (ip, err, times))
-            except ExecError as e:
-                Logger.warn(e)
-                if times == Global.G_RETRY_TIMES:
-                    # 删除IP对应的ssh实例
-                    cls._logon_ssh_inst('SUB', ip)
-                    # 登录子模块状态提示器显示失败
-                    cls._sublogin_status_tig(seq, 'FAILED')
-                    # 对应输入框控件闪烁提示
-                    cls._sublogin_entry_tig(seq, cls._widget)
-                    # 顶层进度窗停止
-                    Utils.top_progress_stop()
-                    # window弹窗提示
-                    Utils.windows_error(e)
-                    return False
-                # 更新顶层进度窗信息
-                Utils.top_progress_update("%s 第%s次尝试" % (ip, times+1))
-                continue
-            else:
-                # 记录登录成功IP的ssh实例
-                cls._logon_ssh_inst('ADD', {ip: ssh})
-                # 登录子模块状态提示器显示成功
-                cls._sublogin_status_tig(seq, 'SUCCESS')
-                Logger.info("%s login success, retry:%s" % (ip, times))
-                return True
-
-    @classmethod
-    def _upload_package(cls, args=None):
-        # 先压缩脚本再上传
-        zip_name = "package.zip"
-        zip_file = "%s\\%s" % (Global.G_CMDS_DIR, zip_name)
-        remote_path = '%s/%s' % (Global.G_SERVER_DIR, zip_name)
-        Common.zip_dir(Global.G_SHELL_DIR, zip_file)
-        unzip_cmd = '''cd {0}; unzip -o {1}; chmod 777 {0}/*; dos2unix {0}/*'''.format(Global.G_SERVER_DIR, zip_name)
-        _ip_del_list = []
-        for ip, ssh in cls._logon_ssh_inst('QUE', None).items():
-            # 如果上次登录用户跟这次不一致，会导致后面解压失败; 这里每次登录都清空目录
-            SSHUtil.exec_ret(ssh, 'rm -rf %s/*' % Global.G_SERVER_DIR, root=True)
-            for times in range(1, Global.G_RETRY_TIMES + 1):
-                try:
-                    # 上传文件
-                    ret, err = SSHUtil.upload_file(ssh, zip_file, remote_path)
-                    if not ret:
-                        raise ExecError('%s 上传package失败，详细:%s，重试:%s' % (ip, err, times))
-                    # 解压文件, 成功返回0
-                    ret, err = SSHUtil.exec_ret(ssh, unzip_cmd)
-                    if ret:
-                        raise ExecError('%s 解压package失败，详细:%s，重试:%s' % (ip, err, times))
-                except ExecError as e:
-                    if times == Global.G_RETRY_TIMES:
-                        _ip_del_list.append(ip)
-                    Utils.tell_info(e, level='ERROR')
-                    Logger.warn(e)
-                    continue
-                else:
-                    info = '%s 环境准备就绪' % ip
-                    Logger.info(info)
-                    Utils.tell_info(info)
-                    break
-        [cls._logon_ssh_inst('SUB', ip) for ip in _ip_del_list]
-        Common.remove(zip_file)
-        # ssh保活
-        cls._keep_ssh_alive()
-
-    @classmethod
-    def _keep_ssh_alive(cls, args=None):
-        while True:
-            Common.sleep(60)
-            for ip, ssh in cls._logon_ssh_inst('QUE', None).items():
-                ret, err = SSHUtil.exec_ret(ssh, 'echo')
-                Logger.debug("(keepalive) ip:%s ret:%s err:%s" % (ip, ret, err))
-
-    @classmethod
-    def prepare_env(cls):
-        Common.create_thread(func=cls._upload_package)
-
-    @classmethod
-    def try_login(cls):
-        # return True  # DEBUG
-        cls._ip_list = []
-        _input_info = {}
-
-        # 输入校验
-        for seq in ViewModel.cache('SUBLOGIN_INDEX_LIST', type='QUE'):
-            ip_passwd_tuple = cls._sublogin_callback(
-                Global.EVT_GET_LOGIN_INPUT % seq)
-
-            if not cls._check_inputs(seq, ip_passwd_tuple):
-                return False
-            _input_info[seq] = ip_passwd_tuple
-
-        # 登录校验，开启进度条
-        Utils.top_progress_start('登录中')
-
-        for seq, ip_passwd_tuple in _input_info.items():
-            if not cls._login_server(seq, ip_passwd_tuple):
-                return False
-
-        # 清理用不到的数据，节省内存
-        ViewModel.cache('SUBLOGIN_INDEX_LIST', type='DEL')
-
-        # 关闭进度条并开始后台上传文件
-        cls.prepare_env()
-        Utils.top_progress_stop()
-        del _input_info
-        return True
-
-
-class PageHandler:
-    """ 页面事件处理类 """
-    _stop_task_ips = {}
-    _inner_caller = "sh %s/inner_function.sh" % (Global.G_SERVER_DIR)
-
-    @classmethod
-    def _mutex(cls, ip, task, lock=True):
-        """ 防重入 """
-        _lock_file = '%s\\%s-%s.lock' % (Global.G_LOCKS_DIR, task, ip)
-        # 释放锁
-        if not lock:
-            try:
-                Common.remove(_lock_file)
-            except:
-                pass
-            return
-        # 尝试加锁
-        if Common.is_file(_lock_file):
-            Utils.tell_info("%s 重复点击，请耐心等待上一次结束" % ip)
-            return False
-        Common.write_to_file(_lock_file, 'lock')
-        return True
-
-    @classmethod
-    def _get_ssh(cls, ip=None):
-        if ip:
-            return ViewModel.cache('LOGON_SSH_DICT', type='QUE')[ip]
-        return ViewModel.cache('LOGON_SSH_DICT', type='QUE')
-
-    @classmethod
-    def _stop_task(cls, task, ip, op='get'):
-        # 暂停后台循环任务
-        if op == 'remove':
-            if task not in cls._stop_task_ips:
-                cls._stop_task_ips[task] = []
-                return
-            if ip in cls._stop_task_ips[task]:
-                cls._stop_task_ips[task].remove(ip)
-        elif op == 'append':
-            if task not in cls._stop_task_ips:
-                cls._stop_task_ips[task] = []
-            if ip not in cls._stop_task_ips[task]:
-                cls._stop_task_ips[task].append(ip)
-        else:
-            return True if ip in cls._stop_task_ips[task] else False
-    
-    @classmethod
-    def _get_exec_info(cls, ssh, cmd, root):
-        return SSHUtil.exec_info(ssh, cmd, root)[0].split('__BINGO__')[1:2][0]
-
-    @classmethod
-    def _exec_shell(cls, ssh, ip, shell, task, param, root, back=False):
-        """ 后台执行脚本 """
-        Utils.tell_info('%s: [0%%] 正在执行任务: %s' % (ip, task))
-        if back:
-            cmd = "{0} async_call_shell {1} {2} {3} {4}".format(cls._inner_caller, ip, task, shell, param)
-        else:
-            cmd = "{0} sync_call_shell {1} {2} {3} {4}".format(cls._inner_caller, ip, task, shell, param)
-        SSHUtil.exec_ret(ssh, cmd, root)
-
-    @classmethod
-    def _get_progress(cls, ssh, callback, ip, task, root):
-        """ 循环读取进度 """
-        cmd = "cat %s/%s/progress.txt" % (Global.G_SERVER_DIR, task)
-        _last_prog = 1
-        __retry = 0
-        while True:
-            Common.sleep(1)
-            try:
-                cur_prog, status, info = cls._get_exec_info(ssh, cmd, root).split('|')
-                cur_prog = int(cur_prog) - 10
-                if not info:
-                    raise ReportError("进度信息为空，重试:%s" % __retry)
-                if status == 'FAILED':
-                    raise ReportError("任务失败，详细:%s，重试:%s" % (info, __retry))
-                if _last_prog == cur_prog:
-                    continue
-                _last_prog = cur_prog
-                # 显示进度信息
-                callback(ip, _last_prog, False)
-                if cur_prog == 90:
-                    filename = "%s\\%s" % (Global.G_DOWNLOAD_DIR, Common.basename(info))
-                    Utils.tell_info("%s: [90%%] 开始下载: %s" % (ip, filename))
-                    if not SSHUtil.download_file(ssh, remote=info,local=filename):
-                        raise ReportError("下载失败，重试:%s" % __retry)
-                    callback(ip, 100, False)
-                    Utils.tell_info("%s: [100%%] 下载成功" % ip)
-                    break
-                Utils.tell_info("%s: [%s%%] %s" % (ip, _last_prog, info))
-            except Exception as e:
-                __retry += 1
-                if __retry < Global.G_RETRY_TIMES:
-                    continue
-                callback(ip, _last_prog + 1, 'Red')
-                Utils.tell_info("%s %s" % (ip, e), level='ERROR')
-                break
-
-    @classmethod
-    def _get_print(cls, ssh, callback, ip, task, root, loop):
-        cmd = "{0} get_task_stdout {1}".format(cls._inner_caller, task)
-        def get_print():
-            ret_info = SSHUtil.exec_info(ssh, cmd, root)[0]
-            Utils.tell_info("%s:[100%%] 执行结果：\n%s" % (ip, ret_info))
-            if callback:
-                try:
-                    callback(ret_info)
-                except:
-                    pass
-        if loop:
-            while True:
-                if cls._stop_task(task, ip):
-                    Utils.tell_info("%s 已停止循环读取" % ip)
-                    break
-                Common.sleep(2)
-                get_print()
-        else:
-            get_print()
-
-    @classmethod
-    def _exec_shell_impl(cls, shell_type, callback, ip, shell, param, root=True, loop=False):
+    def pack_frame(self):
+        _state_struct = Global.G_STATE_PAGE_STRUCT
+        column, row = len(self.ip_list), len(_state_struct)
+        """ 选项栏布局 """
+        for sub in _state_struct:
+            tk.Label(self.frame,
+                     text=sub['text'],
+                     width=self.lab_width,
+                     font=(Global.G_FONT, 9),
+                     bg='Gray80'
+                     ).grid(row=_state_struct.index(sub),
+                            column=0,
+                            padx=1,
+                            pady=1)
+        """ IP横栏布局 """
+        for ip in self.ip_list:
+            tk.Label(self.frame,
+                     text=ip,
+                     width=self.ip_width,
+                     font=(Global.G_FONT, 9),
+                     bg='Gray80'
+                     ).grid(row=0,
+                            column=self.ip_list.index(ip)+1,
+                            padx=1,
+                            pady=1)
+        """ 
+        状态栏布局: 各个子状态label实例排版 
+        state_inst格式: {'State': Label_instance, ...}
+        state_lab_inst格式: {IP: {'State': Label_instance, ...}, ...}
         """
-        shell_type:
-            download，下载类型的脚本，回调函数为进度条
-            showing，打印回显类型的脚本，回调函数为回显框
-        """
-        task = shell.split('.')[0]
-        if not cls._mutex(ip, task):
-            return
-
-        ssh = cls._get_ssh(ip)
-
-        cls._exec_shell(ssh, ip, shell, task, param, root, loop)
-        
-        cls._stop_task(task, ip, 'remove')
-
-        if shell_type == 'download':
-            cls._get_progress(ssh, callback, ip, task, root)
-        elif shell_type == 'showing':
-            cls._get_print(ssh, callback, ip, task, root, loop)
-
-        cls._mutex(ip, task, False)
-
-    @classmethod
-    def start_shell(cls, *args):
-        Common.create_thread(func=cls._exec_shell_impl, args=args)
-
-    @classmethod
-    def kill_shell(cls, ip, task, shell):
-        ssh = cls._get_ssh(ip)
-        SSHUtil.exec_ret(ssh, "{0} kill_shell {1}".format(cls._inner_caller, shell), True)
-        cls._mutex(ip, task, False)
-
-    @classmethod
-    def execute_download_start(cls, callback, ip_list, shell, param):
-        for ip in ip_list:
-            cls.start_shell('download', callback, ip, shell, param, True, False)
-
-    @classmethod
-    def execute_download_stop(cls, ip_list, shell):
-        task = shell.split('.')[0]
-        for ip in ip_list:
-            cls.kill_shell(ip, task, shell)
-
-    @classmethod
-    def execute_fast_cmd_start(cls, callback, ip_list, shell, text, root, loop):
-        local_path = ".\\%s\\%s" % (Global.G_SHELL_DIR, shell)
-        remote_path = "%s/%s" % (Global.G_SERVER_DIR, shell)
-        Common.write_to_file(local_path, text)
-        for ip in ip_list:
-            ssh = cls._get_ssh(ip)
-            ret, err = SSHUtil.upload_file(ssh, local_path, remote_path)
-            if not ret:
-                Utils.tell_info("%s:[50%%] 上传脚本文件失败，执行命令失败！" % ip, level='ERROR')
-                callback(ip, 50, 'Red')
-                continue
-            cls.start_shell('showing', None, ip, shell, None, root, loop)
-            callback(ip, 100, False)
-
-    @classmethod
-    def execute_fast_cmd_stop(cls, ip_list, shell):
-        task = shell.split('.')[0]
-        for ip in ip_list:
-            cls.kill_shell(ip, task, shell)
-            # 暂停循环读取打印线程
-            cls._stop_task(task, ip, 'append')
-
-    @classmethod
-    def _fast_upload_impl(cls, ip, callback, local, tmp_upload, check_cmd, move_cmd):
-        Utils.tell_info("%s:[10%%] 开始上传%s" % (ip, local))
-        cls._stop_task('fast_upload', ip, 'remove')
-        ssh = cls._get_ssh(ip)
-        ret, err = SSHUtil.exec_ret(ssh, check_cmd, True)
-        if ret:
-            Utils.tell_info("%s:[20%%] 服务器目录不存在" % ip, level='ERROR')
-            callback(ip, 20, 'Red')
-            return
-        callback(ip, 20, False)
-        ret, err = SSHUtil.upload_file(ssh, local, tmp_upload)
-        if cls._stop_task('fast_upload', ip):
-            return
-        if not ret:
-            Utils.tell_info("%s:[70%%] 上传失败！" % ip, level='ERROR')
-            callback(ip, 70, 'Red')
-            return
-        callback(ip, 70, False)
-        ret, err = SSHUtil.exec_ret(ssh, move_cmd, True)
-        if ret:
-            Utils.tell_info("%s:[90%%] 移动至目标目录失败或修改属性失败" % ip, level='ERROR')
-            callback(ip, 90, 'Red')
-        callback(ip, 100, False)
-        Utils.tell_info("%s:[100%%] %s上传成功" % (ip, local))
-
-    @classmethod
-    def execute_fast_upload_start(cls, callback, ip_list, local, remote, chmod, chown):
-        base_name = Common.basename(local)
-        upload_dir = "%s/UPLOAD" % Global.G_SERVER_DIR
-        tmp_upload = "%s/%s" % (upload_dir, base_name)
-        dest_path = "%s/%s" % (remote, base_name)
-        check_cmd = "{0} upload_prev_check {1} {2}".format(cls._inner_caller, remote, upload_dir)
-        move_cmd = "{0} move_file {1} {2} {3} {4}".format(cls._inner_caller, tmp_upload, dest_path, chmod, chown)
-        for ip in ip_list:
-            args = (ip, callback, local, tmp_upload, check_cmd, move_cmd)
-            Common.create_thread(func=cls._fast_upload_impl, args=args)
-
-    @classmethod
-    def execute_fast_upload_stop(cls, ip_list):
-        task = 'fast_upload'
-        for ip in ip_list:
-            cls._stop_task(task, ip, 'append')
-            Utils.tell_info("%s: 停止%s成功" % (ip, task))
-
-    '''
-    @classmethod
-    def _exec_for_collect(cls, callback, ip_list, shell, param):
-        shell = "cd %s && ./%s" % (Global.G_SERVER_DIR, shell)
-        while True:
-            for ip in ip_list:
-                _info_dict = {}
-                ssh = cls._get_ssh(ip)
-                cmd = "%s '%s' '%s'" % (shell, ip, param)
+        for y in range(1, column+1):
+            state_inst = {}
+            for x in range(1, row):
+                lab = tk.Label(self.frame,
+                               width=self.ip_width,
+                               font=(Global.G_FONT, 9),
+                               bg='Snow'
+                               )
+                lab.grid(row=x, column=y)
                 try:
-                    lines = cls._get_exec_info(ssh, cmd).split('\n')
-                    for line in lines:
-                        k, v = line.split(':')
-                        _info_dict[k] = v
-                    callback((ip, _info_dict))
+                    name = _state_struct[x]['name']
+                    state_inst[name] = lab
+                    # print(name, x ,y)
                 except Exception as e:
-                    Utils.tell_info('%s %s结果异常:%s' % (ip, shell, e),
-                                    level='ERROR')
-            sleep(10)
-    
-    @classmethod
-    def collect_state_start(cls, callback, ip_list, shell):
-        if cls._collect_state_flag:
+                    ToolTips.inner_error(e)
+            self.state_lab_inst[self.ip_list[y-1]] = state_inst
+
+    def fill_data(self, ip_state):
+        """
+        按照子状态label实例排版填充状态数据
+        ip_state格式：(IP: {'State': State_value, ...})
+        """
+        ip, state_dict = ip_state
+        try:
+            for opt, lab_inst in self.state_lab_inst[ip].items():
+                state = state_dict[opt]
+                if state == 'NA':
+                    color = 'Gray50'
+                elif state == 'Fail':
+                    color = 'Red'
+                else:
+                    color = 'MediumBlue'
+                lab_inst['fg'] = color
+                lab_inst['text'] = state
+        except Exception as e:
+            ToolTips.inner_error(e)
+            # Logger.error(e)
+
+    def call_back(self, *args):
+        if self.alive():
+            self.fill_data(args[0])
+
+
+
+class HALogPage(Pager):
+    """ 获取主备的日志 """
+
+    def __init__(self, interface, shell, ip_list):
+        self.master = interface('get_master')
+        self.shell = shell
+        self.ip_list = ip_list
+        self.progress = {}
+
+    def stepper(self):
+        self.pack_frame()
+
+    def pack_frame(self):
+        for index in range(len(self.ip_list)):
+            ip = self.ip_list[index]
+            # 进度条
+            prog = ProgressBar(master=self.frame,
+                               name=ip,
+                               size=10,
+                               width=35,
+                               row=index
+                               )
+            # self.prog = TtkProgress(self.frame, ip, row=index)
+            self.progress[ip] = prog
+            # 开始按钮
+            ttk.Button(self.frame,
+                       text='开始获取',
+                       command=lambda ip=ip: PageHandler.get_halog_start(self.call_back, ip, self.shell)
+                       ).grid(row=index,
+                              column=3,
+                              padx=10,
+                              pady=10)
+
+    def call_back(self, *args):
+        ip, value, color = args
+        if self.alive():
+            self.progress[ip].update(value, color)
+
+
+class BinlogPage(Pager):
+    """ binlog日志获取 """
+
+    def __init__(self, interface, shell, ip_list):
+        self.master = interface('get_master')
+        self.shell = shell
+        self.ip_list = ip_list
+        self.progress = {}
+
+    def stepper(self):
+        self.pack_frame()
+
+    def start_wrapper(self, ip, combo):
+        day_str = combo.get()
+        param = 1
+        if day_str == '一天':
+            param = 1
+        elif day_str == '一星期':
+            param = 7
+        elif day_str == '一个月':
+            param = 30
+        PageHandler.get_binlog_start(self.call_back, ip, self.shell, param)
+
+    def pack_frame(self):
+        for index in range(len(self.ip_list)):
+            ip = self.ip_list[index]
+            # 进度条
+            prog = ProgressBar(master=self.frame,
+                               name=ip,
+                               size=10,
+                               width=30,
+                               row=index
+                               )
+            self.progress[ip] = prog
+            # 下拉框 (选择天数)
+            combo = ttk.Combobox(self.frame, width=6)
+            combo['values'] = ('一天', '一星期', '一个月')
+            combo.current(0)
+            combo['state'] = 'readonly'
+            combo.grid(row=index, column=2, padx=10)
+            # 开始按钮
+            ttk.Button(self.frame,
+                       text='开始获取',
+                       command=lambda ip=ip, combo=combo:
+                       self.start_wrapper(ip, combo)
+                       ).grid(row=index,
+                              column=3,
+                              padx=5,
+                              pady=10
+                              )
+
+    def call_back(self, *args):
+        ip, value, color = args
+        if self.alive():
+            self.progress[ip].update(value, color)
+'''
+
+
+class OptionDownloadTypePage(Pager):
+    """ 选项执行下载类型界面 """
+
+    def __init__(self, interface, options, shell, ip_list):
+        self.interface = interface
+        self.options = options
+        self.shell = shell
+        self.ip_list = ip_list
+        self.progress = {}
+
+    def stepper(self):
+        self.pack_frame()
+
+    def pack_frame(self):
+        opt_fm = tk.LabelFrame(self.frame, width=self.width, text='选项框')
+        opr_fm = tk.Frame(self.frame, width=self.width)
+        btn_fm = tk.Frame(opr_fm, width=self.width/3, height=self.height/5*2)
+        ips_fm = tk.LabelFrame(opr_fm, width=self.width/3*2, height=self.height/5*2)
+        opt_fm.pack(fill='x', padx=10, pady=10, ipady=10)
+        opr_fm.pack(fill='x', padx=10, pady=10)
+        ips_fm.pack(fill='both', side='left')
+        btn_fm.pack(fill='x', side='left', padx=40)
+        # 选项框布局
+        max_column, index, row, column, var_ops = 2, 0, 0, 0, []
+        for opt in self.options:
+            column = index - (row * max_column)
+            index += 1
+            if column == max_column:
+                row += 1
+                column = 0
+            var_ops.append(tk.IntVar())
+            tk.Checkbutton(opt_fm, text=opt, anchor='w', width=40, variable=var_ops[-1]).grid(row=row, column=column)
+        # IP和进度条布局
+        row, var_ips = 0, []
+        for ip in self.ip_list:
+            var_ips.append(tk.IntVar())
+            tk.Checkbutton(ips_fm, text=ip, font=(Global.G_FONT, 10), anchor='w', width=14, variable=var_ips[-1]
+                           ).grid(row=row, column=0)
+            self.progress[ip] = ProgressBar(master=ips_fm, name='', size=9, width=40, row=row, column=1)
+            row += 1
+        # 执行按钮布局
+        ttk.Button(btn_fm, text='执行', width=20, command=lambda x=var_ops, y=var_ips: self.start_execute(x, y)
+                   ).grid(row=0, column=0, pady=15)
+        ttk.Button(btn_fm, text='停止', width=20, command=lambda x=var_ips: self.stop_execute(x)
+                   ).grid(row=1, column=0, pady=15)
+
+    def start_execute(self, var_ops, var_ips):
+        select_ips, has_ops, index = [], False, 0
+        for v in var_ops:
+            if int(v.get()):
+                has_ops = True
+                break
+        for v in var_ips:
+            if int(v.get()):
+                select_ips.append(self.ip_list[index])
+            index += 1
+        if not has_ops:
+            WinMsg.warn("请至少选择一个选项")
             return
-        cls._collect_state_flag = True
-        cls.start_shell('collect', callback, ip_list, shell, None)
+        if not select_ips:
+            WinMsg.warn("请勾选IP地址")
+            return
+        param = '|'.join([str(v.get()) for v in var_ops])
+        PageHandler.execute_download_start(self.callback, select_ips, self.shell, param)
 
-    @classmethod
-    def get_halog_start(cls, callback, ip, shell):
-        cls.start_shell('download', callback, ip, shell, None)
+    def stop_execute(self, var_list):
+        select_ip, index = [], 0
+        for v in var_list:
+            if int(v.get()):
+                select_ip.append(self.ip_list[index])
+            index += 1
+        if not select_ip:
+            WinMsg.warn("请勾选IP地址")
+            return
+        PageHandler.execute_download_stop(select_ip, self.shell)
 
-    @classmethod
-    def get_binlog_start(cls, callback, ip, shell, param):
-        cls.start_shell('download', callback, ip, shell, param)
-    '''
+    def callback(self, *args):
+        ip, value, color = args
+        if self.alive():
+            self.progress[ip].update(value, color)
+
+
+class OnlyEntryEditTypePage(Pager):
+    """ 单个输入框执行下载类型界面 """
+    def __init__(self, interface, options, shell, ip_list):
+        self.interface = interface
+        self.options = options
+        self.shell = shell
+        self.ip_list = ip_list
+        self.entry = None
+        self.progress = {}
+
+    def stepper(self):
+        self.pack_frame()
+
+    def pack_frame(self):
+        edt_fm = tk.LabelFrame(self.frame, width=self.width, text='输入框')
+        opr_fm = tk.Frame(self.frame, width=self.width)
+        btn_fm = tk.Frame(opr_fm, width=self.width/3, height=self.height/5*2)
+        ips_fm = tk.LabelFrame(opr_fm, width=self.width/3*2, height=self.height/5*2)
+        edt_fm.pack(fill='x', padx=10, pady=10, ipady=10)
+        opr_fm.pack(fill='x', padx=10, pady=10)
+        ips_fm.pack(fill='both', side='left')
+        btn_fm.pack(fill='x', side='left', padx=40)
+        # 输入框布局
+        if self.options[0] != "NO_SHELL_TIPS":
+            tk.Label(edt_fm, text="脚本名称:", font=(Global.G_FONT, 10)
+                     ).grid(row=0, column=0, padx=10, pady=10, sticky='w')
+            tk.Label(edt_fm, text="%s" % self.shell, font=(Global.G_FONT, 10)
+                     ).grid(row=0, column=1, padx=10, pady=10, sticky='w')
+        tk.Label(edt_fm, text="%s:" % self.options[1], font=(Global.G_FONT, 10)
+                 ).grid(row=1, column=0, padx=10, pady=10, sticky='w')
+        self.entry = ttk.Entry(edt_fm, width=60, font=(Global.G_FONT, 10))
+        self.entry.grid(row=1, column=1, pady=10)
+        # tips
+        tk.Label(edt_fm, text="%s" % self.options[2], fg='Gray40', font=(Global.G_FONT, 9)).grid(row=2, column=1)
+        # IP和进度条等布局
+        row, var_list = 0, []
+        for ip in self.ip_list:
+            var_list.append(tk.IntVar())
+            tk.Checkbutton(ips_fm, text=ip, font=(Global.G_FONT, 10), anchor='w', width=14, variable=var_list[-1]
+                           ).grid(row=row, column=0)
+            self.progress[ip] = ProgressBar(master=ips_fm, name='', size=9, width=40, row=row, column=1)
+            row += 1
+        # 执行按钮布局
+        ttk.Button(btn_fm, text='执行', width=20, command=lambda x=var_list: self.start_execute(x)
+                   ).grid(row=0, column=0, pady=15)
+        ttk.Button(btn_fm, text='停止', width=20, command=lambda x=var_list: self.stop_execute(x)
+                   ).grid(row=1, column=0, pady=15)
+
+    def start_execute(self, var_list):
+        param = self.entry.get()
+        select_ip, index = [], 0
+        for v in var_list:
+            if int(v.get()):
+                select_ip.append(self.ip_list[index])
+            index += 1
+        if param == '':
+            WinMsg.warn("输入为空！")
+            return
+        if not select_ip:
+            WinMsg.warn("请勾选IP地址")
+            return
+        PageHandler.execute_download_start(self.callback, select_ip, self.shell, param)
+
+    def stop_execute(self, var_list):
+        select_ip, index = [], 0
+        for v in var_list:
+            if int(v.get()):
+                select_ip.append(self.ip_list[index])
+            index += 1
+        if not select_ip:
+            WinMsg.warn("请勾选IP地址")
+            return
+        PageHandler.execute_download_stop(select_ip, self.shell)
+
+    def callback(self, *args):
+        ip, value, color = args
+        if self.alive():
+            self.progress[ip].update(value, color)
+
+
+class FastRunCommandPage(Pager):
+    """ 自定义界面：快速执行命令 """
+    def __init__(self, interface, shell, ip_list, params=None):
+        self.interface = interface
+        self.shell = shell
+        self.ip_list = ip_list
+        self.infotext = None
+        self.progress = {}
+        self.is_root = tk.IntVar()
+        self.is_loop = tk.IntVar()
+
+    def stepper(self):
+        self.pack_frame()
+
+    def pack_frame(self):
+        edt_fm = tk.LabelFrame(self.frame, width=self.width, text='输入框')
+        opt_fm = tk.LabelFrame(self.frame, width=self.width)
+        opr_fm = tk.Frame(self.frame, width=self.width)
+        btn_fm = tk.Frame(opr_fm, width=self.width/3, height=self.height/5*2)
+        ips_fm = tk.LabelFrame(opr_fm, width=self.width/3*2, height=self.height/5*2)
+        edt_fm.pack(fill='x', padx=10, pady=10)
+        opt_fm.pack(fill='x', padx=10, pady=5)
+        opr_fm.pack(fill='x', padx=10)
+        ips_fm.pack(fill='both', side='left')
+        btn_fm.pack(fill='x', side='left', padx=40)
+        self.infotext = scrolledtext.ScrolledText(edt_fm,
+                                                  font=(Global.G_FONT, 10),
+                                                  bd=2,
+                                                  relief='ridge',
+                                                  bg='Snow',
+                                                  height=13,
+                                                  width=110)
+        self.infotext.pack()
+        # IP和按钮布局
+        tk.Checkbutton(opt_fm, text="root执行", font=(Global.G_FONT, 10), anchor='w', width=20, variable=self.is_root
+                       ).grid(row=0, column=0)
+        tk.Checkbutton(opt_fm, text="循环读取(2s)", font=(Global.G_FONT, 10), anchor='w', width=20, variable=self.is_loop
+                       ).grid(row=0, column=1)
+        row, var_list = 0, []
+        for ip in self.ip_list:
+            var_list.append(tk.IntVar())
+            tk.Checkbutton(ips_fm, text=ip, font=(Global.G_FONT, 10), anchor='w', width=14, variable=var_list[-1]
+                           ).grid(row=row, column=0)
+            self.progress[ip] = ProgressBar(master=ips_fm, name='', size=9, width=40, row=row, column=1)
+            row += 1
+        ttk.Button(btn_fm, text='执行', width=20, command=lambda x=var_list: self.start_execute(x)
+                   ).grid(row=0, column=0, pady=15)
+        ttk.Button(btn_fm, text='停止', width=20, command=lambda x=var_list: self.stop_execute(x)
+                   ).grid(row=1, column=0, pady=15)
+
+    def start_execute(self, var_list):
+        select_ip, index = [], 0
+        for v in var_list:
+            if int(v.get()):
+                select_ip.append(self.ip_list[index])
+            index += 1
+        text = self.infotext.get('1.0', 'end')
+        if text.strip() == '':
+            WinMsg.warn("请输入命令")
+            return
+        if not select_ip:
+            WinMsg.warn("请勾选IP地址")
+            return
+        PageHandler.execute_fast_cmd_start(self.callback, select_ip, self.shell, text, self.is_root.get(), self.is_loop.get())
+
+    def stop_execute(self, var_list):
+        select_ip, index = [], 0
+        for v in var_list:
+            if int(v.get()):
+                select_ip.append(self.ip_list[index])
+            index += 1
+        if not select_ip:
+            WinMsg.warn("请勾选IP地址")
+            return
+        PageHandler.execute_fast_cmd_stop(select_ip, self.shell)
+
+    def callback(self, *args):
+        ip, value, color = args
+        if self.alive():
+            self.progress[ip].update(value, color)
+
+
+class FastUploadFilePage(Pager):
+    """ 自定义界面：快速上传界面 """
+    def __init__(self, interface, shell, ip_list, params=None):
+        self.interface = interface
+        self.ip_list = ip_list
+        self.local_en = None
+        self.server_en = None
+        self.chmod_en = None
+        self.chown_en = None
+        self.progress = {}
+        self.chmod_var = tk.StringVar()
+        self.chown_var = tk.StringVar()
+
+    def stepper(self):
+        self.pack_frame()
+
+    def pack_frame(self):
+        edt_fm = tk.LabelFrame(self.frame, width=self.width, text='输入框')
+        opr_fm = tk.Frame(self.frame, width=self.width)
+        btn_fm = tk.Frame(opr_fm, width=self.width/3, height=self.height/5*2)
+        ips_fm = tk.LabelFrame(opr_fm, width=self.width/3*2, height=self.height/5*2)
+        edt_fm.pack(fill='x', padx=10, pady=10, ipady=10)
+        opr_fm.pack(fill='x', padx=10, pady=10)
+        ips_fm.pack(fill='both', side='left')
+        btn_fm.pack(fill='x', side='left', padx=40)
+        # 输入栏
+        tk.Label(edt_fm, text="本地文件：").grid(row=0, column=0, sticky='w', padx=5)
+        entry_var = tk.StringVar()
+        self.local_en = ttk.Entry(edt_fm, width=60, font=(Global.G_FONT, 10), textvariable=entry_var, state='disabled')
+        self.local_en.grid(row=0, column=1, pady=10)
+        ttk.Button(edt_fm, text=". . .", width=3, command=lambda x=entry_var: self.choose_file(x)
+                   ).grid(row=0, column=3)
+        tk.Label(edt_fm, text="服务器路径：").grid(row=1, column=0, sticky='w', padx=5)
+        self.server_en = ttk.Entry(edt_fm, width=60, font=(Global.G_FONT, 10))
+        self.server_en.grid(row=1, column=1, pady=10)
+        tk.Label(edt_fm, text="设置权限：").grid(row=2, column=0, sticky='w', padx=5)
+        tk.Label(edt_fm, text="设置属主/组：").grid(row=3, column=0, sticky='w', padx=5)
+        self.chmod_en = ttk.Entry(edt_fm, textvariable=self.chmod_var)
+        self.chown_en = ttk.Entry(edt_fm, textvariable=self.chown_var)
+        self.chmod_en.grid(row=2, column=1, sticky='w', pady=5)
+        self.chown_en.grid(row=3, column=1, sticky='w', pady=5)
+        self.chmod_var.set("0640")
+        self.chown_var.set("root:root")
+        # 按钮栏
+        row, var_list = 0, []
+        for ip in self.ip_list:
+            var_list.append(tk.IntVar())
+            tk.Checkbutton(ips_fm, text=ip, font=(Global.G_FONT, 10), anchor='w', width=14, variable=var_list[-1]
+                           ).grid(row=row, column=0)
+            self.progress[ip] = ProgressBar(master=ips_fm, name='', size=9, width=40, row=row, column=1)
+            row += 1
+        ttk.Button(btn_fm, text='执行', width=20, command=lambda x=var_list: self.start_execute(x)
+                   ).grid(row=0, column=0, pady=15)
+        ttk.Button(btn_fm, text='停止', width=20, command=lambda x=var_list: self.stop_execute(x)
+                   ).grid(row=1, column=0, pady=15)
+
+    def choose_file(self, entry_var):
+        local_path = filedialog.askopenfilename()
+        entry_var.set(local_path)
+
+    def start_execute(self, var_list):
+        local_path = self.local_en.get()
+        remote_path = self.server_en.get()
+        chmod_str = self.chmod_en.get()
+        chown_str = self.chown_en.get()
+        select_ip, index = [], 0
+        for v in var_list:
+            if int(v.get()):
+                select_ip.append(self.ip_list[index])
+            index += 1
+        if local_path == "":
+            WinMsg.warn("请选择本地上传文件")
+            return
+        if remote_path == "" or remote_path[0] != "/":
+            WinMsg.warn("请输入服务器绝对路径")
+            return
+        if chmod_str == "":
+            WinMsg.warn("请设置文件上传后的权限")
+            return
+        if chown_str == "" or len(chown_str.split(":")) != 2:
+            WinMsg.warn("请正确设置文件上传后的属主/组")
+            return
+        if not select_ip:
+            WinMsg.warn("请勾选IP地址")
+            return
+        PageHandler.execute_fast_upload_start(self.callback, select_ip, local_path, remote_path, chmod_str, chown_str)
+
+    def stop_execute(self, var_list):
+        select_ip, index = [], 0
+        for v in var_list:
+            if int(v.get()):
+                select_ip.append(self.ip_list[index])
+            index += 1
+        PageHandler.execute_fast_upload_stop(select_ip)
+
+    def callback(self, *args):
+        ip, value, color = args
+        if self.alive():
+            self.progress[ip].update(value, color)
+
+
+class PageCtrl(object):
+    """ 页面切换控制类 """
+
+    def __init__(self, interface):
+        self.interface = interface
+        self.current = None
+        self.current_page = None
+        self.images_fm = tk.Frame(interface('get_master'))
+        self.images_fm.pack()
+        # 首页图片
+        tk.Label(self.images_fm, image=ViewUtil.get_image('BINGO')).pack(fill='both')
+
+    def switch_page(self, page_text, page_type_info, shell):
+        if self.current == page_text:
+            return
+        self.current = page_text
+        if self.images_fm:
+            self.images_fm.destroy()
+            self.images_fm = None
+        try:
+            self.current_page.destroy()
+        except:
+            pass
+        page_type_info = page_type_info.replace('\\{', '(').replace('\\}', ')').replace('{', '').replace('}', '').replace(',', '')
+        page_type, page_options = page_type_info.split()[0], page_type_info.split()[1:]
+        pager_params = {'interface': self.interface,
+                        'shell': shell,
+                        'ip_list': ViewUtil.get_ssh_ip_list()}
+        try:
+            if page_type == 'ONLY_DOWNLOAD':
+                return
+            elif page_type == 'OPTION_DOWNLOAD':
+                self.current_page = OptionDownloadTypePage(options=page_options, **pager_params)
+            elif page_type == 'ONLY_TEXT_SHOW':
+                return
+            elif page_type == 'ONLY_TEXT_EDIT':
+                return
+                # self.current_page = OnlyTextEditTypePage(**pager_params)
+            elif page_type == 'ONLY_ENTRY_EDIT':
+                self.current_page = OnlyEntryEditTypePage(options=page_options, **pager_params)
+            elif page_type == 'SELF':
+                # 自定义界面，page_options第一个元素为类名，后面的为参数
+                class_name = eval(page_options[0])
+                params = [] if len(page_options) == 1 else page_options[1:]
+                self.current_page = class_name(params=params, **pager_params)
+            else:
+                raise Exception("未知界面类型： %s" % page_type)
+            self.current_page.pack()
+        except Exception as e:
+            ToolTips.inner_error(e)
+            Logger.error(traceback.format_exc())
 
