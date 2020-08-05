@@ -5,7 +5,7 @@ from tkinter import ttk, scrolledtext, filedialog
 import my_global as Global
 from my_logger import Logger
 from my_base import Pager
-from my_module import ProgressBar, TopAbout
+from my_module import ProgressBar
 from my_handler import PageHandler
 from my_viewutil import ToolTips, ViewUtil, WinMsg
 from my_timezone import TimezonePage
@@ -200,6 +200,7 @@ class BinlogPage(Pager):
             self.progress[ip].update(value, color)
 '''
 
+
 class OptionDownloadTypePage(Pager):
     """ 选项执行下载类型界面 """
 
@@ -214,10 +215,14 @@ class OptionDownloadTypePage(Pager):
         self.pack_frame()
 
     def pack_frame(self):
-        opt_fm = tk.LabelFrame(self.frame, width=self.width, height=self.height/5*4, text='选项框')
-        ips_fm = tk.LabelFrame(self.frame, width=self.width, height=self.height/5, text='服务器')
-        opt_fm.pack(fill='x', pady=5, padx=5)
-        ips_fm.pack(fill='x', pady=5, padx=5)
+        opt_fm = tk.LabelFrame(self.frame, width=self.width, text='选项框')
+        opr_fm = tk.Frame(self.frame, width=self.width)
+        btn_fm = tk.Frame(opr_fm, width=self.width/3, height=self.height/5*2)
+        ips_fm = tk.LabelFrame(opr_fm, width=self.width/3*2, height=self.height/5*2)
+        opt_fm.pack(fill='x', padx=10, pady=10, ipady=10)
+        opr_fm.pack(fill='x', padx=10, pady=10)
+        ips_fm.pack(fill='both', side='left')
+        btn_fm.pack(fill='x', side='left', padx=40)
         # 选项框布局
         max_column, index, row, column, var_ops = 2, 0, 0, 0, []
         for opt in self.options:
@@ -227,31 +232,20 @@ class OptionDownloadTypePage(Pager):
                 row += 1
                 column = 0
             var_ops.append(tk.IntVar())
-            tk.Checkbutton(opt_fm,
-                           text=opt,
-                           anchor='w',
-                           width=40,
-                           variable=var_ops[-1]
-                           ).grid(row=row, column=column)
+            tk.Checkbutton(opt_fm, text=opt, anchor='w', width=40, variable=var_ops[-1]).grid(row=row, column=column)
         # IP和进度条布局
         row, var_ips = 0, []
         for ip in self.ip_list:
             var_ips.append(tk.IntVar())
-            tk.Checkbutton(ips_fm,
-                           text=ip,
-                           font=(Global.G_FONT, 10),
-                           anchor='w',
-                           width=20,
-                           variable=var_ips[-1]
+            tk.Checkbutton(ips_fm, text=ip, font=(Global.G_FONT, 10), anchor='w', width=14, variable=var_ips[-1]
                            ).grid(row=row, column=0)
             self.progress[ip] = ProgressBar(master=ips_fm, name='', size=9, width=40, row=row, column=1)
             row += 1
         # 执行按钮布局
-        ttk.Button(ips_fm,
-                   text='开始执行',
-                   width=20,
-                   command=lambda x=var_ops, y=var_ips: self.start_execute(x, y)
-                   ).grid(row=row+1, column=0)
+        ttk.Button(btn_fm, text='执行', width=20, command=lambda x=var_ops, y=var_ips: self.start_execute(x, y)
+                   ).grid(row=0, column=0, pady=15)
+        ttk.Button(btn_fm, text='停止', width=20, command=lambda x=var_ips: self.stop_execute(x)
+                   ).grid(row=1, column=0, pady=15)
 
     def start_execute(self, var_ops, var_ips):
         select_ips, has_ops, index = [], False, 0
@@ -271,6 +265,17 @@ class OptionDownloadTypePage(Pager):
             return
         param = '|'.join([str(v.get()) for v in var_ops])
         PageHandler.execute_download_start(self.callback, select_ips, self.shell, param)
+
+    def stop_execute(self, var_list):
+        select_ip, index = [], 0
+        for v in var_list:
+            if int(v.get()):
+                select_ip.append(self.ip_list[index])
+            index += 1
+        if not select_ip:
+            WinMsg.warn("请勾选IP地址")
+            return
+        PageHandler.execute_download_stop(select_ip, self.shell)
 
     def callback(self, *args):
         ip, value, color = args
@@ -292,51 +297,39 @@ class OnlyEntryEditTypePage(Pager):
         self.pack_frame()
 
     def pack_frame(self):
-        edt_fm = tk.LabelFrame(self.frame, width=self.width, height=self.height/5*2, text='输入框')
-        ips_fm = tk.LabelFrame(self.frame, width=self.width, height=self.height/5*3, text='服务器')
-        edt_fm.pack(fill='x', pady=5, padx=5)
-        ips_fm.pack(fill='x', pady=5, padx=5)
+        edt_fm = tk.LabelFrame(self.frame, width=self.width, text='输入框')
+        opr_fm = tk.Frame(self.frame, width=self.width)
+        btn_fm = tk.Frame(opr_fm, width=self.width/3, height=self.height/5*2)
+        ips_fm = tk.LabelFrame(opr_fm, width=self.width/3*2, height=self.height/5*2)
+        edt_fm.pack(fill='x', padx=10, pady=10, ipady=10)
+        opr_fm.pack(fill='x', padx=10, pady=10)
+        ips_fm.pack(fill='both', side='left')
+        btn_fm.pack(fill='x', side='left', padx=40)
         # 输入框布局
         if self.options[0] != "NO_SHELL_TIPS":
-            tk.Label(edt_fm,
-                     text="脚本名称:",
-                     font=(Global.G_FONT, 11)
-                     ).grid(row=0, column=0, sticky='w')
-            tk.Label(edt_fm,
-                     text="%s" % self.shell,
-                     font=(Global.G_FONT, 11)
-                     ).grid(row=0, column=1, sticky='w')
-        tk.Label(edt_fm,
-                 text="%s:" % self.options[1],
-                 font=(Global.G_FONT, 11)
-                 ).grid(row=1, column=0, sticky='w')
-        self.entry = ttk.Entry(edt_fm, width=75, font=(Global.G_FONT, 10))
-        self.entry.grid(row=1, column=1, pady=5)
+            tk.Label(edt_fm, text="脚本名称:", font=(Global.G_FONT, 10)
+                     ).grid(row=0, column=0, padx=10, pady=10, sticky='w')
+            tk.Label(edt_fm, text="%s" % self.shell, font=(Global.G_FONT, 10)
+                     ).grid(row=0, column=1, padx=10, pady=10, sticky='w')
+        tk.Label(edt_fm, text="%s:" % self.options[1], font=(Global.G_FONT, 10)
+                 ).grid(row=1, column=0, padx=10, pady=10, sticky='w')
+        self.entry = ttk.Entry(edt_fm, width=60, font=(Global.G_FONT, 10))
+        self.entry.grid(row=1, column=1, pady=10)
         # tips
-        tk.Label(edt_fm,
-                 text="%s" % self.options[2],
-                 fg='Gray40',
-                 font=(Global.G_FONT, 9)
-                 ).grid(row=2, column=1)
+        tk.Label(edt_fm, text="%s" % self.options[2], fg='Gray40', font=(Global.G_FONT, 9)).grid(row=2, column=1)
         # IP和进度条等布局
         row, var_list = 0, []
         for ip in self.ip_list:
             var_list.append(tk.IntVar())
-            tk.Checkbutton(ips_fm,
-                           text=ip,
-                           font=(Global.G_FONT, 10),
-                           anchor='w',
-                           width=20,
-                           variable=var_list[-1]
+            tk.Checkbutton(ips_fm, text=ip, font=(Global.G_FONT, 10), anchor='w', width=14, variable=var_list[-1]
                            ).grid(row=row, column=0)
             self.progress[ip] = ProgressBar(master=ips_fm, name='', size=9, width=40, row=row, column=1)
             row += 1
         # 执行按钮布局
-        ttk.Button(ips_fm,
-                   text='开始执行',
-                   width=20,
-                   command=lambda x=var_list: self.start_execute(x)
-                   ).grid(row=row+1, column=0)
+        ttk.Button(btn_fm, text='执行', width=20, command=lambda x=var_list: self.start_execute(x)
+                   ).grid(row=0, column=0, pady=15)
+        ttk.Button(btn_fm, text='停止', width=20, command=lambda x=var_list: self.stop_execute(x)
+                   ).grid(row=1, column=0, pady=15)
 
     def start_execute(self, var_list):
         param = self.entry.get()
@@ -353,6 +346,17 @@ class OnlyEntryEditTypePage(Pager):
             return
         PageHandler.execute_download_start(self.callback, select_ip, self.shell, param)
 
+    def stop_execute(self, var_list):
+        select_ip, index = [], 0
+        for v in var_list:
+            if int(v.get()):
+                select_ip.append(self.ip_list[index])
+            index += 1
+        if not select_ip:
+            WinMsg.warn("请勾选IP地址")
+            return
+        PageHandler.execute_download_stop(select_ip, self.shell)
+
     def callback(self, *args):
         ip, value, color = args
         if self.alive():
@@ -366,6 +370,7 @@ class FastRunCommandPage(Pager):
         self.shell = shell
         self.ip_list = ip_list
         self.infotext = None
+        self.progress = {}
         self.is_root = tk.IntVar()
         self.is_loop = tk.IntVar()
 
@@ -373,45 +378,40 @@ class FastRunCommandPage(Pager):
         self.pack_frame()
 
     def pack_frame(self):
-        txt_fm = tk.LabelFrame(self.frame, width=self.width, height=self.height/5*4, text='输入框')
-        ips_fm = tk.LabelFrame(self.frame, width=self.width, height=self.height/5, text='服务器')
-        txt_fm.pack(fill='x', pady=5, padx=5)
-        ips_fm.pack(fill='x', pady=5, padx=5)
-        self.infotext = scrolledtext.ScrolledText(txt_fm,
+        edt_fm = tk.LabelFrame(self.frame, width=self.width, text='输入框')
+        opt_fm = tk.LabelFrame(self.frame, width=self.width)
+        opr_fm = tk.Frame(self.frame, width=self.width)
+        btn_fm = tk.Frame(opr_fm, width=self.width/3, height=self.height/5*2)
+        ips_fm = tk.LabelFrame(opr_fm, width=self.width/3*2, height=self.height/5*2)
+        edt_fm.pack(fill='x', padx=10, pady=10)
+        opt_fm.pack(fill='x', padx=10, pady=5)
+        opr_fm.pack(fill='x', padx=10)
+        ips_fm.pack(fill='both', side='left')
+        btn_fm.pack(fill='x', side='left', padx=40)
+        self.infotext = scrolledtext.ScrolledText(edt_fm,
                                                   font=(Global.G_FONT, 10),
                                                   bd=2,
                                                   relief='ridge',
                                                   bg='Snow',
-                                                  height=18,
+                                                  height=13,
                                                   width=110)
         self.infotext.pack()
         # IP和按钮布局
-        tk.Checkbutton(ips_fm,
-                       text="root执行",
-                       font=(Global.G_FONT, 10),
-                       anchor='w',
-                       width=20,
-                       variable=self.is_root
+        tk.Checkbutton(opt_fm, text="root执行", font=(Global.G_FONT, 10), anchor='w', width=20, variable=self.is_root
                        ).grid(row=0, column=0)
-        tk.Checkbutton(ips_fm,
-                       text="循环读取(2s)",
-                       font=(Global.G_FONT, 10),
-                       anchor='w',
-                       width=20,
-                       variable=self.is_loop
+        tk.Checkbutton(opt_fm, text="循环读取(2s)", font=(Global.G_FONT, 10), anchor='w', width=20, variable=self.is_loop
                        ).grid(row=0, column=1)
-        column, var_list = 0, []
+        row, var_list = 0, []
         for ip in self.ip_list:
             var_list.append(tk.IntVar())
-            tk.Checkbutton(ips_fm, text=ip,
-                           font=(Global.G_FONT, 10),
-                           anchor='w',
-                           width=20,
-                           variable=var_list[-1]
-                           ).grid(row=1, column=column)
-            column += 1
-        ttk.Button(ips_fm, text='执行', width=20, command=lambda x=var_list: self.start_execute(x)).grid(row=2, column=0)
-        ttk.Button(ips_fm, text='停止', width=20, command=lambda x=var_list: self.stop_execute(x)).grid(row=2, column=1)
+            tk.Checkbutton(ips_fm, text=ip, font=(Global.G_FONT, 10), anchor='w', width=14, variable=var_list[-1]
+                           ).grid(row=row, column=0)
+            self.progress[ip] = ProgressBar(master=ips_fm, name='', size=9, width=40, row=row, column=1)
+            row += 1
+        ttk.Button(btn_fm, text='执行', width=20, command=lambda x=var_list: self.start_execute(x)
+                   ).grid(row=0, column=0, pady=15)
+        ttk.Button(btn_fm, text='停止', width=20, command=lambda x=var_list: self.stop_execute(x)
+                   ).grid(row=1, column=0, pady=15)
 
     def start_execute(self, var_list):
         select_ip, index = [], 0
@@ -426,7 +426,7 @@ class FastRunCommandPage(Pager):
         if not select_ip:
             WinMsg.warn("请勾选IP地址")
             return
-        PageHandler.execute_fast_cmd_start(select_ip, text, self.shell, self.is_root.get(), self.is_loop.get())
+        PageHandler.execute_fast_cmd_start(self.callback, select_ip, self.shell, text, self.is_root.get(), self.is_loop.get())
 
     def stop_execute(self, var_list):
         select_ip, index = [], 0
@@ -439,12 +439,16 @@ class FastRunCommandPage(Pager):
             return
         PageHandler.execute_fast_cmd_stop(select_ip, self.shell)
 
+    def callback(self, *args):
+        ip, value, color = args
+        if self.alive():
+            self.progress[ip].update(value, color)
+
 
 class FastUploadFilePage(Pager):
     """ 自定义界面：快速上传界面 """
     def __init__(self, interface, shell, ip_list, params=None):
         self.interface = interface
-        # self.shell = shell
         self.ip_list = ip_list
         self.local_en = None
         self.server_en = None
@@ -458,23 +462,24 @@ class FastUploadFilePage(Pager):
         self.pack_frame()
 
     def pack_frame(self):
-        edt_fm = tk.LabelFrame(self.frame, width=self.width, height=self.height/5*2, text='输入框')
-        opr_fm = tk.Frame(self.frame, width=self.width, height=self.height/5*2)
+        edt_fm = tk.LabelFrame(self.frame, width=self.width, text='输入框')
+        opr_fm = tk.Frame(self.frame, width=self.width)
         btn_fm = tk.Frame(opr_fm, width=self.width/3, height=self.height/5*2)
         ips_fm = tk.LabelFrame(opr_fm, width=self.width/3*2, height=self.height/5*2)
-        edt_fm.pack(fill='x', padx=5, pady=5)
-        opr_fm.pack(fill='x', padx=5, pady=5)
+        edt_fm.pack(fill='x', padx=10, pady=10, ipady=10)
+        opr_fm.pack(fill='x', padx=10, pady=10)
         ips_fm.pack(fill='both', side='left')
-        btn_fm.pack(fill='x', side='left', padx=30)
+        btn_fm.pack(fill='x', side='left', padx=40)
         # 输入栏
         tk.Label(edt_fm, text="本地文件：").grid(row=0, column=0, sticky='w', padx=5)
         entry_var = tk.StringVar()
         self.local_en = ttk.Entry(edt_fm, width=60, font=(Global.G_FONT, 10), textvariable=entry_var, state='disabled')
-        self.local_en.grid(row=0, column=1, pady=5)
-        ttk.Button(edt_fm, text=". . .", width=3, command=lambda x=entry_var: self.choose_file(x)).grid(row=0, column=3, padx=5)
+        self.local_en.grid(row=0, column=1, pady=10)
+        ttk.Button(edt_fm, text=". . .", width=3, command=lambda x=entry_var: self.choose_file(x)
+                   ).grid(row=0, column=3)
         tk.Label(edt_fm, text="服务器路径：").grid(row=1, column=0, sticky='w', padx=5)
         self.server_en = ttk.Entry(edt_fm, width=60, font=(Global.G_FONT, 10))
-        self.server_en.grid(row=1, column=1, pady=5)
+        self.server_en.grid(row=1, column=1, pady=10)
         tk.Label(edt_fm, text="设置权限：").grid(row=2, column=0, sticky='w', padx=5)
         tk.Label(edt_fm, text="设置属主/组：").grid(row=3, column=0, sticky='w', padx=5)
         self.chmod_en = ttk.Entry(edt_fm, textvariable=self.chmod_var)
@@ -487,16 +492,14 @@ class FastUploadFilePage(Pager):
         row, var_list = 0, []
         for ip in self.ip_list:
             var_list.append(tk.IntVar())
-            tk.Checkbutton(ips_fm, text=ip,
-                           font=(Global.G_FONT, 10),
-                           anchor='w',
-                           width=16,
-                           variable=var_list[-1]
+            tk.Checkbutton(ips_fm, text=ip, font=(Global.G_FONT, 10), anchor='w', width=14, variable=var_list[-1]
                            ).grid(row=row, column=0)
             self.progress[ip] = ProgressBar(master=ips_fm, name='', size=9, width=40, row=row, column=1)
             row += 1
-        ttk.Button(btn_fm, text='执行', width=20, command=lambda x=var_list: self.start_execute(x)).grid(row=0, column=0, pady=15)
-        ttk.Button(btn_fm, text='停止', width=20, command=lambda x=var_list: self.stop_execute(x)).grid(row=1, column=0, pady=15)
+        ttk.Button(btn_fm, text='执行', width=20, command=lambda x=var_list: self.start_execute(x)
+                   ).grid(row=0, column=0, pady=15)
+        ttk.Button(btn_fm, text='停止', width=20, command=lambda x=var_list: self.stop_execute(x)
+                   ).grid(row=1, column=0, pady=15)
 
     def choose_file(self, entry_var):
         local_path = filedialog.askopenfilename()
