@@ -22,7 +22,6 @@ class TimezonePage(Pager):
         self.cmbval_list = self.get_struct_array()
         self.label_list = self.get_struct_array()
         self.opts_dict = {}
-        self.frame_list = []
         self.progress = {}
 
     def stepper(self):
@@ -33,8 +32,131 @@ class TimezonePage(Pager):
         self.create_grid()
         self.init_display()
 
-    def destroy_frame(self):
-        [fm.destroy() for fm in self.frame_list]
+    def init_combox_data(self):
+        self.cmbval_list[0][0] = self.get_zonearea_tup()
+        self.cmbval_list[0][1] = self.get_month_tup()
+        self.cmbval_list[0][2] = self.get_month_tup()
+        self.cmbval_list[1][0] = ('YES', 'NO')
+        self.cmbval_list[1][1] = self.get_month_day_tup()
+        self.cmbval_list[1][2] = self.get_month_day_tup()
+        self.cmbval_list[2][0] = ('DATE', 'WEEK')
+        self.cmbval_list[2][1] = self.get_weekseq_tup()
+        self.cmbval_list[2][2] = self.get_weekseq_tup()
+        self.cmbval_list[3][0] = ('DATE', 'WEEK')
+        self.cmbval_list[3][1] = self.get_week_tup()
+        self.cmbval_list[3][2] = self.get_week_tup()
+        self.cmbval_list[4][0] = self.get_offset_time_tup()
+        self.cmbval_list[4][1] = self.get_day_hour_tup()
+        self.cmbval_list[4][2] = self.get_min_second_tup()
+        self.cmbval_list[4][3] = self.get_min_second_tup()
+        self.cmbval_list[4][4] = self.get_day_hour_tup()
+        self.cmbval_list[4][5] = self.get_min_second_tup()
+        self.cmbval_list[4][6] = self.get_min_second_tup()
+
+    def create_grid(self):
+        bg_color = 'Snow'
+        shw_fm = tk.LabelFrame(self.frame, width=self.width, text='当前状态')
+        opt_fm = tk.LabelFrame(self.frame, bg=bg_color, width=self.width)
+        opr_fm = tk.Frame(self.frame, width=self.width)
+        btn_fm = tk.Frame(opr_fm, width=self.width/3, height=self.height/5*2)
+        ips_fm = tk.LabelFrame(opr_fm, width=self.width/3*2, height=self.height/5*2)
+        shw_fm.pack(fill='x', padx=10, pady=5)
+        opt_fm.pack(fill='x', padx=10, pady=5)
+        opr_fm.pack(fill='x', padx=10)
+        ips_fm.pack(fill='both', side='left')
+        btn_fm.pack(fill='x', side='left', padx=40)
+        for ip in self.ip_list:
+            status_lab = tk.Label(shw_fm, text="%s: " % ip, anchor='w')
+            status_lab.pack(fill='x')
+            self.get_current_zoneinfo(ip, status_lab)
+        for x in range(self.row):
+            for y in range(self.column):
+                fm = tk.Frame(opt_fm, bg=bg_color, width=self.width/self.column-1, height=self.height/self.row-1)
+                fm.grid(row=x, column=y, padx=2, sticky='e')
+                # 两个时间的，需要特殊处理
+                if x == self.row-1 and y in [self.column-2, self.column-1]:
+                    lab = tk.Label(fm, bg=bg_color, text=self.get_labname(x, y), font=(Global.G_FONT, 10))
+                    lab.pack(side='left')
+                    self.label_list[x][y] = lab
+                    # 由于y在 x=row-1的时候，相对以前多加了两列，所以下次y要多加2才是正确的数组位置
+                    tmp_y = y
+                    if y == self.column-1:
+                        tmp_y = y+2
+                    subfm = tk.Frame(fm, bg=bg_color, width=self.width/self.column/2-1, height=self.height/self.row/2-1)
+                    subfm.pack(side='right')
+                    for i in range(3):
+                        combox_var = tk.StringVar()
+                        subcmb = ttk.Combobox(subfm, textvariable=combox_var, width=2)
+                        subcmb["values"] = self.cmbval_list[x][tmp_y+i]
+                        subcmb.current(0)
+                        subcmb["state"] = "readonly"
+                        subcmb.bind("<<ComboboxSelected>>", func=self.handler_adaptor(self.choose_opt, cmb=subcmb, x=x, y=tmp_y+i))
+                        subcmb.pack(side='left')
+                        self.subcmb_list[x][tmp_y+i] = subcmb
+                        if i != 2:
+                            tk.Label(subfm, text=':').pack(side='left')
+                else:
+                    lab = tk.Label(fm, bg=bg_color, text=self.get_labname(x, y), font=(Global.G_FONT, 10))
+                    lab.pack(side='left')
+                    self.label_list[x][y] = lab
+                    combox_var = tk.StringVar()
+                    cmb = ttk.Combobox(fm, textvariable=combox_var, width=14)
+                    cmb["values"] = self.cmbval_list[x][y]
+                    cmb.current(0)
+                    cmb["state"] = "readonly"
+                    cmb.bind("<<ComboboxSelected>>", func=self.handler_adaptor(self.choose_opt, cmb=cmb, x=x, y=y))
+                    cmb.pack(side='right', padx=4)
+                    # 子窗体中的combox存入二位数组
+                    self.subcmb_list[x][y] = cmb
+        # IP和进度条等布局
+        row, var_list = 0, []
+        for ip in self.ip_list:
+            var_list.append(tk.IntVar())
+            tk.Checkbutton(ips_fm, text=ip, font=(Global.G_FONT, 10), anchor='w', width=14, variable=var_list[-1]
+                           ).grid(row=row, column=0)
+            self.progress[ip] = ProgressBar(master=ips_fm, name='', size=9, width=40, row=row, column=1)
+            row += 1
+        # 执行按钮布局
+        ttk.Button(btn_fm, text='执行', width=20, command=lambda x=var_list: self.start_execute(x)
+                   ).grid(row=0, column=0, pady=15)
+        ttk.Button(btn_fm, text='停止', width=20, command=lambda x=var_list: self.stop_execute(x)
+                   ).grid(row=1, column=0, pady=15)
+
+    def get_current_zoneinfo(self, ip, master):
+        def callback(info):
+            master['text'] = "%s: %s" % (ip, info)
+        PageHandler.execute_showing_start(callback, ip, self.shell, 'ENTER')
+
+    def start_execute(self, var_list):
+        not_set = self.exist_not_set_combox()
+        if not_set:
+            WinMsg.warn("请设置夏令时参数:%s" % not_set[0])
+            return
+        select_ip, index = [], 0
+        for v in var_list:
+            if int(v.get()):
+                select_ip.append(self.ip_list[index])
+            index += 1
+        if not select_ip:
+            WinMsg.warn("请勾选IP地址")
+            return
+        PageHandler.execute_download_start(self.callback, select_ip, self.shell, self.options_combine())
+
+    def stop_execute(self, var_list):
+        select_ip, index = [], 0
+        for v in var_list:
+            if int(v.get()):
+                select_ip.append(self.ip_list[index])
+            index += 1
+        if not select_ip:
+            WinMsg.warn("请勾选IP地址")
+            return
+        PageHandler.execute_download_stop(select_ip, self.shell)
+
+    def callback(self, *args):
+        ip, value, color = args
+        if self.alive():
+            self.progress[ip].update(value, color)
 
     def get_labname(self, x, y):
         return [['TimeZone\n时区', 'Start month\n开始月份', 'End month\n结束月份'],
@@ -185,125 +307,6 @@ class TimezonePage(Pager):
             if forfind not in tup:return -1
             return tup.index(forfind)+1
         return tup
-
-    def init_combox_data(self):
-        self.cmbval_list[0][0] = self.get_zonearea_tup()
-        self.cmbval_list[0][1] = self.get_month_tup()
-        self.cmbval_list[0][2] = self.get_month_tup()
-        self.cmbval_list[1][0] = ('YES', 'NO')
-        self.cmbval_list[1][1] = self.get_month_day_tup()
-        self.cmbval_list[1][2] = self.get_month_day_tup()
-        self.cmbval_list[2][0] = ('DATE', 'WEEK')
-        self.cmbval_list[2][1] = self.get_weekseq_tup()
-        self.cmbval_list[2][2] = self.get_weekseq_tup()
-        self.cmbval_list[3][0] = ('DATE', 'WEEK')
-        self.cmbval_list[3][1] = self.get_week_tup()
-        self.cmbval_list[3][2] = self.get_week_tup()
-        self.cmbval_list[4][0] = self.get_offset_time_tup()
-        self.cmbval_list[4][1] = self.get_day_hour_tup()
-        self.cmbval_list[4][2] = self.get_min_second_tup()
-        self.cmbval_list[4][3] = self.get_min_second_tup()
-        self.cmbval_list[4][4] = self.get_day_hour_tup()
-        self.cmbval_list[4][5] = self.get_min_second_tup()
-        self.cmbval_list[4][6] = self.get_min_second_tup()
-
-    def create_grid(self):
-        bg_color = 'Snow'
-        shw_fm = tk.LabelFrame(self.frame, width=self.width, text='当前状态')
-        opt_fm = tk.LabelFrame(self.frame, bg=bg_color, width=self.width)
-        opr_fm = tk.Frame(self.frame, width=self.width)
-        btn_fm = tk.Frame(opr_fm, width=self.width/3, height=self.height/5*2)
-        ips_fm = tk.LabelFrame(opr_fm, width=self.width/3*2, height=self.height/5*2)
-        shw_fm.pack(fill='x', padx=10, pady=5)
-        opt_fm.pack(fill='x', padx=10, pady=5)
-        opr_fm.pack(fill='x', padx=10)
-        ips_fm.pack(fill='both', side='left')
-        btn_fm.pack(fill='x', side='left', padx=40)
-        for ip in self.ip_list:
-            tk.Label(shw_fm, text="%s: " % ip, anchor='w').pack(fill='x')
-        for x in range(self.row):
-            for y in range(self.column):
-                fm = tk.Frame(opt_fm, bg=bg_color, width=self.width/self.column-1, height=self.height/self.row-1)
-                fm.grid(row=x, column=y, padx=2, sticky='e')
-                self.frame_list.append(fm)
-                # 两个时间的，需要特殊处理
-                if x == self.row-1 and y in [self.column-2, self.column-1]:
-                    lab = tk.Label(fm, bg=bg_color, text=self.get_labname(x, y), font=(Global.G_FONT, 10))
-                    lab.pack(side='left')
-                    self.label_list[x][y] = lab
-                    # 由于y在 x=row-1的时候，相对以前多加了两列，所以下次y要多加2才是正确的数组位置
-                    tmp_y = y
-                    if y == self.column-1:
-                        tmp_y = y+2
-                    subfm = tk.Frame(fm, bg=bg_color, width=self.width/self.column/2-1, height=self.height/self.row/2-1)
-                    subfm.pack(side='right')
-                    for i in range(3):
-                        combox_var = tk.StringVar()
-                        subcmb = ttk.Combobox(subfm, textvariable=combox_var, width=2)
-                        subcmb["values"] = self.cmbval_list[x][tmp_y+i]
-                        subcmb.current(0)
-                        subcmb["state"] = "readonly"
-                        subcmb.bind("<<ComboboxSelected>>", func=self.handler_adaptor(self.choose_opt, cmb=subcmb, x=x, y=tmp_y+i))
-                        subcmb.pack(side='left')
-                        self.subcmb_list[x][tmp_y+i] = subcmb
-                        if i != 2:
-                            tk.Label(subfm, text=':').pack(side='left')
-                else:
-                    lab = tk.Label(fm, bg=bg_color, text=self.get_labname(x, y), font=(Global.G_FONT, 10))
-                    lab.pack(side='left')
-                    self.label_list[x][y] = lab
-                    combox_var = tk.StringVar()
-                    cmb = ttk.Combobox(fm, textvariable=combox_var, width=14)
-                    cmb["values"] = self.cmbval_list[x][y]
-                    cmb.current(0)
-                    cmb["state"] = "readonly"
-                    cmb.bind("<<ComboboxSelected>>", func=self.handler_adaptor(self.choose_opt, cmb=cmb, x=x, y=y))
-                    cmb.pack(side='right', padx=4)
-                    # 子窗体中的combox存入二位数组
-                    self.subcmb_list[x][y] = cmb
-        # IP和进度条等布局
-        row, var_list = 0, []
-        for ip in self.ip_list:
-            var_list.append(tk.IntVar())
-            tk.Checkbutton(ips_fm, text=ip, font=(Global.G_FONT, 10), anchor='w', width=14, variable=var_list[-1]
-                           ).grid(row=row, column=0)
-            self.progress[ip] = ProgressBar(master=ips_fm, name='', size=9, width=40, row=row, column=1)
-            row += 1
-        # 执行按钮布局
-        ttk.Button(btn_fm, text='执行', width=20, command=lambda x=var_list: self.start_execute(x)
-                   ).grid(row=0, column=0, pady=15)
-        ttk.Button(btn_fm, text='停止', width=20, command=lambda x=var_list: self.stop_execute(x)
-                   ).grid(row=1, column=0, pady=15)
-
-    def start_execute(self, var_list):
-        select_ip, index = [], 0
-        for v in var_list:
-            if int(v.get()):
-                select_ip.append(self.ip_list[index])
-            index += 1
-        if param == '':
-            WinMsg.warn("输入为空！")
-            return
-        if not select_ip:
-            WinMsg.warn("请勾选IP地址")
-            return
-        PageHandler.execute_download_start(self.callback, select_ip, self.shell, param)
-
-    def stop_execute(self, var_list):
-        select_ip, index = [], 0
-        for v in var_list:
-            if int(v.get()):
-                select_ip.append(self.ip_list[index])
-            index += 1
-        if not select_ip:
-            WinMsg.warn("请勾选IP地址")
-            return
-        PageHandler.execute_download_stop(select_ip, self.shell)
-
-    def callback(self, *args):
-        ip, value, color = args
-        if self.alive():
-            self.progress[ip].update(value, color)
 
     def handler_adaptor(self, fun,  **kwds):
         """ 事件处理函数的适配器，相当于中介 """

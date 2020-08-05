@@ -277,6 +277,10 @@ class PageHandler:
                 # 显示进度信息
                 callback(ip, _last_prog, False)
                 if cur_prog == 90:
+                    if info == 'NULL':
+                        callback(ip, 100, False)
+                        Utils.tell_info("%s: [100%%] %s执行成功" % (ip, task))
+                        break
                     filename = "%s\\%s" % (Global.G_DOWNLOAD_DIR, Common.basename(info))
                     Utils.tell_info("%s: [90%%] 开始下载: %s" % (ip, filename))
                     if not SSHUtil.download_file(ssh, remote=info,local=filename):
@@ -426,6 +430,11 @@ class PageHandler:
         for ip in ip_list:
             cls._stop_task(task, ip, 'append')
             Utils.tell_info("%s: 停止%s成功" % (ip, task))
+
+    @classmethod
+    def execute_showing_start(cls, callback, ip ,shell, param):
+        cls.start_shell('showing', callback, ip, shell, param, True, False)
+
 
     '''
     @classmethod

@@ -10,7 +10,7 @@ function make_task_dir()
     cd ${g_home_dir}
     mkdir -p ${task} 2>/dev/null
     chmod 777 ${task} 2>/dev/null
-    dos2unix ${task}/* 2>/dev/null
+    # dos2unix ${task}/* 2>/dev/null
     chmod 777 ${task}/* 2>/dev/null
     g_task_dir=${g_home_dir}/${task}
 }
@@ -24,6 +24,7 @@ function sync_call_shell()
     make_task_dir ${task}
     cd ${g_task_dir}
     dos2unix ${g_home_dir}/${shell}
+    echo "sh ${g_home_dir}/${shell} ${ip} ${params}" >${g_task_dir}/call.txt
     sh ${g_home_dir}/${shell} "${ip}" "${params}" >${g_task_dir}/print.txt 2>&1
     return $?
 }
@@ -37,6 +38,7 @@ function async_call_shell()
     make_task_dir ${task}
     cd ${g_task_dir}
     dos2unix ${g_home_dir}/${shell}
+    echo "sh ${g_home_dir}/${shell} ${ip} ${params}" >${g_task_dir}/call.txt
     sh ${g_home_dir}/${shell} "${ip}" "${params}" >${g_task_dir}/print.txt 2>&1 &
 }
 

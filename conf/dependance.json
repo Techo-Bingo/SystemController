@@ -48,7 +48,7 @@
                 {
                     "PageText": "时区夏令时配置",
                     "PageType": ["SELF", "TimezonePage"],
-                    "Shell": "set_timezone.sh",
+                    "Shell": "timezone_operate.sh",
                     "Image": "TV_TIMEZONE",
                     "SubTree": []
                 }
