@@ -16,9 +16,12 @@ function download()
 	local pack_name=${IP}_${file_name}
 	if [ -f "${FILE_PATH}" ]
 	then
+		report_info "30" "Copying file..."
 		cp -f ${FILE_PATH} ./${pack_name}
 	else
+		report_info "30" "Copying directory..."
 		cp -rf ${FILE_PATH} ./
+		report_info "90" "Compress start"
 		local pack_name=$(compress ${pack_name})
 		[ $? -ne 0 ] && report_err '95' "Compress ${pack_name} failed"
 	fi
