@@ -1,6 +1,4 @@
 # -*- coding: UTF-8 -*-
-
-import time
 import tkinter as tk
 
 
@@ -50,7 +48,7 @@ class Singleton(object):
 
 class GuiBase(Singleton):
     """ 子窗体的基类 """
-    
+
     def init_viewmodel(self):
         pass
 
@@ -67,31 +65,6 @@ class GuiBase(Singleton):
         self.init_viewmodel()
         self.init_frame()
         self.pack_frame()
-
-
-class Handler(object):
-    """ 时间处理基类 """
-
-    def _enter(self):
-        self.__s_time = time.time()
-
-    def _exit(self):
-        self.__e_time = time.time()
-        self.__u_time = '%.3f' % (self.__e_time - self.__s_time)
-
-    def counter(self):
-        return self.__u_time
-
-    def stepper(self):
-        pass
-
-    def handler(self):
-        self._enter()
-        self.__result = self.stepper()
-        self._exit()
-
-    def result(self):
-        return self.__result
 
 
 class Pager(object):
@@ -112,7 +85,7 @@ class Pager(object):
         self.width, self.height = self.interface('get_range')
         self._showing = True
         self.frame = tk.LabelFrame(self.master, width=self.width, height=self.height)
-        self.frame.pack(padx=2, pady=5)
+        self.frame.pack()
         self.frame.pack_propagate(0)
 
     def pack(self):
