@@ -6,10 +6,10 @@ LOG_FLAGS=$2
 
 function parser_param()
 {
-	FLAG1=$(echo ${LOG_FLAGS}|awk -F"|" '{print $1}')
-	FLAG2=$(echo ${LOG_FLAGS}|awk -F"|" '{print $2}')
-	FLAG3=$(echo ${LOG_FLAGS}|awk -F"|" '{print $3}')
-	FLAG4=$(echo ${LOG_FLAGS}|awk -F"|" '{print $4}')
+	FLAG1=$(echo ${LOG_FLAGS}|awk -F"@" '{print $1}')
+	FLAG2=$(echo ${LOG_FLAGS}|awk -F"@" '{print $2}')
+	FLAG3=$(echo ${LOG_FLAGS}|awk -F"@" '{print $3}')
+	FLAG4=$(echo ${LOG_FLAGS}|awk -F"@" '{print $4}')
 	report_info '20' 'server perpare OK'
 }
 
