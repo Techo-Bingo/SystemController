@@ -10,9 +10,9 @@ function make_task_dir()
     cd ${g_home_dir}
     mkdir -p ${task} 2>/dev/null
     chmod 777 ${task} 2>/dev/null
-    # dos2unix ${task}/* 2>/dev/null
     chmod 777 ${task}/* 2>/dev/null
     g_task_dir=${g_home_dir}/${task}
+    rm -rf ${g_task_dir}/*
 }
 
 function sync_call_shell()
@@ -31,9 +31,9 @@ function sync_call_shell()
 
 function async_call_shell()
 {
-    local task=$1
-    local shell=$2
-    local ip=$3
+    local ip=$1
+    local task=$2
+    local shell=$3
     local params=$4
     make_task_dir ${task}
     cd ${g_task_dir}
