@@ -263,7 +263,7 @@ class OptionDownloadTypePage(Pager):
         if not select_ips:
             WinMsg.warn("请勾选IP地址")
             return
-        param = '|'.join([str(v.get()) for v in var_ops])
+        param = '@.join([str(v.get()) for v in var_ops])
         PageHandler.execute_download_start(self.callback, select_ips, self.shell, param)
 
     def stop_execute(self, var_list):
