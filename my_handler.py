@@ -199,7 +199,7 @@ class LoginHandler:
 class PageHandler:
     """ 页面事件处理类 """
     _stop_task_ips = {}
-    _inner_caller = "sh %s/inner_function.sh" % (Global.G_SERVER_DIR)
+    _inner_caller = "sh %s/inner_function.sh" % Global.G_SERVER_DIR
 
     @classmethod
     def _mutex(cls, ip, task, lock=True):
@@ -247,17 +247,17 @@ class PageHandler:
         return SSHUtil.exec_info(ssh, cmd, root)[0].split('__BINGO__')[1:2][0]
 
     @classmethod
-    def _exec_shell(cls, ssh, ip, shell, task, param, root, back=False):
+    def _exec_shell(cls, ssh, ip, shell, task, param, run_root, run_back=False):
         """ 后台执行脚本 """
         Utils.tell_info('%s: [0%%] 正在执行任务: %s' % (ip, task))
-        if back:
+        if run_back:
             cmd = "{0} async_call_shell {1} {2} {3} {4}".format(cls._inner_caller, ip, task, shell, param)
         else:
             cmd = "{0} sync_call_shell {1} {2} {3} {4}".format(cls._inner_caller, ip, task, shell, param)
-        SSHUtil.exec_ret(ssh, cmd, root)
+        SSHUtil.exec_ret(ssh, cmd, run_root)
 
     @classmethod
-    def _get_progress(cls, ssh, callback, ip, task, root):
+    def _get_progress(cls, ssh, callback, ip, task, run_root):
         """ 循环读取进度 """
         cmd = "cat %s/%s/progress.txt" % (Global.G_SERVER_DIR, task)
         _last_prog = 1
@@ -265,7 +265,7 @@ class PageHandler:
         while True:
             Common.sleep(1)
             try:
-                cur_prog, status, info = cls._get_exec_info(ssh, cmd, root).split('|')
+                cur_prog, status, info = cls._get_exec_info(ssh, cmd, run_root).split('|')
                 cur_prog = int(cur_prog) - 10
                 if not info:
                     raise ReportError("进度信息为空，重试:%s" % __retry)
@@ -298,17 +298,17 @@ class PageHandler:
                 break
 
     @classmethod
-    def _get_print(cls, ssh, callback, ip, task, root, loop):
+    def _get_print(cls, ssh, callback, ip, task, run_root, run_back):
         cmd = "{0} get_task_stdout {1}".format(cls._inner_caller, task)
         def get_print():
-            ret_info = SSHUtil.exec_info(ssh, cmd, root)[0]
+            ret_info = SSHUtil.exec_info(ssh, cmd, run_root)[0]
             Utils.tell_info("%s:[100%%] 执行结果：\n%s" % (ip, ret_info))
             if callback:
                 try:
                     callback(ret_info)
                 except:
                     pass
-        if loop:
+        if run_back:
             while True:
                 if cls._stop_task(task, ip):
                     Utils.tell_info("%s 已停止循环读取" % ip)
@@ -319,7 +319,7 @@ class PageHandler:
             get_print()
 
     @classmethod
-    def _exec_shell_impl(cls, shell_type, callback, ip, shell, param, root=True, loop=False):
+    def _exec_shell_impl(cls, shell_type, callback, ip, shell, param, run_root=True, run_back=False):
         """
         shell_type:
             download，下载类型的脚本，回调函数为进度条
@@ -331,14 +331,14 @@ class PageHandler:
 
         ssh = cls._get_ssh(ip)
 
-        cls._exec_shell(ssh, ip, shell, task, param, root, loop)
+        cls._exec_shell(ssh, ip, shell, task, param, run_root, run_back)
         
         cls._stop_task(task, ip, 'remove')
 
         if shell_type == 'download':
-            cls._get_progress(ssh, callback, ip, task, root)
+            cls._get_progress(ssh, callback, ip, task, run_root)
         elif shell_type == 'showing':
-            cls._get_print(ssh, callback, ip, task, root, loop)
+            cls._get_print(ssh, callback, ip, task, run_root, run_back)
 
         cls._mutex(ip, task, False)
 
@@ -355,7 +355,7 @@ class PageHandler:
     @classmethod
     def execute_download_start(cls, callback, ip_list, shell, param):
         for ip in ip_list:
-            cls.start_shell('download', callback, ip, shell, param, True, False)
+            cls.start_shell('download', callback, ip, shell, param, True, True)
 
     @classmethod
     def execute_download_stop(cls, ip_list, shell):
@@ -364,7 +364,7 @@ class PageHandler:
             cls.kill_shell(ip, task, shell)
 
     @classmethod
-    def execute_fast_cmd_start(cls, callback, ip_list, shell, text, root, loop):
+    def execute_fast_cmd_start(cls, callback, ip_list, shell, text, run_root, run_back):
         local_path = ".\\%s\\%s" % (Global.G_SHELL_DIR, shell)
         remote_path = "%s/%s" % (Global.G_SERVER_DIR, shell)
         Common.write_to_file(local_path, text)
@@ -375,7 +375,7 @@ class PageHandler:
                 Utils.tell_info("%s:[50%%] 上传脚本文件失败，执行命令失败！" % ip, level='ERROR')
                 callback(ip, 50, 'Red')
                 continue
-            cls.start_shell('showing', None, ip, shell, None, root, loop)
+            cls.start_shell('showing', None, ip, shell, None, run_root, run_back)
             callback(ip, 100, False)
 
     @classmethod
