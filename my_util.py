@@ -9,7 +9,7 @@ from my_viewmodel import ViewModel
 from PIL import Image, ImageTk
 from my_common import Common, JSONParser
 from my_base import EnvError, FileError
-from my_bond import Caller
+from my_bond import Caller, Define
 
 
 class Utils:
@@ -110,12 +110,6 @@ class Init:
         return True
 
     @classmethod
-    def _page_details(cls, json_data):
-        # 设置state page显示的结构的全局变量
-        # Global.G_STATE_PAGE_STRUCT = json_data['StatePageStruct']
-        pass
-
-    @classmethod
     def _image_init(cls, image_data):
         _photo = {}
         for name, path in image_data.items():
@@ -123,6 +117,15 @@ class Init:
                 raise FileError("%s is not exist !" % path)
             _photo[name] = path if name == 'ICO' else ImageTk.PhotoImage(image=Image.open(path))
         ViewModel.cache('CONF_IMAGE_DICT', type='ADD', data=_photo)
+
+        Define.define(Global.EVT_ADD_IMAGE, cls._define_image)
+
+    @classmethod
+    def _define_image(cls, msg):
+        name, image_path = msg
+        image = {}
+        image[name] = ImageTk.PhotoImage(image=Image.open(image_path))
+        ViewModel.cache('CONF_IMAGE_DICT', type='ADD', data=image)
 
     @classmethod
     def conf_parser(cls):
@@ -138,8 +141,6 @@ class Init:
             cls._image_init(_depend_data['Images'])
             # TreeView数据
             ViewModel.cache('TREE_VIEW_DATA_LIST', type='ADD', data=_depend_data['Tree'])
-            # 一些自定义界面的数据结构等初始化
-            cls._page_details(_depend_data)
         except Exception as e:
             Logger.error(e)
             Utils.windows_error(e)

@@ -4,10 +4,7 @@ g_task_dir=$(pwd)
 
 function init()
 {
-    # 这个杀进程有问题
-	# ps -ef|grep $(basename $0)|grep -v grep|grep -wv $$|awk '{print $2}'|xargs kill -9 2>/dev/null
-	chmod 777 ${g_task_dir}
-	report_info "11" "env init ok" 
+	report_info "11" "server init ok"
 }
 
 function _report()

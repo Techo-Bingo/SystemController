@@ -99,6 +99,7 @@ EVT_CALL_WIN_ASK = 'event_call_window_ask'
 EVT_TOP_PROG_START = 'event_toplevel_start'
 EVT_TOP_PROG_UPDATE = 'event_toplevel_update'
 EVT_TOP_PROG_DESTROY = 'event_toplevel_destroy'
+EVT_ADD_IMAGE = 'event_add_image'
 
 def reload():
     global G_TITLE

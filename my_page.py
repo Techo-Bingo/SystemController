@@ -3,13 +3,15 @@ import traceback
 import tkinter as tk
 from tkinter import ttk, scrolledtext, filedialog
 import my_global as Global
+from my_common import Common
 from my_logger import Logger
 from my_base import Pager
-from my_module import ProgressBar
 from my_handler import PageHandler
 from my_viewutil import ToolTips, ViewUtil, WinMsg
 from my_timezone import TimezonePage
-
+from my_module import ProgressBar, PlotMaker
+from PIL import Image, ImageTk
+from my_bond import Caller
 
 '''
 class StatePage(Pager):
@@ -201,6 +203,55 @@ class BinlogPage(Pager):
 '''
 
 
+class HomePage(Pager):
+    """ 主页 """
+    def __init__(self, interface, options, shell, ip_list):
+        self.interface = interface
+        self.options = options
+        self.shell = shell
+        self.ip_list = ip_list
+        self.plot_params = None
+        self.prepare_ok = False
+
+    def stepper(self):
+        self.pack_frame()
+
+    def pack_frame(self):
+        opt_fm = tk.LabelFrame(self.frame, width=self.width)
+        opt_fm.pack(fill='x', padx=10, pady=10, ipady=10)
+        show_lab = tk.Label(opt_fm)
+        show_lab.pack()
+        PageHandler.execute_showing_start(self.callback, self.ip_list[0], self.shell, None)
+
+        while True:
+            if self.prepare_ok:
+                break
+            self.interface('update_gui')
+            Common.sleep(0.1)
+        label_list, x_list, y_lists, png_path = self.plot_params
+        myplot = PlotMaker(label_list, x_list, y_lists, png_path)
+        myplot.make()
+        Caller.call(Global.EVT_ADD_IMAGE, ('MEM_BAR', png_path))
+        show_lab.config(image=ViewUtil.get_image('MEM_BAR'))
+
+    def callback(self, infos):
+        try:
+            infos = infos.split('\n')
+            label_list = infos[0].split()
+            x_list = infos[1].split()
+            y_lists = []
+            for line in infos[2:]:
+                y_list = line.split()
+                y_list = [int(y) for y in y_list]
+                y_lists.append(y_list)
+            png_path = "%s\\MemBar.png" % Global.G_CMDS_DIR
+            self.plot_params = (label_list, x_list, y_lists, png_path)
+            self.prepare_ok = True
+        except Exception as e:
+            print(traceback.format_exc())
+            return
+
+
 class OptionDownloadTypePage(Pager):
     """ 选项执行下载类型界面 """
 
@@ -239,7 +290,7 @@ class OptionDownloadTypePage(Pager):
             var_ips.append(tk.IntVar())
             tk.Checkbutton(ips_fm, text=ip, font=(Global.G_FONT, 10), anchor='w', width=14, variable=var_ips[-1]
                            ).grid(row=row, column=0)
-            self.progress[ip] = ProgressBar(master=ips_fm, name='', size=9, width=40, row=row, column=1)
+            self.progress[ip] = ProgressBar(master=ips_fm, row=row, column=1)
             row += 1
         # 执行按钮布局
         ttk.Button(btn_fm, text='执行', width=20, command=lambda x=var_ops, y=var_ips: self.start_execute(x, y)
@@ -263,7 +314,7 @@ class OptionDownloadTypePage(Pager):
         if not select_ips:
             WinMsg.warn("请勾选IP地址")
             return
-        param = '@.join([str(v.get()) for v in var_ops])
+        param = '@'.join([str(v.get()) for v in var_ops])
         PageHandler.execute_download_start(self.callback, select_ips, self.shell, param)
 
     def stop_execute(self, var_list):
@@ -323,7 +374,7 @@ class OnlyEntryEditTypePage(Pager):
             var_list.append(tk.IntVar())
             tk.Checkbutton(ips_fm, text=ip, font=(Global.G_FONT, 10), anchor='w', width=14, variable=var_list[-1]
                            ).grid(row=row, column=0)
-            self.progress[ip] = ProgressBar(master=ips_fm, name='', size=9, width=40, row=row, column=1)
+            self.progress[ip] = ProgressBar(master=ips_fm, row=row, column=1)
             row += 1
         # 执行按钮布局
         ttk.Button(btn_fm, text='执行', width=20, command=lambda x=var_list: self.start_execute(x)
@@ -406,7 +457,7 @@ class FastRunCommandPage(Pager):
             var_list.append(tk.IntVar())
             tk.Checkbutton(ips_fm, text=ip, font=(Global.G_FONT, 10), anchor='w', width=14, variable=var_list[-1]
                            ).grid(row=row, column=0)
-            self.progress[ip] = ProgressBar(master=ips_fm, name='', size=9, width=40, row=row, column=1)
+            self.progress[ip] = ProgressBar(master=ips_fm, row=row, column=1)
             row += 1
         ttk.Button(btn_fm, text='执行', width=20, command=lambda x=var_list: self.start_execute(x)
                    ).grid(row=0, column=0, pady=15)
@@ -494,7 +545,7 @@ class FastUploadFilePage(Pager):
             var_list.append(tk.IntVar())
             tk.Checkbutton(ips_fm, text=ip, font=(Global.G_FONT, 10), anchor='w', width=14, variable=var_list[-1]
                            ).grid(row=row, column=0)
-            self.progress[ip] = ProgressBar(master=ips_fm, name='', size=9, width=40, row=row, column=1)
+            self.progress[ip] = ProgressBar(master=ips_fm, row=row, column=1)
             row += 1
         ttk.Button(btn_fm, text='执行', width=20, command=lambda x=var_list: self.start_execute(x)
                    ).grid(row=0, column=0, pady=15)
@@ -575,7 +626,9 @@ class PageCtrl(object):
                         'shell': shell,
                         'ip_list': ViewUtil.get_ssh_ip_list()}
         try:
-            if page_type == 'ONLY_DOWNLOAD':
+            if page_type == 'HOME_PAGE':
+                self.current_page = HomePage(options=page_options, **pager_params)
+            elif page_type == 'ONLY_DOWNLOAD':
                 return
             elif page_type == 'OPTION_DOWNLOAD':
                 self.current_page = OptionDownloadTypePage(options=page_options, **pager_params)

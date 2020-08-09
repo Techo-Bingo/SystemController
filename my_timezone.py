@@ -114,7 +114,7 @@ class TimezonePage(Pager):
             var_list.append(tk.IntVar())
             tk.Checkbutton(ips_fm, text=ip, font=(Global.G_FONT, 10), anchor='w', width=14, variable=var_list[-1]
                            ).grid(row=row, column=0)
-            self.progress[ip] = ProgressBar(master=ips_fm, name='', size=9, width=40, row=row, column=1)
+            self.progress[ip] = ProgressBar(master=ips_fm, row=row, column=1)
             row += 1
         # 执行按钮布局
         ttk.Button(btn_fm, text='执行', width=20, command=lambda x=var_list: self.start_execute(x)

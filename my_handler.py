@@ -349,8 +349,9 @@ class PageHandler:
     @classmethod
     def kill_shell(cls, ip, task, shell):
         ssh = cls._get_ssh(ip)
-        SSHUtil.exec_ret(ssh, "{0} kill_shell {1}".format(cls._inner_caller, shell), True)
+        SSHUtil.exec_ret(ssh, "{0} kill_shell {1} {2}".format(cls._inner_caller, ip, shell), True)
         cls._mutex(ip, task, False)
+        Utils.tell_info("%s 杀死任务%s和子进程成功" % (ip, task))
 
     @classmethod
     def execute_download_start(cls, callback, ip_list, shell, param):

@@ -50,8 +50,10 @@ function get_task_stdout()
 
 function kill_shell()
 {
-    local shell=$1
-    killall ${shell}
+    local ip=$1
+    local shell=$2
+    local top_pid=$(ps -ef|grep -w "${shell}"|grep -w "${ip}"|awk '{print $2}'|head -1)
+    pstree ${top_pid} -p|tr '(' '\n'|grep '^[0-9]'|cut -d')' -f1|xargs kill -9
 }
 
 function upload_prev_check()

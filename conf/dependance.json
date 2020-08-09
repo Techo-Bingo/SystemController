@@ -15,6 +15,7 @@
         "TB_SETTING": ".\\image\\toolbar_setting.png",
         "TB_HELP": ".\\image\\toolbar_help.png",
         "TB_INFO": ".\\image\\toolbar_info.png",
+        "TV_HOME": ".\\image\\treeview_home.png",
         "TV_OAM": ".\\image\\treeview_oam.png",
         "TV_STATE": ".\\image\\treeview_state.png",
         "TV_EXEC": ".\\image\\treeview_fast_exec.png",
@@ -32,6 +33,13 @@
     },
 
     "Tree": [
+        {
+            "PageText": "服务器概要",
+            "PageType": "HOME_PAGE",
+            "Shell": "home_page.sh",
+            "Image": "TV_HOME",
+            "SubTree": []
+        },
         {
             "PageText": "操作维护",
             "PageType": "NA",

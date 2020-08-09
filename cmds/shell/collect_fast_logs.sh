@@ -26,7 +26,14 @@ function compress_pack()
 function collect()
 {
 	cd ${g_task_dir}
-	echo "${LOG_FLAGS}" > LOG_FLAGS.log
+
+	[ "${FLAG1}" = 1 ] && echo "CALL_COLLECT_FLAG1"
+
+	[ "${FLAG2}" = 1 ] && echo "CALL_COLLECT_FLAG2"
+
+	[ "${FLAG3}" = 1 ] && echo "CALL_COLLECT_FLAG3"
+
+	[ "${FLAG4}" = 1 ] && echo "CALL_COLLECT_FLAG4"
 }
 
 function main()

@@ -79,7 +79,7 @@ class Gui(tk.Tk):
         # 主界面
         master_frame = tk.Frame(self)
         master_frame.pack()
-        main = GuiMain(menu_bar, tool_frame, master_frame, self.setsize)
+        main = GuiMain(self, menu_bar, tool_frame, master_frame, self.setsize)
         main.show()
         self._in_main_gui = True
 
@@ -197,9 +197,10 @@ class GuiLogin(GuiBase):
 
 class GuiMain(GuiBase):
     """ 操作窗 """
-    def __init__(self, menubar, toolbar, master, setsize):
+    def __init__(self, root_gui, menubar, toolbar, master, setsize):
         self.master = master
         self.setsize = setsize
+        self.root_gui = root_gui
         self.tree_window = None
         self.oper_window = None
         self.help_window = None
@@ -305,6 +306,8 @@ class GuiMain(GuiBase):
             self.show_help_window(True)
         elif key == 'hide_help':
             self.show_help_window(False)
+        elif key == 'update_gui':
+            self.root_gui.update()
 
     def callback(self, text):
         print(text)

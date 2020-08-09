@@ -48,6 +48,7 @@ class Singleton(object):
 
 class GuiBase(Singleton):
     """ 子窗体的基类 """
+    master = None
 
     def init_viewmodel(self):
         pass

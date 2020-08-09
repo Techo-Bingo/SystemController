@@ -9,6 +9,8 @@ from my_common import Common
 from my_bond import Bonder, Define
 from my_viewutil import ToolTips, ViewUtil
 # from my_logger import Logger
+import numpy
+import matplotlib.pyplot as plot
 
 
 class ToolTip(object):
@@ -210,65 +212,37 @@ class TtkProgress(object):
 
 class ProgressBar(object):
     """ 进度条/比例条 """
-    def __init__(self,
-                 master,
-                 name,
-                 bg=Global.G_DEFAULT_BG,
-                 size=11,
-                 width=32,
-                 row=1,
-                 column=0):
+    def __init__(self, master, width=240, height=20, bg='White', row=0, column=0):
+        self.canvas_bar = None
+        self.canvas_shape = None
+        self.canvas_text = None
         self.width = width
-        self.value = 0
-        _lab_style = {'master': master,
-                      'relief': 'solid',
-                      'font': (Global.G_FONT, size-2)}
-        _grid_style = {'row': row,
-                       'column': column + 1,
-                       'sticky': tk.W}
-        self.namelab = tk.Label(master, text=name, font=(Global.G_FONT, size), bg=bg)
-        self.namelab.grid(row=row, column=column, padx=5, pady=5)
-        self.bglab = tk.Label(width=width, anchor=tk.E, bd=1, **_lab_style)
-        self.fglab = tk.Label(bd=0, **_lab_style)
-        self.bglab.grid(padx=10, ipady=1, **_grid_style)
-        self.fglab.grid(padx=11, **_grid_style)
+        self.height = height
+        self.pack_frame(master, bg, row, column)
 
-    def update(self, value, color=False):
-        if self.value == value:
-            return
-        self.value = value
-        sub = int(self.width * value / 100)
-        percent = '%s%%' % value
-        fg_color = 'PaleTurquoise'
-        if value > 50:
-            self.bglab['text'] = ''
-            self.fglab['text'] = percent
-        else:
-            self.bglab['text'] = ''.join([str(percent), ' ' * 6])
-            self.fglab['text'] = ''
-        if isinstance(color, str):
-            fg_color = color
-        elif color:
-            if 0 <= value < 30:
-                fg_color = 'PaleTurquoise'
-            elif 30 <= value < 50:
-                fg_color = 'Turquoise'
-            elif 50 <= value < 70:
-                fg_color = 'Gold'
-            elif 70 <= value < 85:
-                fg_color = 'Coral'
-            elif 85 <= value < 95:
-                fg_color = 'OrangeRed'
-            elif 95 <= value <= 100:
-                fg_color = 'Red3'
+    def pack_frame(self, master, bg, row, column):
+        self.canvas_bar = tk.Canvas(master, bg=bg, width=self.width, height=self.height)
+        self.canvas_shape = self.canvas_bar.create_rectangle(0, 0, 0, self.height, fill='Green')
+        self.canvas_text = self.canvas_bar.create_text(self.width/2, self.height/2+2, text='0%')
+        self.canvas_bar.grid(row=row, column=column)
 
-        self.fglab['width'] = sub
-        self.fglab['bg'] = fg_color
-
-    def destroy(self):
-        self.namelab.destroy()
-        self.bglab.destroy()
-        self.fglab.destroy()
+    def update(self, percent, change_color=False):
+        prog_len = int(self.width * percent / 100) + 1
+        color = 'Green'
+        if isinstance(change_color, str):
+            color = change_color
+        elif change_color:
+            if 60 <= percent < 70:
+                color = 'Gold'
+            elif 70 <= percent < 80:
+                color = 'Coral'
+            elif 80 <= percent < 90:
+                color = 'OrangeRed'
+            elif 90 <= percent <= 100:
+                color = 'Red3'
+        self.canvas_bar.coords(self.canvas_shape, (0, 0, prog_len, self.height+2))
+        self.canvas_bar.itemconfig(self.canvas_text, text='%d%%' % percent)
+        self.canvas_bar.itemconfig(self.canvas_shape, fill=color, outline=color)
 
 
 class MyToolBar(object):
@@ -537,6 +511,28 @@ class TopAbout:
     def close(cls, event=None):
         cls._showing = False
         cls._toplevel.destroy()
+
+
+class PlotMaker(object):
+    def __init__(self, label_list, x_list, y_lists, png_path):
+        self.png_path = png_path
+        color = ['red', 'green', 'grey', 'blue', 'magenta']
+        data = numpy.array(y_lists)
+        fig = plot.figure(figsize=(8, 4))
+        ax1 = fig.add_subplot(121)
+        #plot.ion()
+        for i in range(len(label_list)):
+            v_start = numpy.sum(data[:i], axis=0)
+            ax1.bar(x_list, data[i], width=0.3, bottom=v_start, label=label_list[i], color=color[i % len(label_list)])
+        plot.rcParams['font.sans-serif'] = ['SimHei']  # 中文字体支持
+        plot.rcParams['savefig.dpi'] = 70  # 图片像素
+        plot.legend(loc="upper center")
+
+    def make(self):
+        plot.title('内存使用情况')
+        plot.ylabel('单位：MB')
+        plot.savefig(self.png_path)
+        #plot.show()
 
 
 
