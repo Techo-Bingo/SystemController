@@ -449,7 +449,7 @@ class TopProgress:
         cls._toplevel.resizable(False, False)
         cls._toplevel.wm_attributes('-topmost', 1)
         cls._toplevel.protocol("WM_DELETE_WINDOW", cls.close)
-        ViewUtil.set_centered(cls._toplevel, width, height)
+        ViewUtil.set_widget_size(cls._toplevel, width, height, True)
         cls._infolab = tk.Label(cls._toplevel, font=(Global.G_FONT, 11))
         cls._infolab.pack(pady=8)
         cls._progress = ttk.Progressbar(cls._toplevel, mode='indeterminate', length=250)
@@ -494,7 +494,7 @@ class TopAbout:
         cls._toplevel.resizable(False, False)
         cls._toplevel.wm_attributes('-topmost', 1)
         cls._toplevel.protocol("WM_DELETE_WINDOW", cls.close)
-        ViewUtil.set_centered(cls._toplevel, width, height)
+        ViewUtil.set_widget_size(cls._toplevel, width, height, True)
         # 图标
         tk.Label(cls._toplevel, image=ViewUtil.get_image('ABOUT')).pack()
         # 中间部分说明
@@ -534,5 +534,6 @@ class PlotMaker(object):
         plot.savefig(self.png_path)
         #plot.show()
 
-
+    #def close(self, msg=None):
+    #    plot.close()
 

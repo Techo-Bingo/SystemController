@@ -10,206 +10,18 @@ from my_handler import PageHandler
 from my_viewutil import ToolTips, ViewUtil, WinMsg
 from my_timezone import TimezonePage
 from my_module import ProgressBar, PlotMaker
-from PIL import Image, ImageTk
 from my_bond import Caller
-
-'''
-class StatePage(Pager):
-    """ 主备状态页面 """
-
-    def __init__(self, interface, shell, ip_list):
-        self.master = interface('get_master')
-        self.shell = shell
-        self.ip_list = ip_list
-        self.lab_width = 20
-        self.ip_width = 16
-        self.state_lab_inst = {}
-
-    def stepper(self):
-        self.pack_frame()
-        PageHandler.collect_state_start(self.call_back,
-                                        self.ip_list,
-                                        self.shell
-                                        )
-
-    def pack_frame(self):
-        _state_struct = Global.G_STATE_PAGE_STRUCT
-        column, row = len(self.ip_list), len(_state_struct)
-        """ 选项栏布局 """
-        for sub in _state_struct:
-            tk.Label(self.frame,
-                     text=sub['text'],
-                     width=self.lab_width,
-                     font=(Global.G_FONT, 9),
-                     bg='Gray80'
-                     ).grid(row=_state_struct.index(sub),
-                            column=0,
-                            padx=1,
-                            pady=1)
-        """ IP横栏布局 """
-        for ip in self.ip_list:
-            tk.Label(self.frame,
-                     text=ip,
-                     width=self.ip_width,
-                     font=(Global.G_FONT, 9),
-                     bg='Gray80'
-                     ).grid(row=0,
-                            column=self.ip_list.index(ip)+1,
-                            padx=1,
-                            pady=1)
-        """ 
-        状态栏布局: 各个子状态label实例排版 
-        state_inst格式: {'State': Label_instance, ...}
-        state_lab_inst格式: {IP: {'State': Label_instance, ...}, ...}
-        """
-        for y in range(1, column+1):
-            state_inst = {}
-            for x in range(1, row):
-                lab = tk.Label(self.frame,
-                               width=self.ip_width,
-                               font=(Global.G_FONT, 9),
-                               bg='Snow'
-                               )
-                lab.grid(row=x, column=y)
-                try:
-                    name = _state_struct[x]['name']
-                    state_inst[name] = lab
-                    # print(name, x ,y)
-                except Exception as e:
-                    ToolTips.inner_error(e)
-            self.state_lab_inst[self.ip_list[y-1]] = state_inst
-
-    def fill_data(self, ip_state):
-        """
-        按照子状态label实例排版填充状态数据
-        ip_state格式：(IP: {'State': State_value, ...})
-        """
-        ip, state_dict = ip_state
-        try:
-            for opt, lab_inst in self.state_lab_inst[ip].items():
-                state = state_dict[opt]
-                if state == 'NA':
-                    color = 'Gray50'
-                elif state == 'Fail':
-                    color = 'Red'
-                else:
-                    color = 'MediumBlue'
-                lab_inst['fg'] = color
-                lab_inst['text'] = state
-        except Exception as e:
-            ToolTips.inner_error(e)
-            # Logger.error(e)
-
-    def call_back(self, *args):
-        if self.alive():
-            self.fill_data(args[0])
-
-
-
-class HALogPage(Pager):
-    """ 获取主备的日志 """
-
-    def __init__(self, interface, shell, ip_list):
-        self.master = interface('get_master')
-        self.shell = shell
-        self.ip_list = ip_list
-        self.progress = {}
-
-    def stepper(self):
-        self.pack_frame()
-
-    def pack_frame(self):
-        for index in range(len(self.ip_list)):
-            ip = self.ip_list[index]
-            # 进度条
-            prog = ProgressBar(master=self.frame,
-                               name=ip,
-                               size=10,
-                               width=35,
-                               row=index
-                               )
-            # self.prog = TtkProgress(self.frame, ip, row=index)
-            self.progress[ip] = prog
-            # 开始按钮
-            ttk.Button(self.frame,
-                       text='开始获取',
-                       command=lambda ip=ip: PageHandler.get_halog_start(self.call_back, ip, self.shell)
-                       ).grid(row=index,
-                              column=3,
-                              padx=10,
-                              pady=10)
-
-    def call_back(self, *args):
-        ip, value, color = args
-        if self.alive():
-            self.progress[ip].update(value, color)
-
-
-class BinlogPage(Pager):
-    """ binlog日志获取 """
-
-    def __init__(self, interface, shell, ip_list):
-        self.master = interface('get_master')
-        self.shell = shell
-        self.ip_list = ip_list
-        self.progress = {}
-
-    def stepper(self):
-        self.pack_frame()
-
-    def start_wrapper(self, ip, combo):
-        day_str = combo.get()
-        param = 1
-        if day_str == '一天':
-            param = 1
-        elif day_str == '一星期':
-            param = 7
-        elif day_str == '一个月':
-            param = 30
-        PageHandler.get_binlog_start(self.call_back, ip, self.shell, param)
-
-    def pack_frame(self):
-        for index in range(len(self.ip_list)):
-            ip = self.ip_list[index]
-            # 进度条
-            prog = ProgressBar(master=self.frame,
-                               name=ip,
-                               size=10,
-                               width=30,
-                               row=index
-                               )
-            self.progress[ip] = prog
-            # 下拉框 (选择天数)
-            combo = ttk.Combobox(self.frame, width=6)
-            combo['values'] = ('一天', '一星期', '一个月')
-            combo.current(0)
-            combo['state'] = 'readonly'
-            combo.grid(row=index, column=2, padx=10)
-            # 开始按钮
-            ttk.Button(self.frame,
-                       text='开始获取',
-                       command=lambda ip=ip, combo=combo:
-                       self.start_wrapper(ip, combo)
-                       ).grid(row=index,
-                              column=3,
-                              padx=5,
-                              pady=10
-                              )
-
-    def call_back(self, *args):
-        ip, value, color = args
-        if self.alive():
-            self.progress[ip].update(value, color)
-'''
 
 
 class HomePage(Pager):
     """ 主页 """
-    def __init__(self, interface, options, shell, ip_list):
-        self.interface = interface
-        self.options = options
+    def __init__(self, master, width, height, ip_list, shell, options):
+        self.master = master
+        self.width = width
+        self.height = height
         self.shell = shell
         self.ip_list = ip_list
+        self.options = options
         self.plot_params = None
         self.prepare_ok = False
 
@@ -222,11 +34,10 @@ class HomePage(Pager):
         show_lab = tk.Label(opt_fm)
         show_lab.pack()
         PageHandler.execute_showing_start(self.callback, self.ip_list[0], self.shell, None)
-
         while True:
             if self.prepare_ok:
                 break
-            self.interface('update_gui')
+            Caller.call(Global.EVT_REFRESH_GUI)
             Common.sleep(0.1)
         label_list, x_list, y_lists, png_path = self.plot_params
         myplot = PlotMaker(label_list, x_list, y_lists, png_path)
@@ -255,11 +66,13 @@ class HomePage(Pager):
 class OptionDownloadTypePage(Pager):
     """ 选项执行下载类型界面 """
 
-    def __init__(self, interface, options, shell, ip_list):
-        self.interface = interface
-        self.options = options
+    def __init__(self, master, width, height, ip_list, shell, options):
+        self.master = master
+        self.width = width
+        self.height = height
         self.shell = shell
         self.ip_list = ip_list
+        self.options = options
         self.progress = {}
 
     def stepper(self):
@@ -336,11 +149,13 @@ class OptionDownloadTypePage(Pager):
 
 class OnlyEntryEditTypePage(Pager):
     """ 单个输入框执行下载类型界面 """
-    def __init__(self, interface, options, shell, ip_list):
-        self.interface = interface
-        self.options = options
+    def __init__(self, master, width, height, ip_list, shell, options):
+        self.master = master
+        self.width = width
+        self.height = height
         self.shell = shell
         self.ip_list = ip_list
+        self.options = options
         self.entry = None
         self.progress = {}
 
@@ -416,8 +231,10 @@ class OnlyEntryEditTypePage(Pager):
 
 class FastRunCommandPage(Pager):
     """ 自定义界面：快速执行命令 """
-    def __init__(self, interface, shell, ip_list, params=None):
-        self.interface = interface
+    def __init__(self, master, width, height, ip_list, shell, options):
+        self.master = master
+        self.width = width
+        self.height = height
         self.shell = shell
         self.ip_list = ip_list
         self.infotext = None
@@ -498,9 +315,13 @@ class FastRunCommandPage(Pager):
 
 class FastUploadFilePage(Pager):
     """ 自定义界面：快速上传界面 """
-    def __init__(self, interface, shell, ip_list, params=None):
-        self.interface = interface
+    def __init__(self, master, width, height, ip_list, shell, options):
+        self.master = master
+        self.width = width
+        self.height = height
+        self.shell = shell
         self.ip_list = ip_list
+        self.options = options
         self.local_en = None
         self.server_en = None
         self.chmod_en = None
@@ -600,50 +421,56 @@ class FastUploadFilePage(Pager):
 class PageCtrl(object):
     """ 页面切换控制类 """
 
-    def __init__(self, interface):
-        self.interface = interface
-        self.current = None
+    def __init__(self):
+        self.current_text = None
         self.current_page = None
-        self.images_fm = tk.Frame(interface('get_master'))
-        self.images_fm.pack()
+        #self.images_fm = tk.Frame(Caller.call(Global.EVT_PAGE_INTERFACE, 'get_master'))
+        #self.images_fm.pack()
         # 首页图片
-        tk.Label(self.images_fm, image=ViewUtil.get_image('BINGO')).pack(fill='both')
+        #tk.Label(self.images_fm, image=ViewUtil.get_image('BINGO')).pack(fill='both')
 
-    def switch_page(self, page_text, page_type_info, shell):
-        if self.current == page_text:
-            return
-        self.current = page_text
-        if self.images_fm:
-            self.images_fm.destroy()
-            self.images_fm = None
+    def destroy_page(self):
         try:
             self.current_page.destroy()
         except:
             pass
-        page_type_info = page_type_info.replace('\\{', '(').replace('\\}', ')').replace('{', '').replace('}', '').replace(',', '')
+
+    def switch_page(self, page_text, page_type_info, shell):
+        if self.current_text == page_text:
+            return
+        self.current_text = page_text
+        #if self.images_fm:
+        #    self.images_fm.destroy()
+        #    self.images_fm = None
+        self.destroy_page()
+        page_type_info = page_type_info.replace('{', '').replace('}', '').replace(',', '')
         page_type, page_options = page_type_info.split()[0], page_type_info.split()[1:]
-        pager_params = {'interface': self.interface,
+        width, height = Caller.call(Global.EVT_PAGE_INTERFACE, 'PAGE_SIZE')
+        pager_params = {'master': Caller.call(Global.EVT_PAGE_INTERFACE, 'PAGE_MASTER'),
+                        'width': width,
+                        'height': height,
+                        'ip_list': ViewUtil.get_ssh_ip_list(),
                         'shell': shell,
-                        'ip_list': ViewUtil.get_ssh_ip_list()}
+                        'options': page_options}
         try:
             if page_type == 'HOME_PAGE':
-                self.current_page = HomePage(options=page_options, **pager_params)
+                self.current_page = HomePage(**pager_params)
             elif page_type == 'ONLY_DOWNLOAD':
                 return
             elif page_type == 'OPTION_DOWNLOAD':
-                self.current_page = OptionDownloadTypePage(options=page_options, **pager_params)
+                self.current_page = OptionDownloadTypePage(**pager_params)
             elif page_type == 'ONLY_TEXT_SHOW':
                 return
             elif page_type == 'ONLY_TEXT_EDIT':
                 return
                 # self.current_page = OnlyTextEditTypePage(**pager_params)
             elif page_type == 'ONLY_ENTRY_EDIT':
-                self.current_page = OnlyEntryEditTypePage(options=page_options, **pager_params)
+                self.current_page = OnlyEntryEditTypePage(**pager_params)
             elif page_type == 'SELF':
                 # 自定义界面，page_options第一个元素为类名，后面的为参数
                 class_name = eval(page_options[0])
-                params = [] if len(page_options) == 1 else page_options[1:]
-                self.current_page = class_name(params=params, **pager_params)
+                pager_params['options'] = [] if len(page_options) == 1 else page_options[1:]
+                self.current_page = class_name(**pager_params)
             else:
                 raise Exception("未知界面类型： %s" % page_type)
             self.current_page.pack()

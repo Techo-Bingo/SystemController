@@ -10,10 +10,13 @@ from my_handler import PageHandler
 
 class TimezonePage(Pager):
 
-    def __init__(self, interface, shell, ip_list, params=None):
-        self.interface = interface
+    def __init__(self, master, width, height, shell, ip_list, options):
+        self.master = master
+        self.width = width
+        self.height = height
         self.shell = shell
         self.ip_list = ip_list
+        self.options = options
         self.row = 5
         self.column = 3
         # 用来保存排列的combox实例

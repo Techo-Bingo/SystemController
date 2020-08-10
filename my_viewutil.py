@@ -76,15 +76,22 @@ class ViewUtil:
     view板块数据获取接口
     函数名要求：<动词>_<宾语>
     """
+    _root = None
+
+    @classmethod
+    def init_root(cls, root_gui):
+        cls._root = root_gui
 
     @classmethod
     def set_maxsize(cls, size_tuple):
         ViewModel.cache('SCREEN_SIZE_LIST', type='ADD', data=size_tuple)
 
     @classmethod
-    def set_centered(cls, widget, width=None, height=None):
+    def set_widget_size(cls, widget=None, width=None, height=None, center=True):
+        if not widget:
+            widget = cls._root
+        s_width, s_height = ViewModel.cache('SCREEN_SIZE_LIST', type='QUE')[-1]
         try:
-            s_width, s_height = ViewModel.cache('SCREEN_SIZE_LIST', type='QUE')[-1]
             if not width:
                 width = widget.width
             if not height:
@@ -92,7 +99,10 @@ class ViewUtil:
             # 太大可能是多屏，中间显示效果不好，只在单屏上显示
             if s_width > 3000:
                 s_width = s_width // 2
-            widget.geometry('%sx%s+%s+%s' % (width, height, (s_width-width)//2, (s_height-height)//2))
+            if center:
+                widget.geometry('%sx%s+%s+%s' % (width, height, (s_width-width)//2, (s_height-height)//2))
+            else:
+                widget.geometry('%sx%s' % (width, height))
         except:
             pass
 

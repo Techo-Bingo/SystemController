@@ -11,7 +11,7 @@ from my_common import Common
 from my_page import PageCtrl
 from my_handler import LoginHandler
 from my_viewutil import WinMsg, ViewUtil
-from my_bond import Bonder, Packer, Define
+from my_bond import Packer, Define, Caller
 from my_module import SubLogin, InfoWindow, TopProgress, MyButton, MyTreeView, MyToolBar, TopAbout
 
 
@@ -22,9 +22,9 @@ class Gui(tk.Tk):
     def __init__(self):
         tk.Tk.__init__(self)
         """ 注册界面布局 (用于界面切换) """
-        self.bonder = Bonder(self.__class__.__name__)
-        self.bonder.bond(Global.EVT_LOGIN_GUI, self.Login)
-        self.bonder.bond(Global.EVT_MAIN_GUI, self.Main)
+        Define.define(Global.EVT_LOGIN_GUI, self.Login)
+        Define.define(Global.EVT_MAIN_GUI, self.Main)
+        Define.define(Global.EVT_REFRESH_GUI, self.refresh)
         Define.define(Global.EVT_CALL_WIN_INFO, WinMsg.info)
         Define.define(Global.EVT_CALL_WIN_WARN, WinMsg.warn)
         Define.define(Global.EVT_CALL_WIN_ERROR, WinMsg.error)
@@ -33,40 +33,30 @@ class Gui(tk.Tk):
         Define.define(Global.EVT_TOP_PROG_UPDATE, TopProgress.update)
         Define.define(Global.EVT_TOP_PROG_DESTROY, TopProgress.destroy)
 
-    def settitle(self):
+    def pack(self):
+        ViewUtil.init_root(self)
+        ViewUtil.set_maxsize(self.maxsize())
         self.title(Global.G_TITLE)
         self.iconbitmap(ViewUtil.get_image('ICO'))
         self.resizable(False, False)
-        ViewUtil.set_maxsize(self.maxsize())
-
-    def setsize(self, width, height, reposition=True):
-        if reposition:
-            ViewUtil.set_centered(self, width, height)
-        else:
-            self.geometry('%sx%s' % (width, height))
-
-    def pack(self):
-        self.settitle()
-        # 默认登录窗口并绑定关闭窗口函数
-        # Packer.call(Global.EVT_LOGIN_GUI)
-        self.Login()
         self.protocol("WM_DELETE_WINDOW", self.close)
+        self.Login()
+
+    def refresh(self, msg=None):
+        self.update()
 
     def close(self):
-        """ 关闭窗口 """
         if self._in_main_gui and not WinMsg.ask("请确认是否退出？"):
             return
         # 清空lock文件夹
         Common.rm_dir(Global.G_LOCKS_DIR)
-        self.bonder.unbond(Global.EVT_LOGIN_GUI)
-        self.bonder.unbond(Global.EVT_MAIN_GUI)
         self.destroy()
 
     def Login(self, msg=None):
         """ 登录界面 """
         master_frame = tk.Frame(self)
         master_frame.pack()
-        login = GuiLogin(master_frame, self.setsize)
+        login = GuiLogin(master_frame)
         login.show()
 
     def Main(self, msg=None):
@@ -79,7 +69,7 @@ class Gui(tk.Tk):
         # 主界面
         master_frame = tk.Frame(self)
         master_frame.pack()
-        main = GuiMain(self, menu_bar, tool_frame, master_frame, self.setsize)
+        main = GuiMain(master_frame, menu_bar, tool_frame)
         main.show()
         self._in_main_gui = True
 
@@ -87,9 +77,8 @@ class Gui(tk.Tk):
 class GuiLogin(GuiBase):
     """ 登录窗 """
 
-    def __init__(self, master, setsize):
+    def __init__(self, master):
         self.master = master
-        self.setsize = setsize
         self.head_win = None
         self.func_win = None
         self.foot_win = None
@@ -117,9 +106,8 @@ class GuiLogin(GuiBase):
         self.head_win.pack_propagate(0)
         self.func_win.pack_propagate(0)
         self.foot_win.pack_propagate(0)
-        # 子控件布局
+        ViewUtil.set_widget_size(width=Global.G_LGN_WIN_WIDTH, height=Global.G_LGN_WIN_HEIGHT)
         self.pack_subframe()
-        self.setsize(Global.G_LGN_WIN_WIDTH, Global.G_LGN_WIN_HEIGHT)
 
     def pack_subframe(self):
         lab_style = {'master': self.login_fm,
@@ -136,10 +124,8 @@ class GuiLogin(GuiBase):
         # 小眼睛
         eyebtn = tk.Button(self.login_fm, image=ViewUtil.get_image('LGN_EYE'), bd=0)
         eyebtn.grid(row=2, column=5, padx=3)
-        eyebtn.bind("<Button-1>",
-                    lambda event: Packer.call(Global.EVT_SEE_PSWD_ON))
-        eyebtn.bind("<ButtonRelease-1>",
-                    lambda event: Packer.call(Global.EVT_SEE_PSWD_OFF))
+        eyebtn.bind("<Button-1>", lambda event: Packer.call(Global.EVT_SEE_PSWD_ON))
+        eyebtn.bind("<ButtonRelease-1>", lambda event: Packer.call(Global.EVT_SEE_PSWD_OFF))
         # 选项按钮
         tk.Button(self.foot_win,
                   text='☰',
@@ -154,8 +140,7 @@ class GuiLogin(GuiBase):
                                   text='一  键  登  录',
                                   command=self.click_login,
                                   size=14,
-                                  width=26
-                                  )
+                                  width=26)
         # 添加登录框按钮
         tk.Button(self.foot_win,
                   text='＋',
@@ -180,7 +165,7 @@ class GuiLogin(GuiBase):
             WinMsg.info('登录成功')
             self.close()
             # 切换到主界面
-            Packer.call(Global.EVT_MAIN_GUI)
+            Caller.call(Global.EVT_MAIN_GUI)
         else:
             self.login_btn.config('state', 'normal')
 
@@ -197,10 +182,8 @@ class GuiLogin(GuiBase):
 
 class GuiMain(GuiBase):
     """ 操作窗 """
-    def __init__(self, root_gui, menubar, toolbar, master, setsize):
+    def __init__(self, master, menubar, toolbar):
         self.master = master
-        self.setsize = setsize
-        self.root_gui = root_gui
         self.tree_window = None
         self.oper_window = None
         self.help_window = None
@@ -215,23 +198,20 @@ class GuiMain(GuiBase):
     def init_menubar(self, menubar):
         filemenu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="文件", menu=filemenu)
-        filemenu.add_command(label=" 打开 ", command=lambda x='MENU_OPEN': self.callback(x))
+        filemenu.add_command(label=" 打开 ", command=lambda x='MENU_OPEN': self.press_callback(x))
         filemenu.add_separator()
-        filemenu.add_command(label=" 导入 ", command=lambda x='MENU_IMPORT': self.callback(x))
-        filemenu.add_command(label=" 导出 ", command=lambda x='MENU_EXPORT': self.callback(x))
+        filemenu.add_command(label=" 导入 ", command=lambda x='MENU_IMPORT': self.press_callback(x))
+        filemenu.add_command(label=" 导出 ", command=lambda x='MENU_EXPORT': self.press_callback(x))
         filemenu.add_separator()
-        filemenu.add_command(label=" 退出 ", command=lambda x='MENU_EXIT': self.callback(x))
+        filemenu.add_command(label=" 退出 ", command=lambda x='MENU_EXIT': self.press_callback(x))
         toolmenu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="工具", menu=toolmenu)
         toolmenu.add_separator()
-        toolmenu.add_command(label=" 选项 ", command=lambda x='MENU_OPTION': self.callback(x))
+        toolmenu.add_command(label=" 选项 ", command=lambda x='MENU_OPTION': self.press_callback(x))
         helpmenu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="帮助", menu=helpmenu)
-        helpmenu.add_command(label=" 说明 ", command=lambda x='MENU_HELP': self.callback(x))
-        helpmenu.add_command(label=" 关于 ", command=lambda x='MENU_ABOUT': self.callback(x))
-
-    def hello(self, event=None):
-        pass
+        helpmenu.add_command(label=" 说明 ", command=lambda x='MENU_HELP': self.press_callback(x))
+        helpmenu.add_command(label=" 关于 ", command=lambda x='MENU_ABOUT': self.press_callback(x))
 
     def init_toolbar(self, toolbar):
         images = [('TB_EXPAND', "展开目录树"),
@@ -244,7 +224,7 @@ class GuiMain(GuiBase):
                   ('TB_SETTING', "设置"),
                   ('TB_HELP', "帮忙信息"),
                   ('TB_INFO', "关于软件")]
-        MyToolBar(toolbar, images, self.callback)
+        MyToolBar(toolbar, images, self.press_callback)
 
     def init_frame(self):
         win_style = {'master': self.master,
@@ -258,38 +238,41 @@ class GuiMain(GuiBase):
         self.info_fm = tk.Frame(height=Global.G_MAIN_INFO_HEIGHT, **fm_style)
 
     def pack_frame(self):
-        self.tree_window.pack(side='left')
-        self.oper_window.pack(side='left')
+        self.tree_window.pack(fill='both', side='left')
+        self.oper_window.pack(fill='both', side='left')
         self.tree_window.pack_propagate(0)
         self.oper_window.pack_propagate(0)
-        self.pack_subframe()
-        # 先设置最大窗口的中心布局，后进行初始窗体大小设置
-        self.setsize(Global.G_MAIN_WIN_WIDTH, Global.G_MAIN_WIN_HEIGHT)
-        self.setsize(Global.G_MAIN_WIN_WIDTH-Global.G_MAIN_HELP_WIDTH, Global.G_MAIN_WIN_HEIGHT, False)
-
-    def init_treeview(self):
-        self.treeview = MyTreeView(self.tree_window, ViewUtil.get_treeview_data(), self.switch_page)
-
-    def pack_subframe(self):
-        self.init_treeview()
         self.oper_fm.pack(fill='both', padx=5)
         self.info_fm.pack(fill='both')
         self.oper_fm.pack_propagate(0)
         self.info_fm.pack_propagate(0)
+        # 先设置最大窗口的中心布局，后进行初始窗体大小设置
+        ViewUtil.set_widget_size(width=Global.G_MAIN_WIN_WIDTH, height=Global.G_MAIN_WIN_HEIGHT)
+        ViewUtil.set_widget_size(width=Global.G_MAIN_TREE_WIDTH+Global.G_MAIN_OPER_WIDTH,
+                                 height=Global.G_MAIN_WIN_HEIGHT,
+                                 center=False)
+        self.pack_subframe()
+
+    def pack_subframe(self):
+        self.treeview = MyTreeView(self.tree_window, ViewUtil.get_treeview_data(), self.switch_page)
         # 初始化信息提示栏
         InfoWindow(self.info_fm)
+        # 定义page页接口事件回调函数
+        Define.define(Global.EVT_PAGE_INTERFACE, self.page_interface)
         # 初始化page
-        self.pager = PageCtrl(self.interface)
+        self.pager = PageCtrl()
 
     def show_help_window(self, show=False):
         if show:
-            self.setsize(Global.G_MAIN_WIN_WIDTH, Global.G_MAIN_WIN_HEIGHT, False)
+            ViewUtil.set_widget_size(width=Global.G_MAIN_WIN_WIDTH, height=Global.G_MAIN_WIN_HEIGHT, center=False)
             self.help_window = tk.Frame(self.master, width=Global.G_MAIN_HELP_WIDTH, height=Global.G_MAIN_WIN_HEIGHT)
 
             self.help_window.pack(side='left')
             self.help_window.pack_propagate(0)
         else:
-            self.setsize(Global.G_MAIN_WIN_WIDTH-Global.G_MAIN_HELP_WIDTH, Global.G_MAIN_WIN_HEIGHT, False)
+            ViewUtil.set_widget_size(width=Global.G_MAIN_TREE_WIDTH+Global.G_MAIN_OPER_WIDTH,
+                                     height=Global.G_MAIN_WIN_HEIGHT,
+                                     center=False)
             self.help_window.destroy()
             self.help_window = None
 
@@ -297,19 +280,17 @@ class GuiMain(GuiBase):
         page_text, page_type_info, shell = args_tuple
         self.pager.switch_page(page_text, page_type_info, shell)
 
-    def interface(self, key):
-        if key == 'get_master':
+    def page_interface(self, msg):
+        if msg == 'PAGE_MASTER':
             return self.oper_fm
-        elif key == 'get_range':
+        elif msg == 'PAGE_SIZE':
             return Global.G_MAIN_OPER_WIDTH, Global.G_MAIN_OPER_HEIGHT
-        elif key == 'show_help':
+        elif msg == 'show_help':
             self.show_help_window(True)
-        elif key == 'hide_help':
+        elif msg == 'hide_help':
             self.show_help_window(False)
-        elif key == 'update_gui':
-            self.root_gui.update()
 
-    def callback(self, text):
+    def press_callback(self, text):
         print(text)
         if text == 'TB_EXPAND':
             self.treeview.expand_trees()
