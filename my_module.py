@@ -435,6 +435,7 @@ class MyButton(object):
 
 
 class MyFrame(object):
+    """ 封装Frame，带有头部的个性化Frame """
     def __init__(self, master, width, height, title):
         self.body = None
         self.pack_frame(master, width, height, title)
