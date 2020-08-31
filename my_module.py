@@ -450,7 +450,7 @@ class MyFrame(object):
         self.body.pack_propagate(0)
         label.pack(fill='both')
 
-    def get_master(self):
+    def master(self):
         return self.body
 
 
