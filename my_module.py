@@ -434,6 +434,26 @@ class MyButton(object):
         self.button[key] = value
 
 
+class MyFrame(object):
+    def __init__(self, master, width, height, title):
+        self.body = None
+        self.pack_frame(master, width, height, title)
+
+    def pack_frame(self, master, width, height, title):
+        head_height = 40
+        head = tk.Frame(master, width=width, height=head_height)
+        label = tk.Label(head, text=title, height=2, font=('微软雅黑', 12),  bg='LightBlue')
+        self.body = tk.Frame(master, width=width, height=height-head_height, bg='Snow')
+        head.pack()
+        self.body.pack()
+        head.pack_propagate(0)
+        self.body.pack_propagate(0)
+        label.pack(fill='both')
+
+    def get_master(self):
+        return self.body
+
+
 class TopProgress:
     """ 顶窗提示进度 """
     _toplevel = None
