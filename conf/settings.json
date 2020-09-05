@@ -7,8 +7,6 @@
 		"log_level": "debug",
 		
 		"log_size": 10485760,
-
-		"package_name": "package.zip",
 		
 		"retry_times": 2,
 
