@@ -34,8 +34,39 @@
 
     "Tree": [
         {
+            "__ThisIsPageOptions__": "NA",
+
+            "HomePageOptions": ["HOME_PAGE", {}],
+            "FastLogPageOptions": ["CHECKBOX_PROGRESS" , {
+                "日志类型": ["PLT进程日志", "MDC进程日志", "UDC进程日志", "系统相关日志"]
+            }],
+            "MysqlBinlogPageOptions": ["COMBOBOX_PROGRESS", {
+                "采集时长": ["一天", "三天", "一周"]
+            }],
+            "TimezonePageOptions": ["SELF", {
+                "ClassName": "TimezonePage"
+            }],
+            "CronPageOptions": ["TEXT_PROGRESS", {}],
+            "ProcessStatePageOptions": ["TEXT_PROGRESS", {}],
+            "MemoryStatePageOptions": ["TEXT_PROGRESS", {}],
+            "CpuStatePageOptions": ["TEXT_PROGRESS", {}],
+            "IOStatePageOptions": ["TEXT_PROGRESS", {}],
+            "DiskStatePageOptions": ["TEXT_PROGRESS", {}],
+            "FastCommandPageOptions": ["SELF", {
+                "ClassName": "FastRunCommandPage"
+            }],
+            "FastDownloadPageOptions": ["ENTRY_PROGRESS", {
+                "TipsInfo": "路径为文件夹时将会打包下载（本地下载路径:./download）",
+                "EntryList": ["服务器文件(夹)路径"]
+            }],
+            "FastUploadPageOptions": ["SELF", {
+                "ClassName": "FastUploadFilePage"
+            }]
+        },
+        {
             "PageText": "服务器概要",
-            "PageType": "HOME_PAGE",
+            "PageType": "HomePageOptions",
+            "ShowType": "INNER",
             "Shell": "home_page.sh",
             "Image": "TV_HOME",
             "SubTree": []
@@ -43,19 +74,38 @@
         {
             "PageText": "操作维护",
             "PageType": "NA",
+            "ShowType": "NA",
             "Shell": "NA",
             "Image": "TV_OAM",
             "SubTree": [
                 {
                     "PageText": "快速日志采集",
-                    "PageType": ["OPTION_DOWNLOAD", ["PLT进程日志", "MDC进程日志", "UDC进程日志", "系统相关日志"]],
+                    "PageType": "FastLogPageOptions",
+                    "ShowType": "INNER",
                     "Shell": "collect_fast_logs.sh",
                     "Image": "TV_FAST_LOG",
                     "SubTree": []
                 },
                 {
+                    "PageText": "MySQL BinLog采集",
+                    "PageType": "MysqlBinlogPageOptions",
+                    "ShowType": "INNER",
+                    "Shell": "collect_binlog.sh",
+                    "Image": "TV_FAST_LOG",
+                    "SubTree": []
+                },
+                {
+                    "PageText": "定时任务管理",
+                    "PageType": "CronPageOptions",
+                    "ShowType": "INNER",
+                    "Shell": "NA",
+                    "Image": "TV_OAM",
+                    "SubTree": []
+                },
+                {
                     "PageText": "时区夏令时配置",
-                    "PageType": ["SELF", "TimezonePage"],
+                    "PageType": "TimezonePageOptions",
+                    "ShowType": "INNER",
                     "Shell": "timezone_operate.sh",
                     "Image": "TV_TIMEZONE",
                     "SubTree": []
@@ -65,12 +115,14 @@
         {
             "PageText": "状态巡检",
             "PageType": "NA",
+            "ShowType": "NA",
             "Shell": "NA",
             "Image": "TV_STATE",
             "SubTree": [
                 {
                     "PageText": "进程状态",
-                    "PageType": ["ONLY_TEXT_SHOW"],
+                    "PageType": "ProcessStatePageOptions",
+                    "ShowType": "INNER",
                     "Shell": "get_process_state.sh",
                     "Image": "TV_PROC_STATE",
                     "SubTree": []
@@ -78,33 +130,38 @@
                 {
                     "PageText": "服务器状态",
                     "PageType": "NA",
+                    "ShowType": "NA",
                     "Shell": "NA",
                     "Image": "TV_SYS_STATE",
                     "SubTree": [
                         {
                             "PageText": "内存状态",
-                            "PageType": ["ONLY_TEXT_SHOW"],
+                            "PageType": "MemoryStatePageOptions",
+                            "ShowType": "INNER",
                             "Shell": "get_system_memory_state.sh",
                             "Image": "TV_MEM_STATE",
                             "SubTree": []
                         },
                         {
                             "PageText": "CPU状态",
-                            "PageType": ["ONLY_TEXT_SHOW"],
+                            "PageType": "CpuStatePageOptions",
+                            "ShowType": "INNER",
                             "Shell": "get_system_cpu_state.sh",
                             "Image": "TV_CPU_STATE",
                             "SubTree": []
                         },
                         {
                             "PageText": "IO状态",
-                            "PageType": ["ONLY_TEXT_SHOW"],
+                            "PageType": "IOStatePageOptions",
+                            "ShowType": "INNER",
                             "Shell": "get_system_io_state.sh",
                             "Image": "TV_IO_STATE",
                             "SubTree": []
                         },
                         {
                             "PageText": "磁盘状态",
-                            "PageType": ["ONLY_TEXT_SHOW"],
+                            "PageType": "DiskStatePageOptions",
+                            "ShowType": "INNER",
                             "Shell": "get_system_disk_state,sh",
                             "Image": "TV_DISK_STATE",
                             "SubTree": []
@@ -116,26 +173,30 @@
         {
             "PageText": "快速执行",
             "PageType": "NA",
+            "ShowType": "NA",
             "Shell": "NA",
             "Image": "TV_EXEC",
             "SubTree": [
                 {
                     "PageText": "运行命令",
-                    "PageType": ["SELF", "FastRunCommandPage"],
+                    "PageType": "FastCommandPageOptions",
+                    "ShowType": "TOP",
                     "Shell": "fast_commands.sh",
                     "Image": "TV_RUN_CMD",
                     "SubTree": []
                 },
                 {
                     "PageText": "下载文件",
-                    "PageType": ["ONLY_ENTRY_EDIT", ["NO_SHELL_TIPS", "服务器文件(夹)路径", "路径为文件夹时将会打包下载（本地下载路径:./download）"]],
+                    "PageType": "FastDownloadPageOptions",
+                    "ShowType": "INNER",
                     "Shell": "fast_download.sh",
                     "Image": "TV_DOWNLOAD",
                     "SubTree": []
                 },
                 {
                     "PageText": "上传文件",
-                    "PageType": ["SELF", "FastUploadFilePage"],
+                    "PageType": "FastUploadPageOptions",
+                    "ShowType": "INNER",
                     "Shell": "NA",
                     "Image": "TV_UPLOAD",
                     "SubTree": []
