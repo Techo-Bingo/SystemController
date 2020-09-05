@@ -1,16 +1,18 @@
 # -*- coding: UTF-8 -*-
-import traceback
 import tkinter as tk
 from tkinter import ttk, scrolledtext, filedialog
 import my_global as Global
 from my_common import Common
-from my_logger import Logger
 from my_base import Pager
 from my_handler import PageHandler
-from my_viewutil import ToolTips, ViewUtil, WinMsg
+from my_viewutil import ViewUtil, WinMsg
 from my_timezone import TimezonePage
-from my_module import ProgressBar, PlotMaker
-from my_bond import Caller
+from my_module import ProgressBar, MyFrame
+from my_bond import Caller, Bonder
+import numpy
+import matplotlib.pyplot as plot
+# import matplotlib.backends.backend_tkagg
+# import matplotlib.backends.backend_svg
 
 
 class HomePage(Pager):
@@ -22,49 +24,60 @@ class HomePage(Pager):
         self.shell = shell
         self.ip_list = ip_list
         self.options = options
-        self.plot_params = None
-        self.prepare_ok = False
+        # self.plot_params = None
+        # self.prepare_ok = False
+        # self.show_lab = []
 
     def stepper(self):
         self.pack_frame()
 
     def pack_frame(self):
         opt_fm = tk.LabelFrame(self.frame, width=self.width)
-        opt_fm.pack(fill='x', padx=10, pady=10, ipady=10)
-        show_lab = tk.Label(opt_fm)
-        show_lab.pack()
-        PageHandler.execute_showing_start(self.callback, self.ip_list[0], self.shell, None)
-        while True:
-            if self.prepare_ok:
-                break
-            Caller.call(Global.EVT_REFRESH_GUI)
-            Common.sleep(0.1)
+        opt_fm.pack(fill='x', padx=10, ipady=10)
+        for ip in self.ip_list:
+            txt_fm = MyFrame(opt_fm, self.width, self.height/4, "【 服务器：%s 】" % ip).master()
+            label = tk.Label(txt_fm, bg=Global.G_DEFAULT_COLOR, justify = 'left')
+            label.pack(fill='both')
+            self.get_system_infos(ip, label)
+
+    def get_system_infos(self, ip, label):
+        def callback(infos):
+            label['text'] = infos
+        PageHandler.execute_showing_start(callback, ip, self.shell, None)
+
+    """
+        #while True:
+        #    if self.prepare_ok:
+        #        break
+        #    Caller.call(Global.EVT_REFRESH_GUI)
+        #    Common.sleep(0.1)
+        
         label_list, x_list, y_lists, png_path = self.plot_params
-        myplot = PlotMaker(label_list, x_list, y_lists, png_path)
-        myplot.make()
+        PlotMaker.init()
+        PlotMaker.make('内存情况', '单位：MB', label_list, x_list, y_lists, png_path)
         Caller.call(Global.EVT_ADD_IMAGE, ('MEM_BAR', png_path))
         show_lab.config(image=ViewUtil.get_image('MEM_BAR'))
+    
+    def callback(self, ip, infos):
+        self.show_lab.config(text=infos)
+        # self.prepare_ok = True
+        
+        infos = infos.split('\n')
+        label_list = infos[0].split()
+        x_list = infos[1].split()
+        y_lists = []
+        for line in infos[2:]:
+            y_list = line.split()
+            y_list = [int(y) for y in y_list]
+            y_lists.append(y_list)
+        png_path = "%s\\MemBar.png" % Global.G_CMDS_DIR
+        self.plot_params = (label_list, x_list, y_lists, png_path)
+        self.prepare_ok = True
+    """
 
-    def callback(self, infos):
-        try:
-            infos = infos.split('\n')
-            label_list = infos[0].split()
-            x_list = infos[1].split()
-            y_lists = []
-            for line in infos[2:]:
-                y_list = line.split()
-                y_list = [int(y) for y in y_list]
-                y_lists.append(y_list)
-            png_path = "%s\\MemBar.png" % Global.G_CMDS_DIR
-            self.plot_params = (label_list, x_list, y_lists, png_path)
-            self.prepare_ok = True
-        except Exception as e:
-            print(traceback.format_exc())
-            return
 
-
-class OptionDownloadTypePage(Pager):
-    """ 选项执行下载类型界面 """
+class CheckboxProgressTypePage(Pager):
+    """ 复选框执行下载类型界面 """
 
     def __init__(self, master, width, height, ip_list, shell, options):
         self.master = master
@@ -79,7 +92,7 @@ class OptionDownloadTypePage(Pager):
         self.pack_frame()
 
     def pack_frame(self):
-        opt_fm = tk.LabelFrame(self.frame, width=self.width, text='选项框')
+        opt_fm = tk.LabelFrame(self.frame, width=self.width)
         opr_fm = tk.Frame(self.frame, width=self.width)
         btn_fm = tk.Frame(opr_fm, width=self.width/3, height=self.height/5*2)
         ips_fm = tk.LabelFrame(opr_fm, width=self.width/3*2, height=self.height/5*2)
@@ -88,15 +101,18 @@ class OptionDownloadTypePage(Pager):
         ips_fm.pack(fill='both', side='left')
         btn_fm.pack(fill='x', side='left', padx=40)
         # 选项框布局
+        # TODO 支持多个复选框
+        (text, opts), = self.options.items()
         max_column, index, row, column, var_ops = 2, 0, 0, 0, []
-        for opt in self.options:
+        opt_master = MyFrame(opt_fm, self.width, self.height/5*3, text).master()
+        for opt in opts:
             column = index - (row * max_column)
             index += 1
             if column == max_column:
                 row += 1
                 column = 0
             var_ops.append(tk.IntVar())
-            tk.Checkbutton(opt_fm, text=opt, anchor='w', width=40, variable=var_ops[-1]).grid(row=row, column=column)
+            tk.Checkbutton(opt_master, text=opt, anchor='w', width=40, variable=var_ops[-1]).grid(row=row, column=column)
         # IP和进度条布局
         row, var_ips = 0, []
         for ip in self.ip_list:
@@ -147,8 +163,83 @@ class OptionDownloadTypePage(Pager):
             self.progress[ip].update(value, color)
 
 
-class OnlyEntryEditTypePage(Pager):
-    """ 单个输入框执行下载类型界面 """
+class ComboboxProgressTypePage(Pager):
+    """ 单选框执行下载类型界面 """
+    def __init__(self, master, width, height, ip_list, shell, options):
+        self.master = master
+        self.width = width
+        self.height = height
+        self.shell = shell
+        self.ip_list = ip_list
+        self.options = options
+        self.progress = {}
+
+    def stepper(self):
+        self.pack_frame()
+
+    def pack_frame(self):
+        opt_fm = tk.LabelFrame(self.frame, width=self.width)
+        opr_fm = tk.Frame(self.frame, width=self.width)
+        btn_fm = tk.Frame(opr_fm, width=self.width/3, height=self.height/5*2)
+        ips_fm = tk.LabelFrame(opr_fm, width=self.width/3*2, height=self.height/5*2)
+        opt_fm.pack(fill='x', padx=10, pady=10, ipady=10)
+        opr_fm.pack(fill='x', padx=10, pady=10)
+        ips_fm.pack(fill='both', side='left')
+        btn_fm.pack(fill='x', side='left', padx=40)
+        # 选项框布局
+        # TODO 支持多个单选框
+        (text, opts), = self.options.items()
+        tk.Label(opt_fm, text=text).grid(row=0, column=0, padx=20, pady=10)
+        combobox = ttk.Combobox(opt_fm, width=8)
+        combobox['values'] = tuple(opts)
+        combobox.current(0)
+        combobox['state'] = 'readonly'
+        combobox.grid(row=0, column=1)
+        # IP和进度条布局
+        row, var_ips = 0, []
+        for ip in self.ip_list:
+            var_ips.append(tk.IntVar())
+            tk.Checkbutton(ips_fm, text=ip, font=(Global.G_FONT, 10), anchor='w', width=14, variable=var_ips[-1]
+                           ).grid(row=row, column=0)
+            self.progress[ip] = ProgressBar(master=ips_fm, row=row, column=1)
+            row += 1
+        # 执行按钮布局
+        ttk.Button(btn_fm, text='执行', width=20, command=lambda x=combobox, y=var_ips: self.start_execute(x, y)
+                   ).grid(row=0, column=0, pady=15)
+        ttk.Button(btn_fm, text='停止', width=20, command=lambda x=var_ips: self.stop_execute(x)
+                   ).grid(row=1, column=0, pady=15)
+
+    def start_execute(self, combobox, var_ips):
+        select_ips, has_ops, index = [], False, 0
+        for v in var_ips:
+            if int(v.get()):
+                select_ips.append(self.ip_list[index])
+            index += 1
+        if not select_ips:
+            WinMsg.warn("请勾选IP地址")
+            return
+        param = combobox.current()
+        PageHandler.execute_download_start(self.callback, select_ips, self.shell, param)
+
+    def stop_execute(self, var_list):
+        select_ip, index = [], 0
+        for v in var_list:
+            if int(v.get()):
+                select_ip.append(self.ip_list[index])
+            index += 1
+        if not select_ip:
+            WinMsg.warn("请勾选IP地址")
+            return
+        PageHandler.execute_download_stop(select_ip, self.shell)
+
+    def callback(self, *args):
+        ip, value, color = args
+        if self.alive():
+            self.progress[ip].update(value, color)
+
+
+class EntryProgressTypePage(Pager):
+    """ 输入框执行下载类型界面 """
     def __init__(self, master, width, height, ip_list, shell, options):
         self.master = master
         self.width = width
@@ -171,18 +262,19 @@ class OnlyEntryEditTypePage(Pager):
         opr_fm.pack(fill='x', padx=10, pady=10)
         ips_fm.pack(fill='both', side='left')
         btn_fm.pack(fill='x', side='left', padx=40)
-        # 输入框布局
-        if self.options[0] != "NO_SHELL_TIPS":
-            tk.Label(edt_fm, text="脚本名称:", font=(Global.G_FONT, 10)
-                     ).grid(row=0, column=0, padx=10, pady=10, sticky='w')
-            tk.Label(edt_fm, text="%s" % self.shell, font=(Global.G_FONT, 10)
-                     ).grid(row=0, column=1, padx=10, pady=10, sticky='w')
-        tk.Label(edt_fm, text="%s:" % self.options[1], font=(Global.G_FONT, 10)
-                 ).grid(row=1, column=0, padx=10, pady=10, sticky='w')
-        self.entry = ttk.Entry(edt_fm, width=60, font=(Global.G_FONT, 10))
-        self.entry.grid(row=1, column=1, pady=10)
+        tips = self.options['TipsInfo']
+        entrys = self.options['EntryList']
+        row = 1
         # tips
-        tk.Label(edt_fm, text="%s" % self.options[2], fg='Gray40', font=(Global.G_FONT, 9)).grid(row=2, column=1)
+        tk.Label(edt_fm, text="%s" % tips, fg='Gray40', font=(Global.G_FONT, 9)).grid(row=0, column=1)
+        # 输入框布局
+        for entry_name in entrys:
+            tk.Label(edt_fm, text="%s:" % entry_name, font=(Global.G_FONT, 10)
+                     ).grid(row=row, column=0, padx=10, pady=10, sticky='w')
+            self.entry = ttk.Entry(edt_fm, width=60, font=(Global.G_FONT, 10))
+            self.entry.grid(row=row, column=1, pady=10)
+            row += 1
+
         # IP和进度条等布局
         row, var_list = 0, []
         for ip in self.ip_list:
@@ -237,6 +329,7 @@ class FastRunCommandPage(Pager):
         self.height = height
         self.shell = shell
         self.ip_list = ip_list
+        self.options = options
         self.infotext = None
         self.progress = {}
         self.is_root = tk.IntVar()
@@ -424,27 +517,16 @@ class PageCtrl(object):
     def __init__(self):
         self.current_text = None
         self.current_page = None
-        #self.images_fm = tk.Frame(Caller.call(Global.EVT_PAGE_INTERFACE, 'get_master'))
-        #self.images_fm.pack()
-        # 首页图片
-        #tk.Label(self.images_fm, image=ViewUtil.get_image('BINGO')).pack(fill='both')
+        Bonder('__PageCtrl__').bond(Global.EVT_CLOSE_GUI, PlotMaker.close)
 
-    def destroy_page(self):
-        try:
-            self.current_page.destroy()
-        except:
-            pass
-
-    def switch_page(self, page_text, page_type_info, shell):
+    def switch_page(self, args_tuple):
+        page_text, page_type_list, show_type, shell = args_tuple
         if self.current_text == page_text:
             return
         self.current_text = page_text
-        #if self.images_fm:
-        #    self.images_fm.destroy()
-        #    self.images_fm = None
         self.destroy_page()
-        page_type_info = page_type_info.replace('{', '').replace('}', '').replace(',', '')
-        page_type, page_options = page_type_info.split()[0], page_type_info.split()[1:]
+        print(page_type_list)
+        page_type, page_options = page_type_list
         width, height = Caller.call(Global.EVT_PAGE_INTERFACE, 'PAGE_SIZE')
         pager_params = {'master': Caller.call(Global.EVT_PAGE_INTERFACE, 'PAGE_MASTER'),
                         'width': width,
@@ -452,29 +534,67 @@ class PageCtrl(object):
                         'ip_list': ViewUtil.get_ssh_ip_list(),
                         'shell': shell,
                         'options': page_options}
+        if page_type == 'HOME_PAGE':
+            self.current_page = HomePage(**pager_params)
+        elif page_type == 'TEXT_PROGRESS':
+            # self.current_page = TextProgressTypePage(**pager_params)
+            return
+        elif page_type == 'COMBOBOX_PROGRESS':
+            self.current_page = ComboboxProgressTypePage(**pager_params)
+        elif page_type == 'CHECKBOX_PROGRESS':
+            self.current_page = CheckboxProgressTypePage(**pager_params)
+        elif page_type == 'ENTRY_PROGRESS':
+            self.current_page = EntryProgressTypePage(**pager_params)
+        elif page_type == 'SELF':
+            # 自定义界面，page_options第一个元素为类名，后面的为参数
+            class_name = eval(page_options['ClassName'])
+            self.current_page = class_name(**pager_params)
+        else:
+            raise Exception("未知界面类型： %s" % page_type)
+        self.current_page.pack()
+
+    def destroy_page(self):
         try:
-            if page_type == 'HOME_PAGE':
-                self.current_page = HomePage(**pager_params)
-            elif page_type == 'ONLY_DOWNLOAD':
-                return
-            elif page_type == 'OPTION_DOWNLOAD':
-                self.current_page = OptionDownloadTypePage(**pager_params)
-            elif page_type == 'ONLY_TEXT_SHOW':
-                return
-            elif page_type == 'ONLY_TEXT_EDIT':
-                return
-                # self.current_page = OnlyTextEditTypePage(**pager_params)
-            elif page_type == 'ONLY_ENTRY_EDIT':
-                self.current_page = OnlyEntryEditTypePage(**pager_params)
-            elif page_type == 'SELF':
-                # 自定义界面，page_options第一个元素为类名，后面的为参数
-                class_name = eval(page_options[0])
-                pager_params['options'] = [] if len(page_options) == 1 else page_options[1:]
-                self.current_page = class_name(**pager_params)
-            else:
-                raise Exception("未知界面类型： %s" % page_type)
-            self.current_page.pack()
-        except Exception as e:
-            ToolTips.inner_error(e)
-            Logger.error(traceback.format_exc())
+            self.current_page.destroy()
+        except:
+            pass
+
+
+class PlotMaker:
+
+    _color = ['red', 'green', 'grey', 'blue', 'magenta']
+    _figure = None
+
+    @classmethod
+    def init(cls):
+        plot.rcParams['font.sans-serif'] = ['SimHei']  # 中文字体支持
+        plot.rcParams['savefig.dpi'] = 70  # 图片像素
+        plot.legend(loc="upper center")
+        cls._figure = plot.figure(figsize=(8, 4))
+
+    @classmethod
+    def make(cls, title, ylabel, png_path, label_list, x_list, y_lists):
+        plot.title(title)
+        plot.ylabel(ylabel)
+        data = numpy.array(y_lists)
+        ax1 = cls._figure.add_subplot(121)
+        #ax2 = cls._figure.add_subplot(122)
+        for i in range(len(label_list)):
+            v_start = numpy.sum(data[:i], axis=0)
+            ax1.bar(x_list, data[i], width=0.3, bottom=v_start, label=label_list[i], color=cls._color[i % len(label_list)])
+        #ax2.
+        plot.savefig(png_path)
+
+    @classmethod
+    def clear(cls):
+        plot.clf()
+
+    @classmethod
+    def show(cls):
+        plot.show()
+
+    @classmethod
+    def close(cls, msg=None):
+        plot.close('all')
+
 
