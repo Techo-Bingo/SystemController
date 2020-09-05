@@ -319,7 +319,6 @@ class MyTreeView(object):
             self.callback(back_tuple)
 
 
-
 class InfoWindow(object):
     """ 消息提示栏 """
 
