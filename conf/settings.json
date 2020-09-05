@@ -1,8 +1,8 @@
 {
 	"Setting": {
-		"tool_named": "通用远程工具",
+		"tool_named": "操作维护工具",
 
-		"tool_version": "2.1",
+		"tool_version": "2.2",
 
 		"log_level": "debug",
 		
