@@ -28,11 +28,25 @@ function get_memory()
     echo "${buff_cache} 0"
 }
 
+function get_sysinfo()
+{
+    if [ -f /usr/bin/lsb_release ]
+    then
+        echo "OS Model:            $(/usr/bin/lsb_release -a |grep Description |awk -F: '{print $2}' |sed 's/^[ \t]*//g')"
+    else
+        echo "OS Model:            $(cat /etc/issue |sed -n '1p')"
+    fi
+    echo "Kernel Version:          $(uname -r)"
+    echo "CPU Model:               $(grep 'model name' /proc/cpuinfo|uniq|awk -F: '{print $2}'|sed 's/^[ \t]*//g'|sed 's/ \+/ /g')"
+    echo "Physical CPUs/CPU Cores: $(grep 'physical id' /proc/cpuinfo|sort|uniq|wc -l) / $(grep 'cpu cores' /proc/cpuinfo|uniq|awk -F: '{print $2}'|sed 's/^[ \t]*//g')"
+    echo "Total Memory:            $(($(cat /proc/meminfo|grep 'MemTotal'|awk '{print $2}') / 1024)) MB"
+}
+
 
 function main()
 {
-    get_memory
-
+    # get_memory
+    get_sysinfo
 }
 
 main
