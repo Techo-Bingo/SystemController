@@ -3,9 +3,10 @@
 View板块;
 处理逻辑，不包含数据
 """
+import traceback
 import tkinter as tk
-# from tkinter import ttk
 import my_global as Global
+from my_logger import Logger
 from my_base import GuiBase
 from my_common import Common
 from my_page import PageCtrl
@@ -48,9 +49,10 @@ class Gui(tk.Tk):
     def close(self):
         if self._in_main_gui and not WinMsg.ask("请确认是否退出？"):
             return
+        self.destroy()
         # 清空lock文件夹
         Common.rm_dir(Global.G_LOCKS_DIR)
-        self.destroy()
+        Packer.call(Global.EVT_CLOSE_GUI)
 
     def Login(self, msg=None):
         """ 登录界面 """
@@ -254,7 +256,11 @@ class GuiMain(GuiBase):
         self.pack_subframe()
 
     def pack_subframe(self):
-        self.treeview = MyTreeView(self.tree_window, ViewUtil.get_treeview_data(), self.switch_page)
+        try:
+            self.treeview = MyTreeView(self.tree_window, ViewUtil.get_treeview_data(), self.switch_page)
+        except Exception as e:
+            WinMsg.error("界面数据异常！ %s" % str(e))
+            return
         # 初始化信息提示栏
         InfoWindow(self.info_fm)
         # 定义page页接口事件回调函数
@@ -277,8 +283,12 @@ class GuiMain(GuiBase):
             self.help_window = None
 
     def switch_page(self, args_tuple):
-        page_text, page_type_info, shell = args_tuple
-        self.pager.switch_page(page_text, page_type_info, shell)
+        try:
+            self.pager.switch_page(args_tuple)
+        except Exception as e:
+            WinMsg.error("界面异常：%s" % e)
+            Logger.error(traceback.format_exc())
+            return
 
     def page_interface(self, msg):
         if msg == 'PAGE_MASTER':
