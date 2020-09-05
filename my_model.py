@@ -19,7 +19,6 @@ class Settings(Singleton):
             Global.G_LOG_LEVEL = setting_map['log_level']
             Global.G_LOG_SIZE = setting_map['log_size']
             Global.G_RETRY_TIMES = setting_map['retry_times']
-            Global.G_PACKAGE_NAME = setting_map['package_name']
             _default = setting_map['passwords']
             Global.G_DEFAULT_PASSWORDS = [_default['username'],
                                           _default['userpassword'],
