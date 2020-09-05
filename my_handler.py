@@ -125,7 +125,7 @@ class LoginHandler:
         _ip_del_list = []
         for ip, ssh in cls._logon_ssh_inst('QUE', None).items():
             # 如果上次登录用户跟这次不一致，会导致后面解压失败; 这里每次登录都清空目录
-            SSHUtil.exec_ret(ssh, 'rm -rf %s/*' % Global.G_SERVER_DIR, root=True)
+            SSHUtil.exec_ret(ssh, 'rm -rf {0}/*; mkdir {0}; chmod 777 {0}'.format(Global.G_SERVER_DIR), root=True)
             for times in range(1, Global.G_RETRY_TIMES + 1):
                 try:
                     # 上传文件
