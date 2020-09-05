@@ -9,8 +9,6 @@ from my_common import Common
 from my_bond import Bonder, Define
 from my_viewutil import ToolTips, ViewUtil
 # from my_logger import Logger
-import numpy
-import matplotlib.pyplot as plot
 
 
 class ToolTip(object):
@@ -268,19 +266,24 @@ class MyTreeView(object):
         self.treelist = treelist
         self.callback = callback
         self.treeview = None
+        self.options = None
         self.sub_id = []
         self.init_frame()
 
     def _add_subtree(self, root, id=''):
+        if '__ThisIsPageOptions__' in root:
+            self.options = root
+            return
         page_text = ' ' + root['PageText']
         page_type = root['PageType']
+        show_type = root['ShowType']
         shell = root['Shell']
         img_key = root['Image']
         subtree = root['SubTree']
         if page_type == 'NA':
-            tag, values = 'tree.root', ()
+            tag, values = 'tree.root', ""
         else:
-            tag, values = 'tree.sub', (page_text, page_type, shell)
+            tag, values = 'tree.sub', [page_text, page_type, show_type, shell]
         img = ViewUtil.get_image(img_key)
         sub_id = self.treeview.insert(id, 'end', text=page_text, image=img, tags=(tag, 'simple'), values=values)
         self.sub_id.append(sub_id)
@@ -305,10 +308,16 @@ class MyTreeView(object):
 
     def command(self, event=None):
         args_tuple = self.treeview.item(self.treeview.selection()[-1], "values")
-        # (page_name, page_type, shell)
-        if len(args_tuple) != 3:
+        if len(args_tuple) == 0:
             return
-        self.callback(args_tuple)
+        page_text, page_type, show_type, shell = args_tuple
+        try:
+            back_tuple = (page_text, self.options[page_type], show_type, shell)
+        except Exception as e:
+            ToolTips.inner_error(e)
+        else:
+            self.callback(back_tuple)
+
 
 
 class InfoWindow(object):
@@ -441,15 +450,15 @@ class MyFrame(object):
         self.pack_frame(master, width, height, title)
 
     def pack_frame(self, master, width, height, title):
-        head_height = 40
+        head_height = 30
         head = tk.Frame(master, width=width, height=head_height)
-        label = tk.Label(head, text=title, height=2, font=('微软雅黑', 12),  bg='LightBlue')
+        label = tk.Label(head, text=title, height=1, font=(Global.G_FONT, 10),  bg='LightBlue')
         self.body = tk.Frame(master, width=width, height=height-head_height, bg='Snow')
-        head.pack()
+        head.pack(fill='both')
         self.body.pack()
-        head.pack_propagate(0)
+        # head.pack_propagate(0)
         self.body.pack_propagate(0)
-        label.pack(fill='both')
+        label.pack(fill='both', ipady=2)
 
     def master(self):
         return self.body
@@ -532,29 +541,4 @@ class TopAbout:
     def close(cls, event=None):
         cls._showing = False
         cls._toplevel.destroy()
-
-
-class PlotMaker(object):
-    def __init__(self, label_list, x_list, y_lists, png_path):
-        self.png_path = png_path
-        color = ['red', 'green', 'grey', 'blue', 'magenta']
-        data = numpy.array(y_lists)
-        fig = plot.figure(figsize=(8, 4))
-        ax1 = fig.add_subplot(121)
-        #plot.ion()
-        for i in range(len(label_list)):
-            v_start = numpy.sum(data[:i], axis=0)
-            ax1.bar(x_list, data[i], width=0.3, bottom=v_start, label=label_list[i], color=color[i % len(label_list)])
-        plot.rcParams['font.sans-serif'] = ['SimHei']  # 中文字体支持
-        plot.rcParams['savefig.dpi'] = 70  # 图片像素
-        plot.legend(loc="upper center")
-
-    def make(self):
-        plot.title('内存使用情况')
-        plot.ylabel('单位：MB')
-        plot.savefig(self.png_path)
-        #plot.show()
-
-    #def close(self, msg=None):
-    #    plot.close()
 
