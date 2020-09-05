@@ -6,7 +6,8 @@ import time
 import shutil
 import zipfile
 import threading
-from json import load
+from json import loads
+from collections import OrderedDict
 from my_base import JSONError
 
 
@@ -17,7 +18,7 @@ class JSONParser:
     def parser(cls, json_path):
         try:
             with open(json_path, 'r', encoding='UTF-8') as f:
-                return load(f)
+                return loads(f.read(), object_pairs_hook=OrderedDict)
         except Exception as e:
             raise JSONError(e)
 
