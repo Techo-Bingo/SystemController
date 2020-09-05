@@ -64,8 +64,6 @@ G_TIG_FG_COLOR = {'DEFAULT': 'Snow',
                   'FAILED': 'OrangeRed'
                   }
 # 运行环境相关定义
-# 脚本压缩包名
-G_PACKAGE_NAME = 'package.zip'
 G_LOG_DIR = '.\\log'
 G_CONF_DIR = '.\\conf'
 G_CMDS_DIR = '.\\cmds'
@@ -102,6 +100,7 @@ EVT_TOP_PROG_DESTROY = 'event_toplevel_destroy'
 EVT_ADD_IMAGE = 'event_add_image'
 EVT_REFRESH_GUI = 'event_refresh_gui'
 EVT_PAGE_INTERFACE = 'event_page_interface'
+EVT_CLOSE_GUI = 'event_close_gui'
 
 def reload():
     global G_TITLE
