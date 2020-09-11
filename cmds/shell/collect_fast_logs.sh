@@ -1,8 +1,7 @@
 #!/bin/bash
 source $(dirname $0)/common_function.sh
 
-IP=$1
-LOG_FLAGS=$2
+LOG_FLAGS=$1
 
 function parser_param()
 {
@@ -16,7 +15,7 @@ function parser_param()
 function compress_pack()
 {
 	cd ${g_task_dir}
-	local pack_name="quick_logs_${IP}"
+	local pack_name="quick_logs"
 	report_info '92' "Compress ${pack_name} start..."
 	local pack_name=$(compress ${pack_name})
 	[ $? -ne 0 ] && report_err '95' "Compress ${pack_name} failed"
