@@ -3,8 +3,20 @@
 全局定义
 """
 __author__ = 'libin WX382598 (Bingo)'
+G_LOGO = '''Welcome 
+        
+            ____  _                       
+           / __ )(_)___  ____ _____ 
+          / __  / / __ \/ __ `/ __ \\
+         / /_/ / / / / / /_/ / /_/ /
+        /_____/_/_/ /_/\__, /\____/ 
+                      /____/        
+        
+        '''
 # 版权信息
 G_COPYRIGHT_INFO = 'Copyright©2019 Bingo. All Rights Reserved.'
+# 分隔符
+G_SPLIT_FLAG= '____BINGO_FILTER____'
 # 工具名称
 G_TOOL_NAMED = ''
 # 工具版本
@@ -68,8 +80,9 @@ G_LOG_DIR = '.\\log'
 G_CONF_DIR = '.\\conf'
 G_CMDS_DIR = '.\\cmds'
 G_SHELL_DIR = '.\\cmds\\shell'
-G_LOCKS_DIR = '.\\cmds\\lock'
 G_DOWNLOAD_DIR = '.\\download'
+G_PID_FILE = '.\\conf\\tool.pid'
+G_LOCKS_DIR = '.\\conf\\lock'
 # 日志回滚大小
 G_LOG_SIZE = 10485760
 G_LOG_PATH = '\\'.join([G_LOG_DIR, 'tool.log'])
@@ -101,6 +114,7 @@ EVT_ADD_IMAGE = 'event_add_image'
 EVT_REFRESH_GUI = 'event_refresh_gui'
 EVT_PAGE_INTERFACE = 'event_page_interface'
 EVT_CLOSE_GUI = 'event_close_gui'
+
 
 def reload():
     global G_TITLE
