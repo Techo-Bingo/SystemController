@@ -3,8 +3,8 @@ source $(dirname $0)/common_function.sh
 source /opt/UBP/svc_profile.sh
 source /etc/profile
 
-IP=$1
-DAYS_INDEX=$2
+DAYS_INDEX=$1
+
 if [ "${DAYS_INDEX}" = '0' ]
 then
 	DAYS=1
@@ -60,7 +60,7 @@ EOF
 function compress_pack()
 {
 	cd ${g_task_dir}
-	local pack_name="binlog_${IP}"
+	local pack_name="mysql_binlog"
 	report_info '92' "Compress ${pack_name} start..."
 	local pack_name=$(compress ${pack_name})
 	[ $? -ne 0 ] && report_err '95' "Compress ${pack_name} failed"
