@@ -68,9 +68,9 @@ class SSHUtil:
         except Exception as e:
             return None, e
         try:
-            return str(info, encoding='utf-8'), None
+            return str(info, encoding='UTF-8'), None   # , errors='ignore'
         except:
-            return str(info, encoding='GBK'), None
+            return str(info, encoding='GBK', errors='ignore'), None
 
     @classmethod
     def exec_ret(cls, ssh_inst, cmd, root=False):
