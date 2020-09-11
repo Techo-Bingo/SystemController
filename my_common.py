@@ -61,10 +61,9 @@ class Common:
 
     @classmethod
     def get_time(cls):
-        ct = time.time()
-        return '%s.%03d' % (time.strftime("%Y-%m-%d %H:%M:%S",
-                                          time.localtime()),
-                            (ct - int(ct)) * 1000)
+        return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        # ct = time.time()
+        # return '%s.%03d' % (time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), (ct - int(ct)) * 1000)
 
     @classmethod
     def write_to_file(cls, filename, info):
@@ -74,6 +73,10 @@ class Common:
                 return True
         except:
             return False
+
+    @classmethod
+    def record_pid(cls, pid_file):
+        cls.write_to_file(pid_file, str(os.getpid()))
 
     @classmethod
     def create_thread(cls, func, args=()):
