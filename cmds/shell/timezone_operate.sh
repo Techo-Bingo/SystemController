@@ -1,8 +1,7 @@
 #!/bin/bash
 source $(dirname $0)/common_function.sh
 
-IP=$1
-OP_TYPE=$2
+OP_TYPE=$1
 ZONE_INFO=$OP_TYPE
 
 
