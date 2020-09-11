@@ -13,7 +13,7 @@ from my_page import PageCtrl
 from my_handler import LoginHandler
 from my_viewutil import WinMsg, ViewUtil
 from my_bond import Packer, Define, Caller
-from my_module import SubLogin, InfoWindow, TopProgress, MyButton, MyTreeView, MyToolBar, TopAbout
+from my_module import SubLogin, InfoWindow, TopProgress, MyButton, MyTreeView, MyToolBar, TopAbout, MyScreenshot
 
 
 class Gui(tk.Tk):
@@ -36,7 +36,7 @@ class Gui(tk.Tk):
 
     def pack(self):
         ViewUtil.init_root(self)
-        ViewUtil.set_maxsize(self.maxsize())
+        ViewUtil.set_screensize(self.maxsize())
         self.title(Global.G_TITLE)
         self.iconbitmap(ViewUtil.get_image('ICO'))
         self.resizable(False, False)
@@ -310,4 +310,6 @@ class GuiMain(GuiBase):
             self.show_help_window(False) if self.help_window else self.show_help_window(True)
         elif text == 'TB_INFO':
             TopAbout.show()
+        elif text == 'TB_SCREEN_CUT':
+            MyScreenshot(self.master)
 

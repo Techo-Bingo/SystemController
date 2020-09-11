@@ -267,9 +267,9 @@ class PageHandler:
         """ 后台执行脚本 """
         Utils.tell_info("{0} (0%) Task {1} starting...".format(ip, task))
         if run_back:
-            cmd = "{0} async_call_shell {1} {2} {3}".format(cls._inner_caller, task, shell, param)
+            cmd = "{0} async_call_shell '{1}' '{2}' '{3}'".format(cls._inner_caller, task, shell, param)
         else:
-            cmd = "{0} sync_call_shell {1} {2} {3}".format(cls._inner_caller, task, shell, param)
+            cmd = "{0} sync_call_shell '{1}' '{2}' '{3}'".format(cls._inner_caller, task, shell, param)
         SSHUtil.exec_ret(ssh, cmd, run_root)
 
     @classmethod

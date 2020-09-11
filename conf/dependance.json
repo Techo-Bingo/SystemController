@@ -56,7 +56,7 @@
                 "ClassName": "FastRunCommandPage"
             }],
             "FastDownloadPageOptions": ["ENTRY_PROGRESS", {
-                "TipsInfo": "路径为文件夹时将会打包下载（本地下载路径:./download）",
+                "TipsInfo": "路径为文件夹时将会打包下载（暂不支持正则表达式）",
                 "EntryList": ["服务器文件(夹)路径"]
             }],
             "FastUploadPageOptions": ["SELF", {

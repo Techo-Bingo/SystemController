@@ -60,8 +60,10 @@ class Common:
         return os.path.getsize(file_path)
 
     @classmethod
-    def get_time(cls):
-        return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    def get_time(cls, format=True):
+        if format:
+            return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        return time.strftime("%Y%m%d%H%M%S", time.localtime())
         # ct = time.time()
         # return '%s.%03d' % (time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), (ct - int(ct)) * 1000)
 

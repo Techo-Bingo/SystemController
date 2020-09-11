@@ -31,7 +31,11 @@ function get_sysinfo()
     if [ -f /usr/bin/lsb_release ]
     then
         echo "OS Model:            $(/usr/bin/lsb_release -a |grep Description |awk -F: '{print $2}' |sed 's/^[ \t]*//g')"
-    else
+    elif [ -f /etc/redhat-release ]
+    then
+        echo "OS Model:            $(cat /etc/redhat-release |sed -n '1p')"
+    elif [ -f /etc/issue ]
+    then
         echo "OS Model:            $(cat /etc/issue |sed -n '1p')"
     fi
     echo "Kernel Version:          $(uname -r)"

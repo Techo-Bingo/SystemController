@@ -2,7 +2,7 @@
 import tkinter as tk
 from tkinter import ttk, scrolledtext, filedialog
 import my_global as Global
-from my_common import Common
+# from my_common import Common
 from my_base import Pager
 from my_handler import PageHandler
 from my_viewutil import ViewUtil, WinMsg

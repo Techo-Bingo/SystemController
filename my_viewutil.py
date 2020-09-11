@@ -83,8 +83,12 @@ class ViewUtil:
         cls._root = root_gui
 
     @classmethod
-    def set_maxsize(cls, size_tuple):
+    def set_screensize(cls, size_tuple):
         ViewModel.cache('SCREEN_SIZE_LIST', type='ADD', data=size_tuple)
+
+    @classmethod
+    def get_screensize(cls):
+        return ViewModel.cache('SCREEN_SIZE_LIST', type='QUE')[-1]
 
     @classmethod
     def set_widget_size(cls, widget=None, width=None, height=None, center=True):
@@ -119,7 +123,6 @@ class ViewUtil:
         _sublogin_count = len(_sublogin_index)
         if _sublogin_count >= Global.G_LGN_COUNT_LIMIT:
             return False, Global.G_LGN_COUNT_LIMIT
-
         _new_index = 1
         if _sublogin_count:
             _new_index = _sublogin_index[-1] + 1

@@ -4,10 +4,11 @@ View板块的单个子模块
 """
 import tkinter as tk
 from tkinter import ttk, scrolledtext
+from PIL import ImageGrab
 import my_global as Global
 from my_common import Common
-from my_bond import Bonder, Define
-from my_viewutil import ToolTips, ViewUtil
+from my_bond import Bonder, Define, Caller
+from my_viewutil import WinMsg, ToolTips, ViewUtil
 # from my_logger import Logger
 
 
@@ -535,4 +536,60 @@ class TopAbout:
         cls._showing = False
         cls._toplevel.destroy()
 
+
+class MyScreenshot(object):
+    """ 截屏实现类 """
+    def __init__(self, master):
+        self.sel = None
+        self.last = None
+        self.temp_png = '.\\download\\__temp__.png'
+        # 先对全屏幕进行截图
+        im = ImageGrab.grab()
+        im.save(self.temp_png)
+        im.close()
+        # 变量X和Y用来记录鼠标左键按下的位置
+        self.X = tk.IntVar(value=0)
+        self.Y = tk.IntVar(value=0)
+        width, height = ViewUtil.get_screensize()
+        self.top = tk.Toplevel(master, width=width, height=height)
+        self.top.overrideredirect(True)
+        Caller.call(Global.EVT_ADD_IMAGE, ('SCREEN_TEMP', self.temp_png))
+        self.canvas = tk.Canvas(self.top, width=width, height=height)
+        self.canvas.create_image(width//2, height//2, image=ViewUtil.get_image('SCREEN_TEMP'))
+        # 删除刚画完的图形，要不然鼠标移动的时候是黑乎乎的一片矩形
+        def deleteLastDraw():
+            try:
+                self.canvas.delete(self.last)
+            except:
+                pass
+        # 鼠标左键按下的位置
+        def onLeftButtonDown(event):
+            self.X.set(event.x)
+            self.Y.set(event.y)
+            self.sel = True
+        self.canvas.bind('<Button-1>', onLeftButtonDown)
+        # 鼠标左键移动，显示选取的区域
+        def onLeftButtonMove(event):
+            if not self.sel:
+                return
+            deleteLastDraw()
+            self.last = self.canvas.create_rectangle(self.X.get(), self.Y.get(), event.x, event.y, outline='Red')
+        self.canvas.bind('<B1-Motion>', onLeftButtonMove)
+        # 获取鼠标左键抬起的位置，保存区域截图
+        def onLeftButtonUp(event):
+            self.sel = False
+            deleteLastDraw()
+            Common.sleep(0.1)
+            # 考虑鼠标左键从右下方按下而从左上方抬起的截图
+            left, right = sorted([self.X.get(), event.x])
+            top, bottom = sorted([self.Y.get(), event.y])
+            pic = ImageGrab.grab((left+1, top+1, right, bottom))
+            save_name = "ScreenShot-{0}.png".format(Common.get_time(format=False))
+            pic.save(save_name)
+            self.top.destroy()
+            Common.remove(self.temp_png)
+            WinMsg.info("截屏成功: {0}".format(save_name))
+        self.canvas.bind('<ButtonRelease-1>', onLeftButtonUp)
+        #让canvas充满窗口，并随窗口自动适应大小
+        self.canvas.pack(fill='both', expand=1)
 
