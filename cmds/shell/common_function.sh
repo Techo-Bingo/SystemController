@@ -9,8 +9,8 @@ function init()
 
 function _report()
 {
-	echo __BINGO__"$1|$2|$3"__BINGO__ >${g_task_dir}/progress.txt
-	chmod 777 ${g_task_dir}/progress.txt
+	echo "$1|$2|$3" >${g_task_dir}/__progress__.txt
+	chmod 777 ${g_task_dir}/__progress__.txt
 }
 
 function report_info()
