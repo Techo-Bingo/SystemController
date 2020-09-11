@@ -42,6 +42,7 @@ class Gui(tk.Tk):
         self.resizable(False, False)
         self.protocol("WM_DELETE_WINDOW", self.close)
         self.Login()
+        Common.record_pid(Global.G_PID_FILE)
 
     def refresh(self, msg=None):
         self.update()
@@ -52,6 +53,7 @@ class Gui(tk.Tk):
         self.destroy()
         # 清空lock文件夹
         Common.rm_dir(Global.G_LOCKS_DIR)
+        Common.remove(Global.G_PID_FILE)
         Packer.call(Global.EVT_CLOSE_GUI)
 
     def Login(self, msg=None):
