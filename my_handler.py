@@ -15,6 +15,7 @@ from my_base import InputError, ExecError, ReportError
 class LoginHandler:
     """ 登录处理类 """
     _ip_list = []
+    _cache_passwds = {}
     _widget = None
 
     @classmethod
@@ -69,7 +70,7 @@ class LoginHandler:
             cls._sublogin_entry_tig(seq, cls._widget)
             # window弹窗提示
             Utils.windows_error(e)
-            Logger.error('SubLogin_{} ip:{}, err_info:{}'.format(seq, ip_passwd_tuple[0], e))
+            Logger.error('SubLogin_{0} ip:{1}, err_info:{2}'.format(seq, ip_passwd_tuple[0], e))
             return False
         else:
             cls._sublogin_status_tig(seq, 'LOGING')
@@ -118,24 +119,24 @@ class LoginHandler:
     def _upload_package(cls, args=None):
         # 先压缩脚本再上传
         zip_name = "package.zip"
-        zip_file = "%s\\%s" % (Global.G_CMDS_DIR, zip_name)
-        remote_path = '%s/%s' % (Global.G_SERVER_DIR, zip_name)
+        zip_file = "{0}\\{1}".format(Global.G_CMDS_DIR, zip_name)
+        remote_path = "{0}/{1}".format(Global.G_SERVER_DIR, zip_name)
         Common.zip_dir(Global.G_SHELL_DIR, zip_file)
-        unzip_cmd = '''cd {0}; unzip -o {1}; chmod 777 {0}/*; dos2unix {0}/*'''.format(Global.G_SERVER_DIR, zip_name)
+        unzip_cmd = "cd {0}; unzip -o {1}; chmod 777 {0}/*; dos2unix {0}/*".format(Global.G_SERVER_DIR, zip_name)
         _ip_del_list = []
         for ip, ssh in cls._logon_ssh_inst('QUE', None).items():
             # 如果上次登录用户跟这次不一致，会导致后面解压失败; 这里每次登录都清空目录
-            SSHUtil.exec_ret(ssh, 'rm -rf {0}/*; mkdir {0}; chmod 777 {0}'.format(Global.G_SERVER_DIR), root=True)
+            SSHUtil.exec_ret(ssh, "rm -rf {0}/*; mkdir {0}; chmod 777 {0}".format(Global.G_SERVER_DIR), root=True)
             for times in range(1, Global.G_RETRY_TIMES + 1):
                 try:
                     # 上传文件
                     ret, err = SSHUtil.upload_file(ssh, zip_file, remote_path)
                     if not ret:
-                        raise ExecError('%s 上传package失败，详细:%s，重试:%s' % (ip, err, times))
+                        raise ExecError("{0}: Upload package failed:{1}, retry:{2}".format(ip, err, times))
                     # 解压文件, 成功返回0
                     ret, err = SSHUtil.exec_ret(ssh, unzip_cmd)
                     if ret:
-                        raise ExecError('%s 解压package失败，详细:%s，重试:%s' % (ip, err, times))
+                        raise ExecError("{0} Decompression failed:{1}, retry:{2}".format(ip, err, times))
                 except ExecError as e:
                     if times == Global.G_RETRY_TIMES:
                         _ip_del_list.append(ip)
@@ -143,7 +144,7 @@ class LoginHandler:
                     Logger.warn(e)
                     continue
                 else:
-                    info = '%s 环境准备就绪' % ip
+                    info = "{0} Environment prepare OK".format(ip)
                     Logger.info(info)
                     Utils.tell_info(info)
                     break
@@ -156,9 +157,26 @@ class LoginHandler:
     def _keep_ssh_alive(cls, args=None):
         while True:
             Common.sleep(60)
+            new_ip_ssh_instance = {}
             for ip, ssh in cls._logon_ssh_inst('QUE', None).items():
                 ret, err = SSHUtil.exec_ret(ssh, 'echo')
                 Logger.debug("(keepalive) ip:%s ret:%s err:%s" % (ip, ret, err))
+                if not ret:
+                    continue
+                Logger.warn("(keepalive) ssh instance of %s is invalid, rebuild now" % ip)
+                user, userpwd, rootpwd = cls._cache_passwds[ip]
+                new_ssh = SSH(ip, user, userpwd, rootpwd)
+                ret = SSHUtil.user_login(new_ssh, user)[0]
+                if not ret:
+                    continue
+                ret = SSHUtil.user_login(new_ssh, 'root')[0]
+                if not ret:
+                    continue
+                new_ip_ssh_instance[ip] = new_ssh
+                Logger.info("(keepalive) rebuild ssh instance of %s success" % ip)
+            # 刷新ssh实例
+            for ip, ssh in new_ip_ssh_instance.items():
+                cls._logon_ssh_inst('ADD', {ip, ssh})
 
     @classmethod
     def prepare_env(cls):
@@ -167,14 +185,10 @@ class LoginHandler:
     @classmethod
     def try_login(cls):
         # return True  # DEBUG
-        cls._ip_list = []
-        _input_info = {}
-
+        cls._ip_list, _input_info = [], {}
         # 输入校验
         for seq in ViewModel.cache('SUBLOGIN_INDEX_LIST', type='QUE'):
-            ip_passwd_tuple = cls._sublogin_callback(
-                Global.EVT_GET_LOGIN_INPUT % seq)
-
+            ip_passwd_tuple = cls._sublogin_callback(Global.EVT_GET_LOGIN_INPUT % seq)
             if not cls._check_inputs(seq, ip_passwd_tuple):
                 return False
             _input_info[seq] = ip_passwd_tuple
@@ -185,6 +199,7 @@ class LoginHandler:
         for seq, ip_passwd_tuple in _input_info.items():
             if not cls._login_server(seq, ip_passwd_tuple):
                 return False
+            cls._cache_passwds[ip_passwd_tuple[0]] = ip_passwd_tuple[1:]
 
         # 清理用不到的数据，节省内存
         ViewModel.cache('SUBLOGIN_INDEX_LIST', type='DEL')
@@ -199,12 +214,12 @@ class LoginHandler:
 class PageHandler:
     """ 页面事件处理类 """
     _stop_task_ips = {}
-    _inner_caller = "sh %s/inner_function.sh" % Global.G_SERVER_DIR
+    _inner_caller = "sh {0}/inner_function.sh".format(Global.G_SERVER_DIR)
 
     @classmethod
     def _mutex(cls, ip, task, lock=True):
         """ 防重入 """
-        _lock_file = '%s\\%s-%s.lock' % (Global.G_LOCKS_DIR, task, ip)
+        _lock_file = '{0}\\{1}-{2}.lock'.format(Global.G_LOCKS_DIR, task, ip)
         # 释放锁
         if not lock:
             try:
@@ -214,7 +229,7 @@ class PageHandler:
             return
         # 尝试加锁
         if Common.is_file(_lock_file):
-            Utils.tell_info("%s 重复点击，请耐心等待上一次结束" % ip)
+            Utils.tell_info("{0} Repeat execute, please wait...".format(ip), level='WARN')
             return False
         Common.write_to_file(_lock_file, 'lock')
         return True
@@ -244,33 +259,35 @@ class PageHandler:
     
     @classmethod
     def _get_exec_info(cls, ssh, cmd, root):
-        return SSHUtil.exec_info(ssh, cmd, root)[0].split('__BINGO__')[1:2][0]
+        result = SSHUtil.exec_info(ssh, cmd, root)[0]
+        return result.split(Global.G_SPLIT_FLAG)[1].strip()
 
     @classmethod
     def _exec_shell(cls, ssh, ip, shell, task, param, run_root, run_back=False):
         """ 后台执行脚本 """
-        Utils.tell_info('%s: [0%%] 正在执行任务: %s' % (ip, task))
+        Utils.tell_info("{0} (0%) Task {1} starting...".format(ip, task))
         if run_back:
-            cmd = "{0} async_call_shell {1} {2} {3} {4}".format(cls._inner_caller, ip, task, shell, param)
+            cmd = "{0} async_call_shell {1} {2} {3}".format(cls._inner_caller, task, shell, param)
         else:
-            cmd = "{0} sync_call_shell {1} {2} {3} {4}".format(cls._inner_caller, ip, task, shell, param)
+            cmd = "{0} sync_call_shell {1} {2} {3}".format(cls._inner_caller, task, shell, param)
         SSHUtil.exec_ret(ssh, cmd, run_root)
 
     @classmethod
     def _get_progress(cls, ssh, callback, ip, task, run_root):
         """ 循环读取进度 """
-        cmd = "cat %s/%s/progress.txt" % (Global.G_SERVER_DIR, task)
-        _last_prog = 1
-        __retry = 0
+        cmd = "{0} get_task_progress {1}".format(cls._inner_caller, task)
+        _local_dir = "{0}\\{1}".format(Global.G_DOWNLOAD_DIR, ip)
+        Common.mkdir(_local_dir)
+        _last_prog, __retry = 1, 0
         while True:
             Common.sleep(1)
             try:
                 cur_prog, status, info = cls._get_exec_info(ssh, cmd, run_root).split('|')
                 cur_prog = int(cur_prog) - 10
                 if not info:
-                    raise ReportError("进度信息为空，重试:%s" % __retry)
+                    raise ReportError("Null progress, retry:{0}".format(__retry))
                 if status == 'FAILED':
-                    raise ReportError("任务失败，详细:%s，重试:%s" % (info, __retry))
+                    raise ReportError("Task failed:{0}, retry:{1}".format(info, __retry))
                 if _last_prog == cur_prog:
                     continue
                 _last_prog = cur_prog
@@ -279,30 +296,30 @@ class PageHandler:
                 if cur_prog == 90:
                     if info == 'NULL':
                         callback(ip, 100, False)
-                        Utils.tell_info("%s: [100%%] %s执行成功" % (ip, task))
+                        Utils.tell_info("{0} (100%) Task {1} success".format(ip, task))
                         break
-                    filename = "%s\\%s" % (Global.G_DOWNLOAD_DIR, Common.basename(info))
-                    Utils.tell_info("%s: [90%%] 开始下载: %s" % (ip, filename))
-                    if not SSHUtil.download_file(ssh, remote=info,local=filename):
-                        raise ReportError("下载失败，重试:%s" % __retry)
+                    filename = "{0}\\{1}".format(_local_dir, Common.basename(info))
+                    Utils.tell_info("{0} (90%) Downloading {1}".format(ip, filename))
+                    if not SSHUtil.download_file(ssh, remote=info, local=filename):
+                        raise ReportError("Download failed, retry:{0}".format(__retry))
                     callback(ip, 100, False)
-                    Utils.tell_info("%s: [100%%] 下载成功" % ip)
+                    Utils.tell_info("{0} (100%) Download success".format(ip))
                     break
-                Utils.tell_info("%s: [%s%%] %s" % (ip, _last_prog, info))
+                Utils.tell_info("{0} ({1}%) {2}".format(ip, _last_prog, info))
             except Exception as e:
                 __retry += 1
                 if __retry < Global.G_RETRY_TIMES:
                     continue
                 callback(ip, _last_prog + 1, 'Red')
-                Utils.tell_info("%s %s" % (ip, e), level='ERROR')
+                Utils.tell_info("{0} {1}".format(ip, e), level='ERROR')
                 break
 
     @classmethod
     def _get_print(cls, ssh, callback, ip, task, run_root, run_back):
         cmd = "{0} get_task_stdout {1}".format(cls._inner_caller, task)
         def get_print():
-            ret_info = SSHUtil.exec_info(ssh, cmd, run_root)[0]
-            Utils.tell_info("%s:[100%%] 执行结果：\n%s" % (ip, ret_info))
+            ret_info = cls._get_exec_info(ssh, cmd, run_root)
+            Utils.tell_info("{0} (100%) Task {1} result:\n{2}".format(ip, task, ret_info))
             if callback:
                 try:
                     callback(ret_info)
@@ -311,7 +328,7 @@ class PageHandler:
         if run_back:
             while True:
                 if cls._stop_task(task, ip):
-                    Utils.tell_info("%s 已停止循环读取" % ip)
+                    Utils.tell_info("{0} Stopped {1}".format(ip, task))
                     break
                 Common.sleep(2)
                 get_print()
@@ -325,7 +342,7 @@ class PageHandler:
             download，下载类型的脚本，回调函数为进度条
             showing，打印回显类型的脚本，回调函数为回显框
         """
-        task = shell.split('.')[0]
+        task = shell.split('.')[0].upper()
         if not cls._mutex(ip, task):
             return
 
@@ -349,9 +366,9 @@ class PageHandler:
     @classmethod
     def kill_shell(cls, ip, task, shell):
         ssh = cls._get_ssh(ip)
-        SSHUtil.exec_ret(ssh, "{0} kill_shell {1} {2}".format(cls._inner_caller, ip, shell), True)
+        SSHUtil.exec_ret(ssh, "{0} kill_shell {1}".format(cls._inner_caller, shell), True)
         cls._mutex(ip, task, False)
-        Utils.tell_info("%s 杀死任务%s和子进程成功" % (ip, task))
+        Utils.tell_info("{0} Task {1} kill success".format(ip, task))
 
     @classmethod
     def execute_download_start(cls, callback, ip_list, shell, param):
@@ -366,14 +383,14 @@ class PageHandler:
 
     @classmethod
     def execute_fast_cmd_start(cls, callback, ip_list, shell, text, run_root, run_back):
-        local_path = ".\\%s\\%s" % (Global.G_SHELL_DIR, shell)
-        remote_path = "%s/%s" % (Global.G_SERVER_DIR, shell)
+        local_path = ".\\{0}\\{1}".format(Global.G_SHELL_DIR, shell)
+        remote_path = "{0}/{1}".format(Global.G_SERVER_DIR, shell)
         Common.write_to_file(local_path, text)
         for ip in ip_list:
             ssh = cls._get_ssh(ip)
             ret, err = SSHUtil.upload_file(ssh, local_path, remote_path)
             if not ret:
-                Utils.tell_info("%s:[50%%] 上传脚本文件失败，执行命令失败！" % ip, level='ERROR')
+                Utils.tell_info("{0} (50%) Upload shell to execute failed !".format(ip), level='ERROR')
                 callback(ip, 50, 'Red')
                 continue
             cls.start_shell('showing', None, ip, shell, None, run_root, run_back)
@@ -381,7 +398,7 @@ class PageHandler:
 
     @classmethod
     def execute_fast_cmd_stop(cls, ip_list, shell):
-        task = shell.split('.')[0]
+        task = shell.split('.')[0].upper()
         for ip in ip_list:
             cls.kill_shell(ip, task, shell)
             # 暂停循环读取打印线程
@@ -389,12 +406,12 @@ class PageHandler:
 
     @classmethod
     def _fast_upload_impl(cls, ip, callback, local, tmp_upload, check_cmd, move_cmd):
-        Utils.tell_info("%s:[10%%] 开始上传%s" % (ip, local))
+        Utils.tell_info("{0} (10%) Upload {1} start".format(ip, local))
         cls._stop_task('fast_upload', ip, 'remove')
         ssh = cls._get_ssh(ip)
         ret, err = SSHUtil.exec_ret(ssh, check_cmd, True)
         if ret:
-            Utils.tell_info("%s:[20%%] 服务器目录不存在" % ip, level='ERROR')
+            Utils.tell_info("{0} (20%) Server Dir not exist !".format(ip), level='ERROR')
             callback(ip, 20, 'Red')
             return
         callback(ip, 20, False)
@@ -402,23 +419,23 @@ class PageHandler:
         if cls._stop_task('fast_upload', ip):
             return
         if not ret:
-            Utils.tell_info("%s:[70%%] 上传失败！" % ip, level='ERROR')
+            Utils.tell_info("{0} (70%) Upload failed ！".format(ip), level='ERROR')
             callback(ip, 70, 'Red')
             return
         callback(ip, 70, False)
         ret, err = SSHUtil.exec_ret(ssh, move_cmd, True)
         if ret:
-            Utils.tell_info("%s:[90%%] 移动至目标目录失败或修改属性失败" % ip, level='ERROR')
+            Utils.tell_info("{0} (90%) move to OR change attr failed !".format(ip), level='ERROR')
             callback(ip, 90, 'Red')
         callback(ip, 100, False)
-        Utils.tell_info("%s:[100%%] %s上传成功" % (ip, local))
+        Utils.tell_info("{0} (100%) Upload {1} success".format(ip, local))
 
     @classmethod
     def execute_fast_upload_start(cls, callback, ip_list, local, remote, chmod, chown):
         base_name = Common.basename(local)
-        upload_dir = "%s/UPLOAD" % Global.G_SERVER_DIR
-        tmp_upload = "%s/%s" % (upload_dir, base_name)
-        dest_path = "%s/%s" % (remote, base_name)
+        upload_dir = "{0}/UPLOAD".format(Global.G_SERVER_DIR)
+        tmp_upload = "{0}/{1}".format(upload_dir, base_name)
+        dest_path = "{0}/{1}".format(remote, base_name)
         check_cmd = "{0} upload_prev_check {1} {2}".format(cls._inner_caller, remote, upload_dir)
         move_cmd = "{0} move_file {1} {2} {3} {4}".format(cls._inner_caller, tmp_upload, dest_path, chmod, chown)
         for ip in ip_list:
@@ -427,49 +444,11 @@ class PageHandler:
 
     @classmethod
     def execute_fast_upload_stop(cls, ip_list):
-        task = 'fast_upload'
+        task = 'FAST_UPLOAD'
         for ip in ip_list:
             cls._stop_task(task, ip, 'append')
-            Utils.tell_info("%s: 停止%s成功" % (ip, task))
+            Utils.tell_info("{0} Task {1} stop success".format(ip, task))
 
     @classmethod
     def execute_showing_start(cls, callback, ip ,shell, param):
         cls.start_shell('showing', callback, ip, shell, param, True, False)
-
-
-    '''
-    @classmethod
-    def _exec_for_collect(cls, callback, ip_list, shell, param):
-        shell = "cd %s && ./%s" % (Global.G_SERVER_DIR, shell)
-        while True:
-            for ip in ip_list:
-                _info_dict = {}
-                ssh = cls._get_ssh(ip)
-                cmd = "%s '%s' '%s'" % (shell, ip, param)
-                try:
-                    lines = cls._get_exec_info(ssh, cmd).split('\n')
-                    for line in lines:
-                        k, v = line.split(':')
-                        _info_dict[k] = v
-                    callback((ip, _info_dict))
-                except Exception as e:
-                    Utils.tell_info('%s %s结果异常:%s' % (ip, shell, e),
-                                    level='ERROR')
-            sleep(10)
-    
-    @classmethod
-    def collect_state_start(cls, callback, ip_list, shell):
-        if cls._collect_state_flag:
-            return
-        cls._collect_state_flag = True
-        cls.start_shell('collect', callback, ip_list, shell, None)
-
-    @classmethod
-    def get_halog_start(cls, callback, ip, shell):
-        cls.start_shell('download', callback, ip, shell, None)
-
-    @classmethod
-    def get_binlog_start(cls, callback, ip, shell, param):
-        cls.start_shell('download', callback, ip, shell, param)
-    '''
-
