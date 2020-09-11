@@ -1,8 +1,7 @@
 #!/bin/bash
 source $(dirname $0)/common_function.sh
 
-IP=$1
-FILE_PATH=$2
+FILE_PATH=$1
 
 function download()
 {
@@ -13,7 +12,7 @@ function download()
 	
 	cd ${g_task_dir}
 	local file_name=$(basename ${FILE_PATH})
-	local pack_name=${IP}_${file_name}
+	local pack_name=${file_name}
 	if [ -f "${FILE_PATH}" ]
 	then
 		report_info "30" "Copying file..."
@@ -33,7 +32,7 @@ function download()
 function main()
 {
     init
-	download
+    download
 }
 
 main &>/dev/null
