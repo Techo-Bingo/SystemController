@@ -190,7 +190,7 @@ class ComboboxProgressTypePage(Pager):
         # TODO 支持多个单选框
         (text, opts), = self.options.items()
         tk.Label(opt_fm, text=text).grid(row=0, column=0, padx=20, pady=10)
-        combobox = ttk.Combobox(opt_fm, width=8)
+        combobox = ttk.Combobox(opt_fm, width=20)
         combobox['values'] = tuple(opts)
         combobox.current(0)
         combobox['state'] = 'readonly'
@@ -525,7 +525,7 @@ class PageCtrl(object):
             return
         self.current_text = page_text
         self.destroy_page()
-        print(page_type_list)
+        # print(page_type_list)
         page_type, page_options = page_type_list
         width, height = Caller.call(Global.EVT_PAGE_INTERFACE, 'PAGE_SIZE')
         pager_params = {'master': Caller.call(Global.EVT_PAGE_INTERFACE, 'PAGE_MASTER'),
