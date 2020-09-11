@@ -1,8 +1,6 @@
 #!/bin/bash
 source $(dirname $0)/common_function.sh
 
-IP=$1
-
 function get_memory()
 {
     local infos=$(free -m)
