@@ -38,7 +38,7 @@
 
             "HomePageOptions": ["HOME_PAGE", {}],
             "FastLogPageOptions": ["CHECKBOX_PROGRESS" , {
-                "日志类型": ["PLT进程日志", "MDC进程日志", "UDC进程日志", "系统相关日志"]
+                "日志类型": ["类型1日志", "类型2日志", "类型3日志", "类型4日志"]
             }],
             "MysqlBinlogPageOptions": ["COMBOBOX_PROGRESS", {
                 "采集时长": ["一天", "三天", "一周"]
