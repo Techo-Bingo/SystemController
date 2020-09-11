@@ -152,8 +152,8 @@ class Init:
 
     @classmethod
     def init(cls):
-        return all([cls.check_file(),
-                    cls.conf_parser()])
+        Logger.info(Global.G_LOGO)
+        return all([cls.check_file(), cls.conf_parser()])
 
 
 
