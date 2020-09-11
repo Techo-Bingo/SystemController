@@ -187,13 +187,8 @@ class TtkProgress(object):
                                     orient=tk.HORIZONTAL)
         self.prog["maximum"] = 100
         self.prog["value"] = 0
-        _lab = tk.Label(master,
-                        text=name,
-                        font=(Global.G_FONT, 9+size)
-                        ).grid(row=row, column=column)
-        self.val_lab = tk.Label(master,
-                                text='0%',
-                                font=(Global.G_FONT, 9+size))
+        tk.Label(master, text=name, font=(Global.G_FONT, 9+size)).grid(row=row, column=column)
+        self.val_lab = tk.Label(master, text='0%', font=(Global.G_FONT, 9+size))
         self.prog.grid(row=row, column=column+1, ipady=size)
         self.val_lab.grid(row=row, column=column+2)
 
@@ -220,13 +215,13 @@ class ProgressBar(object):
 
     def pack_frame(self, master, bg, row, column):
         self.canvas_bar = tk.Canvas(master, bg=bg, width=self.width, height=self.height)
-        self.canvas_shape = self.canvas_bar.create_rectangle(0, 0, 0, self.height, fill='Green')
+        self.canvas_shape = self.canvas_bar.create_rectangle(0, 0, 0, self.height, fill='LightSkyBlue')
         self.canvas_text = self.canvas_bar.create_text(self.width/2, self.height/2+2, text='0%')
         self.canvas_bar.grid(row=row, column=column)
 
     def update(self, percent, change_color=False):
         prog_len = int(self.width * percent / 100) + 1
-        color = 'Green'
+        color = 'LightSkyBlue'
         if isinstance(change_color, str):
             color = change_color
         elif change_color:
@@ -352,12 +347,11 @@ class InfoWindow(object):
         try:
             """ 级别转换成对应的颜色 """
             color = Global.G_INFOWIN_LEVEL_COLOR[level.upper()]
-        except KeyError as e:
+        except KeyError:
             color = Global.G_INFOWIN_LEVEL_COLOR['INFO']
-            # Logger.error(e)
 
         """ 信息中加入时间戳 """
-        info = "\n{} [{}]: {}".format(Common.get_time(), level.upper(), str(info))
+        info = "\n[{0}] {1}: {2}".format(level.upper(), Common.get_time(), str(info))
         self.infotext['stat'] = 'normal'
         self.infotext.insert('end', info)
         self.index += 1
@@ -451,7 +445,7 @@ class MyFrame(object):
     def pack_frame(self, master, width, height, title):
         head_height = 30
         head = tk.Frame(master, width=width, height=head_height)
-        label = tk.Label(head, text=title, height=1, font=(Global.G_FONT, 10),  bg='LightBlue')
+        label = tk.Label(head, text=title, height=1, font=(Global.G_FONT, 10, 'bold'),  bg='LightBlue')
         self.body = tk.Frame(master, width=width, height=height-head_height, bg='Snow')
         head.pack(fill='both')
         self.body.pack()
@@ -540,4 +534,5 @@ class TopAbout:
     def close(cls, event=None):
         cls._showing = False
         cls._toplevel.destroy()
+
 
