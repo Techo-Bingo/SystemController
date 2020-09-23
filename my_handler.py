@@ -155,6 +155,13 @@ class LoginHandler:
 
     @classmethod
     def _keep_ssh_alive(cls, args=None):
+        send_ips = []
+        def if_send(_ip):
+            if _ip not in send_ips:
+                send_ips.append(_ip)
+                return True
+            return False
+
         while True:
             Common.sleep(5)
             new_ip_ssh_instance = {}
@@ -162,17 +169,18 @@ class LoginHandler:
                 ret = SSHUtil.exec_ret(ssh, 'echo')[0]
                 if not ret:
                     continue
-                Logger.warn("(keepalive) ssh instance of %s is invalid, rebuild now" % ip)
+                if if_send(ip):
+                    Logger.warn("(keepalive) ssh instance of {0} is invalid, rebuild now".format(ip))
+                    Utils.tell_info("{0} is disconnected, Re-login now".format(ip))
                 user, userpwd, rootpwd = cls._cache_passwds[ip]
                 new_ssh = SSH(ip, user, userpwd, rootpwd)
-                ret = SSHUtil.user_login(new_ssh, user)[0]
-                if not ret:
-                    continue
-                ret = SSHUtil.user_login(new_ssh, 'root')[0]
-                if not ret:
+                ret1 = SSHUtil.user_login(new_ssh, user)[0]
+                ret2 = SSHUtil.user_login(new_ssh, 'root')[0]
+                if not ret1 or not ret2:
                     continue
                 new_ip_ssh_instance[ip] = new_ssh
-                Logger.info("(keepalive) rebuild ssh instance of %s success" % ip)
+                Logger.info("(keepalive) rebuild ssh instance of {0} success".format(ip))
+                Utils.tell_info("{0} Re-login success".format(ip))
             # 刷新ssh实例
             for ip, ssh in new_ip_ssh_instance.items():
                 cls._logon_ssh_inst('ADD', {ip: ssh})
