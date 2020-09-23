@@ -156,11 +156,10 @@ class LoginHandler:
     @classmethod
     def _keep_ssh_alive(cls, args=None):
         while True:
-            Common.sleep(60)
+            Common.sleep(5)
             new_ip_ssh_instance = {}
             for ip, ssh in cls._logon_ssh_inst('QUE', None).items():
-                ret, err = SSHUtil.exec_ret(ssh, 'echo')
-                Logger.debug("(keepalive) ip:%s ret:%s err:%s" % (ip, ret, err))
+                ret = SSHUtil.exec_ret(ssh, 'echo')[0]
                 if not ret:
                     continue
                 Logger.warn("(keepalive) ssh instance of %s is invalid, rebuild now" % ip)
@@ -176,7 +175,7 @@ class LoginHandler:
                 Logger.info("(keepalive) rebuild ssh instance of %s success" % ip)
             # 刷新ssh实例
             for ip, ssh in new_ip_ssh_instance.items():
-                cls._logon_ssh_inst('ADD', {ip, ssh})
+                cls._logon_ssh_inst('ADD', {ip: ssh})
 
     @classmethod
     def prepare_env(cls):

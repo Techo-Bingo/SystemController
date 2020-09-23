@@ -573,7 +573,12 @@ class MyScreenshot(object):
             if not self.sel:
                 return
             deleteLastDraw()
-            self.last = self.canvas.create_rectangle(self.X.get(), self.Y.get(), event.x, event.y, outline='Red')
+            self.last = self.canvas.create_rectangle(self.X.get(),
+                                                     self.Y.get(),
+                                                     event.x,
+                                                     event.y,
+                                                     width = 2,
+                                                     outline='Red')
         self.canvas.bind('<B1-Motion>', onLeftButtonMove)
         # 获取鼠标左键抬起的位置，保存区域截图
         def onLeftButtonUp(event):
