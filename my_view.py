@@ -5,6 +5,7 @@ View板块;
 """
 import traceback
 import tkinter as tk
+from tkinter import ttk
 import my_global as Global
 from my_logger import Logger
 from my_base import GuiBase
@@ -189,7 +190,6 @@ class GuiMain(GuiBase):
     def __init__(self, master, menubar, toolbar):
         self.master = master
         self.tree_window = None
-        self.oper_window = None
         self.help_window = None
         self.treeview = None
         self.info_fm = None
@@ -231,31 +231,37 @@ class GuiMain(GuiBase):
         MyToolBar(toolbar, images, self.press_callback)
 
     def init_frame(self):
+        paned_win_h = ttk.Panedwindow(self.master, orient=tk.HORIZONTAL)
         win_style = {'master': self.master,
                      'height': Global.G_MAIN_WIN_HEIGHT}
-        self.tree_window = tk.Frame(width=Global.G_MAIN_TREE_WIDTH, **win_style)
-        self.oper_window = tk.Frame(width=Global.G_MAIN_OPER_WIDTH, **win_style)
-        fm_style = {'master': self.oper_window,
+        tree_window = tk.Frame(width=Global.G_MAIN_TREE_WIDTH, **win_style)
+        oper_window = tk.Frame(width=Global.G_MAIN_OPER_WIDTH, **win_style)
+        tree_window.pack(fill='both', side='left')
+        oper_window.pack(fill='both')
+        paned_win_h.add(tree_window, weight=1)
+        paned_win_h.add(oper_window, weight=3)
+        paned_win_h.pack()
+        self.tree_window = tree_window
+
+        paned_win_v = ttk.Panedwindow(oper_window, orient=tk.VERTICAL)
+        fm_style = {'master': oper_window,
                     'width': Global.G_MAIN_OPER_WIDTH,
                     'background': Global.G_MAIN_OPER_BG}
         self.oper_fm = tk.Frame(height=Global.G_MAIN_OPER_HEIGHT, **fm_style)
         self.info_fm = tk.Frame(height=Global.G_MAIN_INFO_HEIGHT, **fm_style)
+        self.oper_fm.pack(fill='both')
+        self.info_fm.pack(fill='both')
+        paned_win_v.add(self.oper_fm, weight=2)
+        paned_win_v.add(self.info_fm, weight=1)
+        paned_win_v.pack()
 
     def pack_frame(self):
-        self.tree_window.pack(fill='both', side='left')
-        self.oper_window.pack(fill='both', side='left')
-        self.tree_window.pack_propagate(0)
-        self.oper_window.pack_propagate(0)
-        self.oper_fm.pack(fill='both', padx=5)
-        self.info_fm.pack(fill='both')
-        self.oper_fm.pack_propagate(0)
-        self.info_fm.pack_propagate(0)
+        self.pack_subframe()
         # 先设置最大窗口的中心布局，后进行初始窗体大小设置
         ViewUtil.set_widget_size(width=Global.G_MAIN_WIN_WIDTH, height=Global.G_MAIN_WIN_HEIGHT)
         ViewUtil.set_widget_size(width=Global.G_MAIN_TREE_WIDTH+Global.G_MAIN_OPER_WIDTH,
                                  height=Global.G_MAIN_WIN_HEIGHT,
                                  center=False)
-        self.pack_subframe()
 
     def pack_subframe(self):
         try:
