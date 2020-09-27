@@ -236,7 +236,7 @@ class GuiMain(GuiBase):
                      'height': Global.G_MAIN_WIN_HEIGHT}
         tree_window = tk.Frame(width=Global.G_MAIN_TREE_WIDTH, **win_style)
         oper_window = tk.Frame(width=Global.G_MAIN_OPER_WIDTH, **win_style)
-        tree_window.pack(fill='both', side='left')
+        tree_window.pack(fill='both')
         oper_window.pack(fill='both')
         paned_win_h.add(tree_window, weight=1)
         paned_win_h.add(oper_window, weight=3)
