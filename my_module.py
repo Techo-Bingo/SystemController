@@ -335,7 +335,7 @@ class InfoWindow(object):
                                                   relief='ridge',
                                                   # fg='Blue',
                                                   bg=Global.G_DEFAULT_COLOR,
-                                                  height=20)
+                                                  height=40)
         self.infotext.insert(tk.END, Global.G_WELCOME_INFO)
         self.infotext['stat'] = 'disabled'
         self.infotext.pack(fill='x')
