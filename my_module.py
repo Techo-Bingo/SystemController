@@ -335,11 +335,10 @@ class InfoWindow(object):
                                                   relief='ridge',
                                                   # fg='Blue',
                                                   bg=Global.G_DEFAULT_COLOR,
-                                                  height=24,
-                                                  width=114)
+                                                  height=20)
         self.infotext.insert(tk.END, Global.G_WELCOME_INFO)
         self.infotext['stat'] = 'disabled'
-        self.infotext.pack()
+        self.infotext.pack(fill='x')
         # 设置infowin可以接受事件的变量为True
         ViewUtil.set_infowin_flag()
 
