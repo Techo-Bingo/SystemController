@@ -543,7 +543,8 @@ class PageClass(Pager):
             params = one['WidgetParams']
             values = one['WidgetValues']
             TopWidth, TopHeight, WidgetWidth, WidgetHeight = params['Size']
-            sub_fm = MyFrame(edt_fm, TopWidth, TopHeight, '\n'.join(tips)).master()
+            head = True if tips else False
+            sub_fm = MyFrame(edt_fm, TopWidth, TopHeight, '\n'.join(tips), head).master()
             if widget == 'Label':
                 tk.Label(sub_fm, text='\n'.join(values), width=WidgetWidth, height=WidgetHeight).pack()
             elif widget == 'Combobox':

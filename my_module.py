@@ -441,20 +441,21 @@ class MyButton(object):
 
 class MyFrame(object):
     """ 封装Frame，带有头部的个性化Frame """
-    def __init__(self, master, width, height, title):
+    def __init__(self, master, width, height, title, head=True):
         self.body = None
-        self.pack_frame(master, width, height, title)
+        self.pack_frame(master, width, height, title, head)
 
-    def pack_frame(self, master, width, height, title):
-        head_height = 25
+    def pack_frame(self, master, width, height, title, head):
+        head_height = 25 if head else 0
         _master = tk.LabelFrame(master, width=width, height=height+head_height, bg='Snow')
         _master.pack()
         _master.pack_propagate(0)
-        head = tk.Frame(_master, height=head_height)
-        label = tk.Label(head, text=title, height=1, font=(Global.G_FONT, 10, 'bold'),  bg='LightBlue')
+        if head:
+            head_fm = tk.Frame(_master, height=head_height)
+            label = tk.Label(head_fm, text=title, height=1, font=(Global.G_FONT, 10, 'bold'),  bg='LightBlue')
+            head_fm.pack(fill='x')
+            label.pack(fill='both')
         self.body = tk.Frame(_master, height=height, bg='Snow')
-        head.pack(fill='x')
-        label.pack(fill='both', ipady=2)
         self.body.pack(fill='both')
 
     def master(self):

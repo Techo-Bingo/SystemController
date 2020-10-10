@@ -133,7 +133,7 @@
                             "Page": {
                                 "Widgets": "CpuStatePageWidgets",
                                 "Shell": "get_system_cpu_state.sh",
-                                "PrintIn": "INNER",
+                                "PrintIn": "Tips",
                                 "IPChoose": "False"
                             },
                             "SubTree": []
@@ -176,7 +176,7 @@
                         "Widgets": "FastCommandPageWidgets",
                         "Shell": "fast_commands.sh",
                         "PrintIn": "Window",
-                        "IPChoose": "False"
+                        "IPChoose": "True"
                     },
                     "SubTree": []
                 },
@@ -187,7 +187,7 @@
                         "Widgets": "FastDownloadPageWidgets",
                         "Shell": "fast_download.sh",
                         "PrintIn": "Tips",
-                        "IPChoose": "False"
+                        "IPChoose": "True"
                     },
                     "SubTree": []
                 },
@@ -197,8 +197,8 @@
                     "Page": {
                         "Widgets": "FastUploadPageWidgets",
                         "Shell": "NA",
-                        "PrintIn": "INNER",
-                        "IPChoose": "False"
+                        "PrintIn": "Tips",
+                        "IPChoose": "True"
                     },
                     "SubTree": []
                 }
@@ -218,7 +218,7 @@
             "FastLogPageWidgets": [
                 {
                     "WidgetType": "Checkbox",
-                    "WidgetTips": [],
+                    "WidgetTips": ["日志类型"],
                     "WidgetValues": ["类型1日志", "类型2日志", "类型3日志", "类型4日志"],
 					"WidgetParams": {"Size": [600, 200, 40, 1]}
                 }
@@ -298,7 +298,7 @@
                     "WidgetType": "Checkbox",
                     "WidgetTips": [],
                     "WidgetValues": ["root执行", "循环读取(2s)"],
-                    "WidgetParams": {"Size": [600, 100, 20, 1]}
+                    "WidgetParams": {"Size": [600, 40, 40, 1]}
                 }
             ],
             "FastDownloadPageWidgets": [
