@@ -259,7 +259,7 @@ class GuiMain(GuiBase):
         self.pack_subframe()
         # 先设置最大窗口的中心布局，后进行初始窗体大小设置
         ViewUtil.set_widget_size(width=Global.G_MAIN_WIN_WIDTH, height=Global.G_MAIN_WIN_HEIGHT)
-        ViewUtil.set_widget_size(width=Global.G_MAIN_TREE_WIDTH+Global.G_MAIN_OPER_WIDTH,
+        ViewUtil.set_widget_size(width=Global.G_MAIN_TREE_WIDTH + Global.G_MAIN_OPER_WIDTH,
                                  height=Global.G_MAIN_WIN_HEIGHT,
                                  center=False)
 
@@ -267,7 +267,8 @@ class GuiMain(GuiBase):
         try:
             self.treeview = MyTreeView(self.tree_window, ViewUtil.get_treeview_data(), self.switch_page)
         except Exception as e:
-            WinMsg.error("界面数据异常！ %s" % str(e))
+            WinMsg.error("界面数据异常： %s" % str(e))
+            Logger.error(traceback.format_exc())
             return
         # 初始化信息提示栏
         InfoWindow(self.info_fm)
@@ -294,7 +295,7 @@ class GuiMain(GuiBase):
         try:
             self.pager.switch_page(args_tuple)
         except Exception as e:
-            WinMsg.error("界面异常：%s" % e)
+            WinMsg.error("切换界面异常：%s" % e)
             Logger.error(traceback.format_exc())
             return
 

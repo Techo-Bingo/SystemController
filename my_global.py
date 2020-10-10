@@ -73,8 +73,9 @@ G_INFOWIN_LEVEL_COLOR = {'INFO': 'Blue',  # 'DarkGreen',
 G_TIG_FG_COLOR = {'DEFAULT': 'Snow',
                   'SUCCESS': 'SeaGreen1',
                   'LOGING': 'DarkGrey',
-                  'FAILED': 'OrangeRed'
-                  }
+                  'FAILED': 'OrangeRed'}
+# 支持的模板控件
+G_SUPPORTED_WIDGETS = ['Label', 'Checkbox', 'Combobox', 'Entry', 'Text', 'Button']
 # 运行环境相关定义
 G_LOG_DIR = '.\\log'
 G_CONF_DIR = '.\\conf'

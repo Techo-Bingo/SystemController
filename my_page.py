@@ -511,6 +511,102 @@ class FastUploadFilePage(Pager):
             self.progress[ip].update(value, color)
 
 
+class PageClass(Pager):
+    def __init__(self, master, width, height, ip_list, shell, print, ip_choose, widgets):
+        self.master = master
+        self.width = width
+        self.height = height
+        self.shell = shell
+        self.ip_list = ip_list
+        self.print = print
+        self.ip_choose = ip_choose
+        self.widgets = widgets
+        self.comboboxs = []
+        self.checkboxs = []
+        self.entrys = []
+        self.texts = []
+
+    def pack_frame(self):
+        var_list = []
+        edt_fm = tk.LabelFrame(self.frame, width=self.width)
+        edt_fm.pack(fill='x', padx=10, pady=10, ipady=10)
+        if self.ip_choose:
+            opr_fm = tk.Frame(self.frame, width=self.width)
+            btn_fm = tk.Frame(opr_fm, width=self.width / 3, height=self.height / 5 * 2)
+            ips_fm = tk.LabelFrame(opr_fm, width=self.width / 3 * 2, height=self.height / 5 * 2)
+            opr_fm.pack(fill='x', padx=10, pady=10)
+            ips_fm.pack(fill='both', side='left')
+            btn_fm.pack(fill='x', side='left', padx=40)
+        for one in self.widgets:
+            widget = one['WidgetType']
+            tips = one['WidgetTips']
+            params = one['WidgetParams']
+            values = one['WidgetValues']
+            TopWidth, TopHeight, WidgetWidth, WidgetHeight = params['Size']
+            sub_fm = MyFrame(edt_fm, TopWidth, TopHeight, '\n'.join(tips)).master()
+            if widget == 'Label':
+                tk.Label(sub_fm, text='\n'.join(values), width=WidgetWidth, height=WidgetHeight).pack()
+            elif widget == 'Combobox':
+                combobox = ttk.Combobox(sub_fm, width=WidgetWidth)  #  , height=WidgetHeight)
+                combobox['values'] = tuple(values)
+                combobox.current(0)
+                combobox['state'] = 'readonly'
+                combobox.pack()  # side='left')
+                self.comboboxs.append(combobox)
+            elif widget == 'Checkbox':
+                max_column, index, vars, row, column = 2, 0, [], 0, 0
+                for opt in values:
+                    column = index - (row * max_column)
+                    index += 1
+                    if column == max_column:
+                        row += 1
+                        column = 0
+                    vars.append(tk.IntVar())
+                    tk.Checkbutton(sub_fm,
+                                   text=opt,
+                                   anchor='w',
+                                   width=WidgetWidth,
+                                   height=WidgetHeight,
+                                   variable=vars[-1]
+                                   ).grid(row=row, column=column)
+                self.checkboxs.append(vars)
+            elif widget == 'Entry':
+                var_list.append(tk.StringVar())
+                entry = ttk.Entry(sub_fm, textvariable=var_list[-1], width=WidgetWidth)
+                entry.pack()
+                if values:
+                    var_list[-1].set('\n'.join(values))
+                self.entrys.append(entry)
+            elif widget == 'Text':
+                text = scrolledtext.ScrolledText(sub_fm,
+                                                 font=(Global.G_FONT, 10),
+                                                 bd=2,
+                                                 relief='ridge',
+                                                 bg='Snow',
+                                                 height=WidgetHeight,
+                                                 width=WidgetWidth)
+                text.pack()
+                self.texts.append(text)
+            elif widget == 'Button':
+                interface, types = values[:2]
+                if interface == 'ChooseFile':
+                    def choose_file(entry_var):
+                        local_path = filedialog.askopenfilename()
+                        entry_var.set(local_path)
+                    entry_var = tk.StringVar()
+                    entry = ttk.Entry(sub_fm, width=60, textvariable=entry_var, state='disabled')
+                    entry.pack(side='left')
+                    btn_style = ttk.Style()
+                    btn_style.configure("F.TButton", font=(Global.G_FONT, 8))
+                    ttk.Button(sub_fm,
+                               text="...",
+                               width=3,
+                               style="F.TButton",
+                               command=lambda x=entry_var: choose_file(x)
+                               ).pack(side='left')
+                    self.entrys.append(entry)
+
+
 class PageCtrl(object):
     """ 页面切换控制类 """
 
@@ -520,20 +616,37 @@ class PageCtrl(object):
         Bonder('__PageCtrl__').bond(Global.EVT_CLOSE_GUI, PlotMaker.close)
 
     def switch_page(self, args_tuple):
-        page_text, page_type_list, show_type, shell = args_tuple
-        if self.current_text == page_text:
+        text, widgets, shell, print, ip_choose = args_tuple
+        if self.current_text == text:
             return
-        self.current_text = page_text
+        self.current_text = text
         self.destroy_page()
-        # print(page_type_list)
-        page_type, page_options = page_type_list
+        ip_choose = True if ip_choose == 'True' else False
+        class_name, widget_types = 'PageClass', []
+        for one in widgets:
+            widget = one['WidgetType']
+            if widget == 'Self':
+                widget_types.append(1)
+                class_name = one['WidgetValues'][0]
+            elif widget in Global.G_SUPPORTED_WIDGETS:
+                widget_types.append(0)
+            else:
+                raise Exception("Not support widget of {}".format(widget))
+        if len(set(widget_types)) != 1:
+            raise Exception("Self widget cannot coexist with Template widget")
         width, height = Caller.call(Global.EVT_PAGE_INTERFACE, 'PAGE_SIZE')
         pager_params = {'master': Caller.call(Global.EVT_PAGE_INTERFACE, 'PAGE_MASTER'),
                         'width': width,
                         'height': height,
                         'ip_list': ViewUtil.get_ssh_ip_list(),
                         'shell': shell,
-                        'options': page_options}
+                        'print': print,
+                        'ip_choose': ip_choose,
+                        'widgets': widgets}
+        self.current_page = eval(class_name)(**pager_params)
+        self.current_page.pack()
+
+        '''
         if page_type == 'HOME_PAGE':
             self.current_page = HomePage(**pager_params)
         elif page_type == 'TEXT_PROGRESS':
@@ -552,6 +665,7 @@ class PageCtrl(object):
         else:
             raise Exception("未知界面类型： %s" % page_type)
         self.current_page.pack()
+        '''
 
     def destroy_page(self):
         try:

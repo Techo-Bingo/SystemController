@@ -262,26 +262,29 @@ class MyTreeView(object):
         self.treelist = treelist
         self.callback = callback
         self.treeview = None
-        self.options = None
+        self.widgets = None
         self.sub_id = []
         self.init_frame()
 
     def _add_subtree(self, root, id=''):
-        if '__ThisIsPageOptions__' in root:
-            self.options = root
+        if '__ThisIsPageWidgets__' in root:
+            self.widgets = root
             return
-        page_text = ' ' + root['PageText']
-        page_type = root['PageType']
-        show_type = root['ShowType']
-        shell = root['Shell']
-        img_key = root['Image']
+        text = ' ' + root['Text']
+        img = root['Image']
+        pages = root['Page']
         subtree = root['SubTree']
-        if page_type == 'NA':
+
+        if pages == 'NA':
             tag, values = 'tree.root', ""
         else:
-            tag, values = 'tree.sub', [page_text, page_type, show_type, shell]
-        img = ViewUtil.get_image(img_key)
-        sub_id = self.treeview.insert(id, 'end', text=page_text, image=img, tags=(tag, 'simple'), values=values)
+            widgets = pages['Widgets']
+            print = pages['PrintIn']
+            shell = pages['Shell']
+            showip = pages['IPChoose']
+            tag, values = 'tree.sub', [text, widgets, shell, print, showip]
+        image = ViewUtil.get_image(img)
+        sub_id = self.treeview.insert(id, 'end', text=text, image=image, tags=(tag, 'simple'), values=values)
         self.sub_id.append(sub_id)
         if isinstance(subtree, list) and len(subtree) != 0:
             [self._add_subtree(sub, sub_id) for sub in subtree]
@@ -306,9 +309,9 @@ class MyTreeView(object):
         args_tuple = self.treeview.item(self.treeview.selection()[-1], "values")
         if len(args_tuple) == 0:
             return
-        page_text, page_type, show_type, shell = args_tuple
+        text, widgets, print, shell, showip = args_tuple
         try:
-            back_tuple = (page_text, self.options[page_type], show_type, shell)
+            back_tuple = (text, self.widgets[widgets], shell, print, showip)
         except Exception as e:
             ToolTips.inner_error(e)
         else:
@@ -443,15 +446,16 @@ class MyFrame(object):
         self.pack_frame(master, width, height, title)
 
     def pack_frame(self, master, width, height, title):
-        head_height = 30
-        head = tk.Frame(master, width=width, height=head_height)
+        head_height = 25
+        _master = tk.LabelFrame(master, width=width, height=height+head_height, bg='Snow')
+        _master.pack()
+        _master.pack_propagate(0)
+        head = tk.Frame(_master, height=head_height)
         label = tk.Label(head, text=title, height=1, font=(Global.G_FONT, 10, 'bold'),  bg='LightBlue')
-        self.body = tk.Frame(master, width=width, height=height-head_height, bg='Snow')
-        head.pack(fill='both')
-        self.body.pack()
-        # head.pack_propagate(0)
-        self.body.pack_propagate(0)
+        self.body = tk.Frame(_master, height=height, bg='Snow')
+        head.pack(fill='x')
         label.pack(fill='both', ipady=2)
+        self.body.pack(fill='both')
 
     def master(self):
         return self.body
@@ -482,7 +486,8 @@ class TopProgress:
 
     @classmethod
     def update(cls, info):
-        cls._infolab['text'] = info
+        if cls._infolab:
+            cls._infolab['text'] = info
 
     @classmethod
     def destroy(cls, msg=None):

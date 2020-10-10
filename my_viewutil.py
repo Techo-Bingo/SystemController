@@ -85,6 +85,20 @@ class ViewUtil:
     @classmethod
     def set_screensize(cls, size_tuple):
         ViewModel.cache('SCREEN_SIZE_LIST', type='ADD', data=size_tuple)
+        # 适配几款主流的显示屏大小
+        width, height = size_tuple
+        if width >= 1600:
+            Global.G_MAIN_WIN_WIDTH = 1500
+        elif 1360 <= width < 1600:
+            Global.G_MAIN_WIN_WIDTH = 1200
+        elif 1000 <= width < 1360:
+            Global.G_MAIN_WIN_WIDTH = 1000
+        if height >= 1000:
+            Global.G_MAIN_WIN_HEIGHT = 900
+        elif 760 <= height < 1000:
+            Global.G_MAIN_WIN_HEIGHT = 700
+        elif 600 <= height < 760:
+            Global.G_MAIN_WIN_HEIGHT = 600
 
     @classmethod
     def get_screensize(cls):

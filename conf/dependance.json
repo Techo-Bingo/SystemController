@@ -34,106 +34,130 @@
 
     "Tree": [
         {
-            "PageText": "服务器概要",
-            "Widgets": "HomePageWidgets",
-            "ShowType": "INNER",
-            "Shell": "home_page.sh",
+            "Text": "服务器概要",
             "Image": "TV_HOME",
+            "Page": {
+                "Widgets": "HomePageWidgets",
+                "Shell": "home_page.sh",
+                "PrintIn": "Tips",
+                "IPChoose": "False"
+            },
             "SubTree": []
         },
         {
-            "PageText": "操作维护",
-            "Widgets": "NA",
-            "ShowType": "NA",
-            "Shell": "NA",
+            "Text": "操作维护",
             "Image": "TV_OAM",
+            "Page": "NA",
             "SubTree": [
                 {
-                    "PageText": "快速日志采集",
-                    "Widgets": "FastLogPageWidgets",
-                    "ShowType": "INNER",
-                    "Shell": "collect_fast_logs.sh",
+                    "Text": "快速日志采集",
                     "Image": "TV_FAST_LOG",
+                    "Page": {
+                        "Widgets": "FastLogPageWidgets",
+                        "Shell": "collect_fast_logs.sh",
+                        "PrintIn": "INNER",
+                        "IPChoose": "True"
+                    },
                     "SubTree": []
                 },
                 {
-                    "PageText": "MySQL BinLog采集",
-                    "Widgets": "MysqlBinlogPageWidgets",
-                    "ShowType": "INNER",
-                    "Shell": "collect_binlog.sh",
+                    "Text": "MySQL二进制日志采集",
                     "Image": "TV_FAST_LOG",
+                    "Page": {
+                        "Widgets": "MysqlBinlogPageWidgets",
+                        "Shell": "collect_binlog.sh",
+                        "PrintIn": "Tips",
+                        "IPChoose": "True"
+                    },
                     "SubTree": []
                 },
                 {
-                    "PageText": "定时任务管理",
-                    "Widgets": "CronPageWidgets",
-                    "ShowType": "INNER",
-                    "Shell": "NA",
+                    "Text": "定时任务管理",
                     "Image": "TV_OAM",
+                    "Page": {
+                        "Widgets": "CronPageWidgets",
+                        "Shell": "NA",
+                        "PrintIn": "Tips",
+                        "IPChoose": "False"
+                    },
                     "SubTree": []
                 },
                 {
-                    "PageText": "时区夏令时配置",
-                    "Widgets": "TimezonePageWidgets",
-                    "ShowType": "INNER",
-                    "Shell": "timezone_operate.sh",
+                    "Text": "时区夏令时配置",
                     "Image": "TV_TIMEZONE",
+                    "Page": {
+                        "Widgets": "TimezonePageWidgets",
+                        "Shell": "timezone_operate.sh",
+                        "PrintIn": "Tips",
+                        "IPChoose": "True"
+                    },
                     "SubTree": []
                 }
             ]
         },
         {
-            "PageText": "状态巡检",
-            "Widgets": "NA",
-            "ShowType": "NA",
-            "Shell": "NA",
+            "Text": "状态巡检",
             "Image": "TV_STATE",
+            "Page": "NA",
             "SubTree": [
                 {
-                    "PageText": "进程状态",
-                    "Widgets": "ProcessStatePageWidgets",
-                    "ShowType": "INNER",
-                    "Shell": "get_process_state.sh",
+                    "Text": "进程状态",
                     "Image": "TV_PROC_STATE",
+                    "Page": {
+                        "Widgets": "ProcessStatePageWidgets",
+                        "Shell": "get_process_state.sh",
+                        "PrintIn": "Tips",
+                        "IPChoose": "False"
+                    },
                     "SubTree": []
                 },
                 {
-                    "PageText": "服务器状态",
-                    "Widgets": "NA",
-                    "ShowType": "NA",
-                    "Shell": "NA",
+                    "Text": "服务器状态",
                     "Image": "TV_SYS_STATE",
+                    "Page": "NA",
                     "SubTree": [
                         {
-                            "PageText": "内存状态",
-                            "Widgets": "MemoryStatePageWidgets",
-                            "ShowType": "INNER",
-                            "Shell": "get_system_memory_state.sh",
+                            "Text": "内存状态",
                             "Image": "TV_MEM_STATE",
+                            "Page": {
+                                "Widgets": "MemoryStatePageWidgets",
+                                "Shell": "get_system_memory_state.sh",
+                                "PrintIn": "Tips",
+                                "IPChoose": "False"
+                            },
                             "SubTree": []
                         },
                         {
-                            "PageText": "CPU状态",
-                            "Widgets": "CpuStatePageWidgets",
-                            "ShowType": "INNER",
-                            "Shell": "get_system_cpu_state.sh",
+                            "Text": "CPU状态",
                             "Image": "TV_CPU_STATE",
+                            "Page": {
+                                "Widgets": "CpuStatePageWidgets",
+                                "Shell": "get_system_cpu_state.sh",
+                                "PrintIn": "INNER",
+                                "IPChoose": "False"
+                            },
                             "SubTree": []
                         },
                         {
-                            "PageText": "IO状态",
-                            "Widgets": "IOStatePageWidgets",
-                            "ShowType": "INNER",
-                            "Shell": "get_system_io_state.sh",
+                            "Text": "IO状态",
                             "Image": "TV_IO_STATE",
+                            "Page": {
+                                "Widgets": "IOStatePageWidgets",
+                                "Shell": "get_system_io_state.sh",
+                                "PrintIn": "Tips",
+                                "IPChoose": "False"
+                            },
                             "SubTree": []
                         },
                         {
-                            "PageText": "磁盘状态",
-                            "PageType": "DiskStatePageWidgets",
-                            "ShowType": "INNER",
-                            "Shell": "get_system_disk_state,sh",
+                            "Text": "磁盘状态",
                             "Image": "TV_DISK_STATE",
+                            "Page": {
+                                "Widgets": "DiskStatePageWidgets",
+                                "Shell": "get_system_disk_state,sh",
+                                "PrintIn": "Tips",
+                                "IPChoose": "False"
+                            },
                             "SubTree": []
                         }
                     ]
@@ -141,34 +165,41 @@
             ]
         },
         {
-            "PageText": "快速执行",
-            "Widgets": "NA",
-            "ShowType": "NA",
-            "Shell": "NA",
+            "Text": "快速执行",
             "Image": "TV_EXEC",
+            "Page": "NA",
             "SubTree": [
                 {
-                    "PageText": "运行命令",
-                    "Widgets": "FastCommandPageWidgets",
-                    "ShowType": "TOP",
-                    "Shell": "fast_commands.sh",
+                    "Text": "运行命令",
                     "Image": "TV_RUN_CMD",
+                    "Page": {
+                        "Widgets": "FastCommandPageWidgets",
+                        "Shell": "fast_commands.sh",
+                        "PrintIn": "Window",
+                        "IPChoose": "False"
+                    },
                     "SubTree": []
                 },
                 {
-                    "PageText": "下载文件",
-                    "Widgets": "FastDownloadPageWidgets",
-                    "ShowType": "INNER",
-                    "Shell": "fast_download.sh",
+                    "Text": "下载文件",
                     "Image": "TV_DOWNLOAD",
+                    "Page": {
+                        "Widgets": "FastDownloadPageWidgets",
+                        "Shell": "fast_download.sh",
+                        "PrintIn": "Tips",
+                        "IPChoose": "False"
+                    },
                     "SubTree": []
                 },
                 {
-                    "PageText": "上传文件",
-                    "Widgets": "FastUploadPageWidgets",
-                    "ShowType": "INNER",
-                    "Shell": "NA",
+                    "Text": "上传文件",
                     "Image": "TV_UPLOAD",
+                    "Page": {
+                        "Widgets": "FastUploadPageWidgets",
+                        "Shell": "NA",
+                        "PrintIn": "INNER",
+                        "IPChoose": "False"
+                    },
                     "SubTree": []
                 }
             ]
@@ -178,154 +209,136 @@
 
             "HomePageWidgets": [
                 {
-                    "Type": "显示框",
-                    "Widget": "Label",
-                    "TipsText": "NA",
-                    "Size": [0, 0],
-                    "Values": "NA"
+                    "WidgetType": "Label",
+                    "WidgetTips": [],
+					"WidgetValues": [],
+					"WidgetParams": {"Size": [600, 300, 600, 300]}
                 }
             ],
             "FastLogPageWidgets": [
                 {
-                    "Type": "复选框",
-                    "Widget": "Checkbox",
-                    "TipsText": "NA",
-                    "Size": [0, 0],
-                    "Values": ["类型1日志", "类型2日志", "类型3日志", "类型4日志"]
+                    "WidgetType": "Checkbox",
+                    "WidgetTips": [],
+                    "WidgetValues": ["类型1日志", "类型2日志", "类型3日志", "类型4日志"],
+					"WidgetParams": {"Size": [600, 200, 40, 1]}
                 }
             ],
             "MysqlBinlogPageWidgets": [
                 {
-                    "Type": "单选框",
-                    "Widget": "Combobox",
-                    "TipsText": "采集时长",
-                    "Size": [0, 0],
-                    "Values": ["一天", "三天", "一周"]
+                    "WidgetType": "Combobox",
+                    "WidgetTips": ["采集时长"],
+                    "WidgetValues": ["一天", "三天", "一周"],
+                    "WidgetParams": {"Size": [400, 120, 20, 1]}
                 }
             ],
             "TimezonePageWidgets": [
                 {
-                    "Type": "自定义",
-                    "Widget": "Self",
-                    "TipsText": "NA",
-                    "Size": [0, 0],
-                    "Values": ["TimezonePage"]
+                    "WidgetType": "Self",
+                    "WidgetTips": [],
+                    "WidgetValues": ["TimezonePage"],
+                    "WidgetParams": {}
                 }
             ],
             "CronPageWidgets": [
                 {
-                    "Type": "显示框",
-                    "Widget": "Label",
-                    "TipsText": "NA",
-                    "Size": [0, 0],
-                    "InnerValue": "NA"
+                    "WidgetType": "Label",
+                    "WidgetTips": [],
+                    "WidgetValues": [],
+                    "WidgetParams": {"Size": [600, 300, 600, 300]}
                 }
             ],
             "ProcessStatePageWidgets": [
                 {
-                    "Type": "显示框",
-                    "Widget": "Label",
-                    "TipsText": "NA",
-                    "Size": [0, 0],
-                    "Values": "NA"
+                    "WidgetType": "Label",
+                    "WidgetTips": [],
+                    "WidgetValues": [],
+                    "WidgetParams": {"Size": [600, 300, 600, 300]}
                 }
             ],
             "MemoryStatePageWidgets": [
                 {
-                    "Type": "显示框",
-                    "Widget": "Label",
-                    "TipsText": "NA",
-                    "Size": [0, 0],
-                    "Values": "NA"
+                    "WidgetType": "Label",
+                    "WidgetTips": [],
+                    "WidgetValues": [],
+                    "WidgetParams": {"Size": [600, 300, 600, 300]}
                 }
             ],
             "CpuStatePageWidgets": [
                 {
-                    "Type": "显示框",
-                    "Widget": "Label",
-                    "TipsText": "NA",
-                    "Size": [0, 0],
-                    "Values": "NA"
+                    "WidgetType": "Label",
+                    "WidgetTips": [],
+                    "WidgetValues": [],
+                    "WidgetParams": {"Size": [600, 300, 600, 300]}
                 }
             ],
             "IOStatePageWidgets": [
                 {
-                    "Type": "显示框",
-                    "Widget": "Label",
-                    "TipsText": "NA",
-                    "Size": [0, 0],
-                    "Values": "NA"
+                    "WidgetType": "Label",
+                    "WidgetTips": [],
+                    "WidgetValues": [],
+                    "WidgetParams": {"Size": [600, 300, 600, 300]}
                 }
             ],
             "DiskStatePageWidgets": [
                 {
-                    "Type": "显示框",
-                    "Widget": "Label",
-                    "TipsText": "NA",
-                    "Size": [0, 0],
-                    "Values": "NA"
+                    "WidgetType": "Label",
+                    "WidgetTips": [],
+                    "WidgetValues": [],
+                    "WidgetParams": {"Size": [600, 300, 600, 300]}
                 }
             ],
             "FastCommandPageWidgets": [
                 {
-                    "Type": "文本框",
-                    "Widget": "Text",
-                    "TipsText": "命令输入框",
-                    "Size": [0, 0],
-                    "Values": "NA"
+                    "WidgetType": "Text",
+                    "WidgetTips": ["命令输入框"],
+                    "WidgetValues": [],
+                    "WidgetParams": {"Size": [600, 200, 100, 10]}
                 },
                 {
-                    "Type": "复选框",
-                    "Widget": "Checkbox",
-                    "TipsText": "NA",
-                    "Size": [0, 0],
-                    "Values": ["root执行", "循环读取(2s)"]
+                    "WidgetType": "Checkbox",
+                    "WidgetTips": [],
+                    "WidgetValues": ["root执行", "循环读取(2s)"],
+                    "WidgetParams": {"Size": [600, 100, 20, 1]}
                 }
             ],
             "FastDownloadPageWidgets": [
                 {
-                    "Type": "显示框",
-                    "Widget": "Label",
-                    "TipsText": "Tips:",
-                    "Size": [0, 0],
-                    "Values": ["路径为文件夹时将会打包下载（暂不支持正则表达式）"]
+                    "WidgetType": "Label",
+                    "WidgetTips": ["Tips:"],
+                    "WidgetValues": ["路径为文件夹时将会打包下载（暂不支持正则表达式）"],
+                    "WidgetParams": {"Size": [600, 40, 400, 40]}
                 },
                 {
-                    "Type": "输入框",
-                    "Widget": "Entry",
-                    "TipsText": "服务器文件(夹)路径:",
-                    "Size": [0, 0],
-                    "Values": "NA"
+                    "WidgetType": "Entry",
+                    "WidgetTips": ["服务器文件(夹)路径"],
+                    "WidgetValues": [],
+                    "WidgetParams": {"Size": [600, 50, 70, 1]}
                 }
             ],
             "FastUploadPageWidgets": [
                 {
-                    "Type": "按钮",
-                    "Widget": "Button",
-                    "TipsText": "选择本地文件",
-                    "Size": [20, 1],
-                    "Values": ["ChooseFile", "*"]
+                    "WidgetType": "Button",
+                    "WidgetTips": ["选择本地文件"],
+                    "WidgetValues": ["ChooseFile", "*"],
+                    "WidgetParams": {"Size": [600, 50, 10, 1]}
                 },
                 {
-                    "Type": "输入框",
-                    "Widget": "Entry",
-                    "TipsText": "服务器路径:",
-                    "Size": [60, 1],
-                    "Values": "NA"
+                    "WidgetType": "Entry",
+                    "WidgetTips": ["服务器路径"],
+                    "WidgetValues": [],
+                    "WidgetParams": {"Size": [600, 50, 50, 1]}
                 },
                 {
-                    "Type": "输入框",
-                    "Widget": "Entry",
-                    "TipsText": "设置权限",
-                    "Size": [20, 1],
-                    "Values": ["0640"]
+                    "WidgetType": "Entry",
+                    "WidgetTips": ["设置权限"],
+                    "WidgetValues": ["0640"],
+                    "WidgetParams": {"Size": [600, 50, 20, 1]}
                 },
                 {
-                    "Type": "输入框",
-                    "Widget": "Entry",
-                    "TipsText": "设置属主/组",
-                    "Size": [20, 1],
-                    "Values": ["root:root"]
+                    "WidgetType": "Entry",
+                    "WidgetTips": ["设置属主/组"],
+                    "WidgetValues": ["root:root"],
+                    "WidgetParams": {"Size": [600, 50, 20, 1]}
                 }
             ]
         }

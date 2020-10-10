@@ -89,9 +89,9 @@ class Pager(object):
 
     def pack(self):
         self._init()
-        self.stepper()
+        self.pack_frame()
 
-    def stepper(self):
+    def pack_frame(self):
         pass
 
     def alive(self):
