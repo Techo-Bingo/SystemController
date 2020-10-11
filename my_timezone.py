@@ -4,19 +4,18 @@ from tkinter import ttk
 import my_global as Global
 from my_base import Pager
 from my_viewutil import ToolTips, WinMsg
-from my_module import ProgressBar
+from my_module import ProgressBar, MyFrame
 from my_handler import PageHandler
 
 
 class TimezonePage(Pager):
 
-    def __init__(self, master, width, height, shell, ip_list, options):
+    def __init__(self, master, width, height, ip_list, shell, print, ip_choose, widgets):
         self.master = master
         self.width = width
         self.height = height
         self.shell = shell
         self.ip_list = ip_list
-        self.options = options
         self.row = 5
         self.column = 3
         # 用来保存排列的combox实例
@@ -58,20 +57,15 @@ class TimezonePage(Pager):
 
     def create_grid(self):
         bg_color = 'Snow'
-        shw_fm = tk.LabelFrame(self.frame, width=self.width, text='当前状态')
-        opt_fm = tk.LabelFrame(self.frame, bg=bg_color, width=self.width)
-        opr_fm = tk.Frame(self.frame, width=self.width)
-        btn_fm = tk.Frame(opr_fm, width=self.width/3, height=self.height/5*2)
-        ips_fm = tk.LabelFrame(opr_fm, width=self.width/3*2, height=self.height/5*2)
-        shw_fm.pack(fill='x', padx=10, pady=5)
-        opt_fm.pack(fill='x', padx=10, pady=5)
-        opr_fm.pack(fill='x', padx=10)
-        ips_fm.pack(fill='both', side='left')
-        btn_fm.pack(fill='x', side='left', padx=40)
+        state_fm = tk.Frame(self.frame, width=self.width)
+        state_fm.pack(fill='x', padx=10)
+        shw_fm = MyFrame(state_fm, self.width, 30, True, '当前状态').master()
         for ip in self.ip_list:
             status_lab = tk.Label(shw_fm, text="%s: " % ip, anchor='w')
             status_lab.pack(fill='x')
             self.get_current_zoneinfo(ip, status_lab)
+        opt_fm = tk.LabelFrame(self.frame, bg=bg_color, width=self.width)
+        opt_fm.pack(fill='x', padx=10, pady=5)
         for x in range(self.row):
             for y in range(self.column):
                 fm = tk.Frame(opt_fm, bg=bg_color, width=self.width/self.column-1, height=self.height/self.row-1)
@@ -112,6 +106,15 @@ class TimezonePage(Pager):
                     # 子窗体中的combox存入二位数组
                     self.subcmb_list[x][y] = cmb
         # IP和进度条等布局
+        # opr_fm = tk.Frame(self.frame, width=self.width)
+        # opr_fm.pack(fill='x', padx=10)
+        _fm = tk.Frame(self.frame, width=self.width)
+        _fm.pack(fill='x', padx=10, pady=10)
+        opr_fm = MyFrame(_fm, self.width, self.height, True, "服务器选择").master()
+        ips_fm = tk.LabelFrame(opr_fm, width=self.width / 3 * 2, height=self.height / 5 * 2)
+        ips_fm.pack(fill='both', side='left', padx=10, pady=10)
+        btn_fm = tk.Frame(opr_fm, width=self.width / 3, height=self.height / 5 * 2)
+        btn_fm.pack(fill='x', side='left', padx=10)
         row, var_list = 0, []
         for ip in self.ip_list:
             var_list.append(tk.IntVar())

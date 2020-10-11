@@ -663,11 +663,16 @@ class PageCtrl(object):
         Bonder('__PageCtrl__').bond(Global.EVT_CLOSE_GUI, PlotMaker.close)
 
     def switch_page(self, args_tuple):
+        def destroy_page():
+            try:
+                self.current_page.destroy()
+            except:
+                pass
         text, widgets, shell, print, ip_choose = args_tuple
         if self.current_text == text:
             return
         self.current_text = text
-        self.destroy_page()
+        destroy_page()
         ip_choose = True if ip_choose == 'True' else False
         class_name, widget_types = 'PageClass', []
         for one in widgets:
@@ -692,12 +697,6 @@ class PageCtrl(object):
                         'widgets': widgets}
         self.current_page = eval(class_name)(**pager_params)
         self.current_page.pack()
-
-    def destroy_page(self):
-        try:
-            self.current_page.destroy()
-        except:
-            pass
 
 
 class PlotMaker:

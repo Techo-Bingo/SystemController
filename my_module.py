@@ -309,7 +309,7 @@ class MyTreeView(object):
         args_tuple = self.treeview.item(self.treeview.selection()[-1], "values")
         if len(args_tuple) == 0:
             return
-        text, widgets, print, shell, showip = args_tuple
+        text, widgets, shell, print, showip = args_tuple
         try:
             back_tuple = (text, self.widgets[widgets], shell, print, showip)
         except Exception as e:
