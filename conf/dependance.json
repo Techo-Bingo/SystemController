@@ -212,7 +212,7 @@
                     "WidgetType": "Label",
                     "WidgetTips": [],
 					"WidgetValues": [],
-					"WidgetParams": {"Size": [600, 300, 600, 300]}
+					"WidgetParams": {"Size": [900, 300, 600, 300]}
                 }
             ],
             "FastLogPageWidgets": [
@@ -228,7 +228,7 @@
                     "WidgetType": "Combobox",
                     "WidgetTips": ["采集时长"],
                     "WidgetValues": ["一天", "三天", "一周"],
-                    "WidgetParams": {"Size": [400, 120, 20, 1]}
+                    "WidgetParams": {"Size": [600, 100, 20, 1]}
                 }
             ],
             "TimezonePageWidgets": [
@@ -244,7 +244,7 @@
                     "WidgetType": "Label",
                     "WidgetTips": [],
                     "WidgetValues": [],
-                    "WidgetParams": {"Size": [600, 300, 600, 300]}
+                    "WidgetParams": {"Size": [900, 300, 600, 300]}
                 }
             ],
             "ProcessStatePageWidgets": [
@@ -252,7 +252,7 @@
                     "WidgetType": "Label",
                     "WidgetTips": [],
                     "WidgetValues": [],
-                    "WidgetParams": {"Size": [600, 300, 600, 300]}
+                    "WidgetParams": {"Size": [900, 300, 600, 300]}
                 }
             ],
             "MemoryStatePageWidgets": [
@@ -260,7 +260,7 @@
                     "WidgetType": "Label",
                     "WidgetTips": [],
                     "WidgetValues": [],
-                    "WidgetParams": {"Size": [600, 300, 600, 300]}
+                    "WidgetParams": {"Size": [900, 300, 600, 300]}
                 }
             ],
             "CpuStatePageWidgets": [
@@ -268,7 +268,7 @@
                     "WidgetType": "Label",
                     "WidgetTips": [],
                     "WidgetValues": [],
-                    "WidgetParams": {"Size": [600, 300, 600, 300]}
+                    "WidgetParams": {"Size": [900, 300, 600, 300]}
                 }
             ],
             "IOStatePageWidgets": [
@@ -276,7 +276,7 @@
                     "WidgetType": "Label",
                     "WidgetTips": [],
                     "WidgetValues": [],
-                    "WidgetParams": {"Size": [600, 300, 600, 300]}
+                    "WidgetParams": {"Size": [900, 300, 600, 300]}
                 }
             ],
             "DiskStatePageWidgets": [
@@ -284,7 +284,7 @@
                     "WidgetType": "Label",
                     "WidgetTips": [],
                     "WidgetValues": [],
-                    "WidgetParams": {"Size": [600, 300, 600, 300]}
+                    "WidgetParams": {"Size": [900, 300, 600, 300]}
                 }
             ],
             "FastCommandPageWidgets": [
@@ -292,13 +292,13 @@
                     "WidgetType": "Text",
                     "WidgetTips": ["命令输入框"],
                     "WidgetValues": [],
-                    "WidgetParams": {"Size": [600, 200, 100, 10]}
+                    "WidgetParams": {"Size": [900, 200, 110, 10]}
                 },
                 {
                     "WidgetType": "Checkbox",
                     "WidgetTips": [],
                     "WidgetValues": ["root执行", "循环读取(2s)"],
-                    "WidgetParams": {"Size": [600, 40, 40, 1]}
+                    "WidgetParams": {"Size": [900, 40, 40, 1]}
                 }
             ],
             "FastDownloadPageWidgets": [
@@ -312,7 +312,7 @@
                     "WidgetType": "Entry",
                     "WidgetTips": ["服务器文件(夹)路径"],
                     "WidgetValues": [],
-                    "WidgetParams": {"Size": [600, 50, 70, 1]}
+                    "WidgetParams": {"Size": [600, 30, 70, 1]}
                 }
             ],
             "FastUploadPageWidgets": [
@@ -320,25 +320,25 @@
                     "WidgetType": "Button",
                     "WidgetTips": ["选择本地文件"],
                     "WidgetValues": ["ChooseFile", "*"],
-                    "WidgetParams": {"Size": [600, 50, 10, 1]}
+                    "WidgetParams": {"Size": [600, 40, 10, 1]}
                 },
                 {
                     "WidgetType": "Entry",
                     "WidgetTips": ["服务器路径"],
                     "WidgetValues": [],
-                    "WidgetParams": {"Size": [600, 50, 50, 1]}
+                    "WidgetParams": {"Size": [600, 30, 70, 1]}
                 },
                 {
                     "WidgetType": "Entry",
                     "WidgetTips": ["设置权限"],
                     "WidgetValues": ["0640"],
-                    "WidgetParams": {"Size": [600, 50, 20, 1]}
+                    "WidgetParams": {"Size": [400, 30, 20, 1]}
                 },
                 {
                     "WidgetType": "Entry",
                     "WidgetTips": ["设置属主/组"],
                     "WidgetValues": ["root:root"],
-                    "WidgetParams": {"Size": [600, 50, 20, 1]}
+                    "WidgetParams": {"Size": [400, 30, 20, 1]}
                 }
             ]
         }

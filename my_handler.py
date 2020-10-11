@@ -171,7 +171,7 @@ class LoginHandler:
                     continue
                 if if_send(ip):
                     Logger.warn("(keepalive) ssh instance of {0} is invalid, rebuild now".format(ip))
-                    Utils.tell_info("{0} is disconnected, Re-login now".format(ip))
+                    Utils.tell_info("{0} is disconnected, Re-login now".format(ip), level='WARN')
                 user, userpwd, rootpwd = cls._cache_passwds[ip]
                 new_ssh = SSH(ip, user, userpwd, rootpwd)
                 ret1 = SSHUtil.user_login(new_ssh, user)[0]

@@ -525,87 +525,133 @@ class PageClass(Pager):
         self.checkboxs = []
         self.entrys = []
         self.texts = []
+        self.ip_vars = []
+        self.progress = {}
 
     def pack_frame(self):
-        var_list = []
-        edt_fm = tk.LabelFrame(self.frame, width=self.width)
-        edt_fm.pack(fill='x', padx=10, pady=10, ipady=10)
+        self.pack_edt()
+        self.pack_ips()
+
+    def pack_ips(self):
         if self.ip_choose:
-            opr_fm = tk.Frame(self.frame, width=self.width)
-            btn_fm = tk.Frame(opr_fm, width=self.width / 3, height=self.height / 5 * 2)
+            fm = tk.Frame(self.frame, width=self.width)
+            fm.pack(fill='x', padx=10, pady=10)
+            opr_fm = MyFrame(fm, self.width, self.height, True, "服务器选择").master()
             ips_fm = tk.LabelFrame(opr_fm, width=self.width / 3 * 2, height=self.height / 5 * 2)
-            opr_fm.pack(fill='x', padx=10, pady=10)
-            ips_fm.pack(fill='both', side='left')
-            btn_fm.pack(fill='x', side='left', padx=40)
+            ips_fm.pack(fill='both', side='left', padx=10, pady=10)
+            btn_fm = tk.Frame(opr_fm, width=self.width / 3, height=self.height / 5 * 2)
+            btn_fm.pack(fill='x', side='left', padx=10)
+            # IP和按钮栏
+            row = 0
+            for ip in self.ip_list:
+                self.ip_vars.append(tk.IntVar())
+                tk.Checkbutton(ips_fm, text=ip,
+                               font=(Global.G_FONT, 10),
+                               anchor='w',
+                               width=16,
+                               variable=self.ip_vars[-1]
+                               ).grid(row=row, column=0)
+                self.progress[ip] = ProgressBar(master=ips_fm, row=row, column=1)
+                row += 1
+            ttk.Button(btn_fm, text='执行', width=20, command=self.start_execute).grid(row=0, column=0, pady=15)
+            ttk.Button(btn_fm, text='停止', width=20, command=self.stop_execute).grid(row=1, column=0, pady=15)
+
+    def pack_edt(self):
+        def widget_label():
+            tk.Label(sub_fm,
+                     text='\n'.join(values),
+                     width=widget_width,
+                     height=widget_height
+                     ).pack(side='left', padx=10)
+        def widget_combobox():
+            combobox = ttk.Combobox(sub_fm, width=widget_width)
+            combobox['values'] = tuple(values)
+            combobox.current(0)
+            combobox['state'] = 'readonly'
+            combobox.pack(side='left', padx=10)
+            self.comboboxs.append(combobox)
+        def widget_checkbox():
+            max_column, index, vars, row, column = 2, 0, [], 0, 0
+            for opt in values:
+                column = index - (row * max_column)
+                index += 1
+                if column == max_column:
+                    row += 1
+                    column = 0
+                vars.append(tk.IntVar())
+                tk.Checkbutton(sub_fm,
+                               text=opt,
+                               anchor='w',
+                               width=widget_width,
+                               height=widget_height,
+                               variable=vars[-1]
+                               ).grid(row=row, column=column)
+            self.checkboxs.append(vars)
+        def widget_entry():
+            var_list.append(tk.StringVar())
+            entry = ttk.Entry(sub_fm, textvariable=var_list[-1], width=widget_width)
+            entry.pack(side='left', padx=10)
+            if values:
+                var_list[-1].set('\n'.join(values))
+            self.entrys.append(entry)
+        def widget_text():
+            text = scrolledtext.ScrolledText(sub_fm,
+                                             font=(Global.G_FONT, 10),
+                                             bd=2,
+                                             relief='ridge',
+                                             bg='Snow',
+                                             height=widget_height,
+                                             width=widget_width)
+            text.pack()
+            self.texts.append(text)
+        def widget_button():
+            interface, types = values[:2]
+            if interface == 'ChooseFile':
+                def choose_file(var):
+                    local_path = filedialog.askopenfilename()
+                    var.set(local_path)
+                entry_var = tk.StringVar()
+                entry = ttk.Entry(sub_fm, width=70, textvariable=entry_var, state='disabled')
+                entry.pack(side='left', padx=10)
+                btn_style = ttk.Style()
+                btn_style.configure("F.TButton", font=(Global.G_FONT, 8))
+                ttk.Button(sub_fm,
+                           text="...",
+                           width=3,
+                           style="F.TButton",
+                           command=lambda x=entry_var: choose_file(x)
+                           ).pack(side='left')
+                self.entrys.append(entry)
+        # edt_fm = tk.LabelFrame(self.frame, width=self.width)
+        edt_fm = tk.Frame(self.frame, width=self.width)
+        edt_fm.pack(fill='x', padx=10, pady=10)
+        var_list = []
         for one in self.widgets:
             widget = one['WidgetType']
             tips = one['WidgetTips']
             params = one['WidgetParams']
             values = one['WidgetValues']
-            TopWidth, TopHeight, WidgetWidth, WidgetHeight = params['Size']
+            top_width, top_height, widget_width, widget_height = params['Size']
             head = True if tips else False
-            sub_fm = MyFrame(edt_fm, TopWidth, TopHeight, '\n'.join(tips), head).master()
+            sub_fm = MyFrame(edt_fm, top_width, top_height, head, '\n'.join(tips)).master()
             if widget == 'Label':
-                tk.Label(sub_fm, text='\n'.join(values), width=WidgetWidth, height=WidgetHeight).pack()
+                widget_label()
             elif widget == 'Combobox':
-                combobox = ttk.Combobox(sub_fm, width=WidgetWidth)  #  , height=WidgetHeight)
-                combobox['values'] = tuple(values)
-                combobox.current(0)
-                combobox['state'] = 'readonly'
-                combobox.pack()  # side='left')
-                self.comboboxs.append(combobox)
+                widget_combobox()
             elif widget == 'Checkbox':
-                max_column, index, vars, row, column = 2, 0, [], 0, 0
-                for opt in values:
-                    column = index - (row * max_column)
-                    index += 1
-                    if column == max_column:
-                        row += 1
-                        column = 0
-                    vars.append(tk.IntVar())
-                    tk.Checkbutton(sub_fm,
-                                   text=opt,
-                                   anchor='w',
-                                   width=WidgetWidth,
-                                   height=WidgetHeight,
-                                   variable=vars[-1]
-                                   ).grid(row=row, column=column)
-                self.checkboxs.append(vars)
+                widget_checkbox()
             elif widget == 'Entry':
-                var_list.append(tk.StringVar())
-                entry = ttk.Entry(sub_fm, textvariable=var_list[-1], width=WidgetWidth)
-                entry.pack()
-                if values:
-                    var_list[-1].set('\n'.join(values))
-                self.entrys.append(entry)
+                widget_entry()
             elif widget == 'Text':
-                text = scrolledtext.ScrolledText(sub_fm,
-                                                 font=(Global.G_FONT, 10),
-                                                 bd=2,
-                                                 relief='ridge',
-                                                 bg='Snow',
-                                                 height=WidgetHeight,
-                                                 width=WidgetWidth)
-                text.pack()
-                self.texts.append(text)
+                widget_text()
             elif widget == 'Button':
-                interface, types = values[:2]
-                if interface == 'ChooseFile':
-                    def choose_file(entry_var):
-                        local_path = filedialog.askopenfilename()
-                        entry_var.set(local_path)
-                    entry_var = tk.StringVar()
-                    entry = ttk.Entry(sub_fm, width=60, textvariable=entry_var, state='disabled')
-                    entry.pack(side='left')
-                    btn_style = ttk.Style()
-                    btn_style.configure("F.TButton", font=(Global.G_FONT, 8))
-                    ttk.Button(sub_fm,
-                               text="...",
-                               width=3,
-                               style="F.TButton",
-                               command=lambda x=entry_var: choose_file(x)
-                               ).pack(side='left')
-                    self.entrys.append(entry)
+                widget_button()
+
+    def start_execute(self):
+        pass
+
+    def stop_execute(self):
+        pass
 
 
 class PageCtrl(object):
@@ -646,27 +692,6 @@ class PageCtrl(object):
                         'widgets': widgets}
         self.current_page = eval(class_name)(**pager_params)
         self.current_page.pack()
-
-        '''
-        if page_type == 'HOME_PAGE':
-            self.current_page = HomePage(**pager_params)
-        elif page_type == 'TEXT_PROGRESS':
-            # self.current_page = TextProgressTypePage(**pager_params)
-            return
-        elif page_type == 'COMBOBOX_PROGRESS':
-            self.current_page = ComboboxProgressTypePage(**pager_params)
-        elif page_type == 'CHECKBOX_PROGRESS':
-            self.current_page = CheckboxProgressTypePage(**pager_params)
-        elif page_type == 'ENTRY_PROGRESS':
-            self.current_page = EntryProgressTypePage(**pager_params)
-        elif page_type == 'SELF':
-            # 自定义界面，page_options第一个元素为类名，后面的为参数
-            class_name = eval(page_options['ClassName'])
-            self.current_page = class_name(**pager_params)
-        else:
-            raise Exception("未知界面类型： %s" % page_type)
-        self.current_page.pack()
-        '''
 
     def destroy_page(self):
         try:
