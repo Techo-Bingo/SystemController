@@ -304,7 +304,7 @@
             "FastDownloadPageWidgets": [
                 {
                     "WidgetType": "Label",
-                    "WidgetTips": ["Tips:"],
+                    "WidgetTips": ["提示"],
                     "WidgetValues": ["路径为文件夹时将会打包下载（暂不支持正则表达式）"],
                     "WidgetParams": {"Size": [600, 40, 400, 40]}
                 },

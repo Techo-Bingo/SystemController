@@ -521,12 +521,9 @@ class PageClass(Pager):
         self.print = print
         self.ip_choose = ip_choose
         self.widgets = widgets
-        self.comboboxs = []
-        self.checkboxs = []
-        self.entrys = []
-        self.texts = []
         self.ip_vars = []
         self.progress = {}
+        self.params = []
 
     def pack_frame(self):
         self.pack_edt()
@@ -569,9 +566,9 @@ class PageClass(Pager):
             combobox.current(0)
             combobox['state'] = 'readonly'
             combobox.pack(side='left', padx=10)
-            self.comboboxs.append(combobox)
+            self.params.append(('combobox', combobox))
         def widget_checkbox():
-            max_column, index, vars, row, column = 2, 0, [], 0, 0
+            max_column, index, row, column, vars = 2, 0, 0, 0, []
             for opt in values:
                 column = index - (row * max_column)
                 index += 1
@@ -586,14 +583,14 @@ class PageClass(Pager):
                                height=widget_height,
                                variable=vars[-1]
                                ).grid(row=row, column=column)
-            self.checkboxs.append(vars)
+            self.params.append(('checkbox', vars))
         def widget_entry():
-            var_list.append(tk.StringVar())
-            entry = ttk.Entry(sub_fm, textvariable=var_list[-1], width=widget_width)
+            var = tk.StringVar()
+            entry = ttk.Entry(sub_fm, width=widget_width, textvariable=var)
             entry.pack(side='left', padx=10)
             if values:
-                var_list[-1].set('\n'.join(values))
-            self.entrys.append(entry)
+                var.set('\n'.join(values).strip())
+            self.params.append(('entry', entry))
         def widget_text():
             text = scrolledtext.ScrolledText(sub_fm,
                                              font=(Global.G_FONT, 10),
@@ -603,7 +600,7 @@ class PageClass(Pager):
                                              height=widget_height,
                                              width=widget_width)
             text.pack()
-            self.texts.append(text)
+            self.params.append(('text', text))
         def widget_button():
             interface, types = values[:2]
             if interface == 'ChooseFile':
@@ -621,11 +618,10 @@ class PageClass(Pager):
                            style="F.TButton",
                            command=lambda x=entry_var: choose_file(x)
                            ).pack(side='left')
-                self.entrys.append(entry)
+                self.params.append(('entry', entry))
         # edt_fm = tk.LabelFrame(self.frame, width=self.width)
         edt_fm = tk.Frame(self.frame, width=self.width)
         edt_fm.pack(fill='x', padx=10, pady=10)
-        var_list = []
         for one in self.widgets:
             widget = one['WidgetType']
             tips = one['WidgetTips']
@@ -634,21 +630,23 @@ class PageClass(Pager):
             top_width, top_height, widget_width, widget_height = params['Size']
             head = True if tips else False
             sub_fm = MyFrame(edt_fm, top_width, top_height, head, '\n'.join(tips)).master()
-            if widget == 'Label':
-                widget_label()
-            elif widget == 'Combobox':
-                widget_combobox()
-            elif widget == 'Checkbox':
-                widget_checkbox()
-            elif widget == 'Entry':
-                widget_entry()
-            elif widget == 'Text':
-                widget_text()
-            elif widget == 'Button':
-                widget_button()
+            eval("widget_{}".format(widget.lower()))()
 
     def start_execute(self):
-        pass
+        shell_params = ""
+        for item in self.params:
+            widget, instance = item
+            value = ""
+            if widget == 'combobox':
+                value = instance.current()
+            elif widget == 'checkbox':
+                value = '|'.join([str(v.get()) for v in instance])
+            elif widget == 'entry':
+                value = instance.get()
+            elif widget == 'text':
+                value = instance.get('1.0', 'end').strip()
+            shell_params = "{0} '{1}'".format(shell_params, value)
+        print(shell_params)
 
     def stop_execute(self):
         pass
