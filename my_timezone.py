@@ -59,7 +59,7 @@ class TimezonePage(Pager):
         bg_color = 'Snow'
         state_fm = tk.Frame(self.frame, width=self.width)
         state_fm.pack(fill='x', padx=10)
-        shw_fm = MyFrame(state_fm, self.width, 30, True, '当前状态').master()
+        shw_fm = MyFrame(state_fm, self.width, 100, True, '当前状态').master()
         for ip in self.ip_list:
             status_lab = tk.Label(shw_fm, text="%s: " % ip, anchor='w')
             status_lab.pack(fill='x')
