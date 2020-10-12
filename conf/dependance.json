@@ -292,7 +292,7 @@
                     "WidgetType": "Text",
                     "WidgetTips": ["命令输入框"],
                     "WidgetValues": [],
-                    "WidgetParams": {"Size": [900, 200, 110, 10]}
+                    "WidgetParams": {"Size": [900, 300, 110, 20]}
                 },
                 {
                     "WidgetType": "Checkbox",
