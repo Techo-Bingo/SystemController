@@ -211,8 +211,8 @@
                 {
                     "WidgetType": "Label",
                     "WidgetTips": [],
-					"WidgetValues": [],
-					"WidgetParams": {"Size": [900, 300, 600, 300]}
+                    "WidgetValues": [],
+                    "WidgetParams": {"Size": [900, 300, 600, 300]}
                 }
             ],
             "FastLogPageWidgets": [
@@ -220,7 +220,7 @@
                     "WidgetType": "Checkbox",
                     "WidgetTips": ["日志类型"],
                     "WidgetValues": ["类型1日志", "类型2日志", "类型3日志", "类型4日志"],
-					"WidgetParams": {"Size": [600, 200, 40, 1]}
+                    "WidgetParams": {"Size": [600, 200, 40, 1]}
                 }
             ],
             "MysqlBinlogPageWidgets": [
