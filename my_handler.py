@@ -274,9 +274,9 @@ class PageHandler:
         """ 后台执行脚本 """
         Utils.tell_info("{0} (0%) Task {1} starting...".format(ip, task))
         if run_back:
-            cmd = "{0} async_call_shell '{1}' '{2}' '{3}'".format(cls._inner_caller, task, shell, param)
+            cmd = "{0} async_call_shell {1} {2} {3}".format(cls._inner_caller, task, shell, param)
         else:
-            cmd = "{0} sync_call_shell '{1}' '{2}' '{3}'".format(cls._inner_caller, task, shell, param)
+            cmd = "{0} sync_call_shell {1} {2} {3}".format(cls._inner_caller, task, shell, param)
         SSHUtil.exec_ret(ssh, cmd, run_root)
 
     @classmethod
@@ -343,10 +343,10 @@ class PageHandler:
             get_print()
 
     @classmethod
-    def _exec_shell_impl(cls, shell_type, callback, ip, shell, param, run_root=True, run_back=False):
+    def _exec_shell_impl(cls, call_type, callback, ip, shell, param, run_root=True, run_back=False):
         """
         shell_type:
-            download，下载类型的脚本，回调函数为进度条
+            progress，下载类型的脚本，回调函数为进度条
             showing，打印回显类型的脚本，回调函数为回显框
         """
         task = shell.split('.')[0].upper()
@@ -359,12 +359,24 @@ class PageHandler:
         
         cls._stop_task(task, ip, 'remove')
 
-        if shell_type == 'download':
+        if call_type == 'progress':
             cls._get_progress(ssh, callback, ip, task, run_root)
-        elif shell_type == 'showing':
+        elif call_type == 'showing':
             cls._get_print(ssh, callback, ip, task, run_root, run_back)
 
         cls._mutex(ip, task, False)
+
+    @classmethod
+    def upload_file(cls, args_tuple):
+        ip_list, callback, filename, remote_file = args_tuple
+        for ip in ip_list:
+            ret, err = SSHUtil.upload_file(cls._get_ssh(ip), filename, remote_file)
+            if not ret:
+                Utils.tell_info("{0} (10%) Upload file failed !".format(ip), level='ERROR')
+                callback(ip, 5, 'Red')
+                return False
+            callback(ip, 5, False)
+        return True
 
     @classmethod
     def start_shell(cls, *args):
@@ -378,84 +390,17 @@ class PageHandler:
         Utils.tell_info("{0} Task {1} kill success".format(ip, task))
 
     @classmethod
-    def execute_download_start(cls, callback, ip_list, shell, param):
+    def execute_for_progress_start(cls, callback, ip_list, shell, param):
         for ip in ip_list:
-            cls.start_shell('download', callback, ip, shell, param, True, True)
+            cls.start_shell('progress', callback, ip, shell, param, True, True)
 
     @classmethod
-    def execute_download_stop(cls, ip_list, shell):
+    def execute_for_progress_stop(cls, ip_list, shell):
         task = shell.split('.')[0]
         for ip in ip_list:
             cls.kill_shell(ip, task, shell)
 
     @classmethod
-    def execute_fast_cmd_start(cls, callback, ip_list, shell, text, run_root, run_back):
-        local_path = ".\\{0}\\{1}".format(Global.G_SHELL_DIR, shell)
-        remote_path = "{0}/{1}".format(Global.G_SERVER_DIR, shell)
-        Common.write_to_file(local_path, text)
-        for ip in ip_list:
-            ssh = cls._get_ssh(ip)
-            ret, err = SSHUtil.upload_file(ssh, local_path, remote_path)
-            if not ret:
-                Utils.tell_info("{0} (50%) Upload shell to execute failed !".format(ip), level='ERROR')
-                callback(ip, 50, 'Red')
-                continue
-            cls.start_shell('showing', None, ip, shell, None, run_root, run_back)
-            callback(ip, 100, False)
-
-    @classmethod
-    def execute_fast_cmd_stop(cls, ip_list, shell):
-        task = shell.split('.')[0].upper()
-        for ip in ip_list:
-            cls.kill_shell(ip, task, shell)
-            # 暂停循环读取打印线程
-            cls._stop_task(task, ip, 'append')
-
-    @classmethod
-    def _fast_upload_impl(cls, ip, callback, local, tmp_upload, check_cmd, move_cmd):
-        Utils.tell_info("{0} (10%) Upload {1} start".format(ip, local))
-        cls._stop_task('fast_upload', ip, 'remove')
-        ssh = cls._get_ssh(ip)
-        ret, err = SSHUtil.exec_ret(ssh, check_cmd, True)
-        if ret:
-            Utils.tell_info("{0} (20%) Server Dir not exist !".format(ip), level='ERROR')
-            callback(ip, 20, 'Red')
-            return
-        callback(ip, 20, False)
-        ret, err = SSHUtil.upload_file(ssh, local, tmp_upload)
-        if cls._stop_task('fast_upload', ip):
-            return
-        if not ret:
-            Utils.tell_info("{0} (70%) Upload failed ！".format(ip), level='ERROR')
-            callback(ip, 70, 'Red')
-            return
-        callback(ip, 70, False)
-        ret, err = SSHUtil.exec_ret(ssh, move_cmd, True)
-        if ret:
-            Utils.tell_info("{0} (90%) move to OR change attr failed !".format(ip), level='ERROR')
-            callback(ip, 90, 'Red')
-        callback(ip, 100, False)
-        Utils.tell_info("{0} (100%) Upload {1} success".format(ip, local))
-
-    @classmethod
-    def execute_fast_upload_start(cls, callback, ip_list, local, remote, chmod, chown):
-        base_name = Common.basename(local)
-        upload_dir = "{0}/UPLOAD".format(Global.G_SERVER_DIR)
-        tmp_upload = "{0}/{1}".format(upload_dir, base_name)
-        dest_path = "{0}/{1}".format(remote, base_name)
-        check_cmd = "{0} upload_prev_check {1} {2}".format(cls._inner_caller, remote, upload_dir)
-        move_cmd = "{0} move_file {1} {2} {3} {4}".format(cls._inner_caller, tmp_upload, dest_path, chmod, chown)
-        for ip in ip_list:
-            args = (ip, callback, local, tmp_upload, check_cmd, move_cmd)
-            Common.create_thread(func=cls._fast_upload_impl, args=args)
-
-    @classmethod
-    def execute_fast_upload_stop(cls, ip_list):
-        task = 'FAST_UPLOAD'
-        for ip in ip_list:
-            cls._stop_task(task, ip, 'append')
-            Utils.tell_info("{0} Task {1} stop success".format(ip, task))
-
-    @classmethod
-    def execute_showing_start(cls, callback, ip ,shell, param):
+    def execute_for_showing_start(cls, callback, ip, shell, param):
         cls.start_shell('showing', callback, ip, shell, param, True, False)
+
