@@ -32,18 +32,10 @@ class WinMsg:
 
 
 class ToolTips:
-    """
-    提示类；
-    改变控件颜色或infowin信息提示
-    """
-    @classmethod
-    def inner_error(cls, info):
-        """ Login窗体时不能使用 """
-        cls._infowin_msg('(内部错误) %s' % info, 'ERROR')
 
     @classmethod
-    def inner_warn(cls, info):
-        cls._infowin_msg(info, 'WARN')
+    def message_tips(cls, info, level='INFO'):
+        Caller.call(Global.EVT_INSERT_INFOWIN_TEXT, (info, level))
 
     @classmethod
     def widget_tips(cls, widget, region='background', back=Global.G_DEFAULT_COLOR):
@@ -65,10 +57,6 @@ class ToolTips:
         widget[region] = 'Gold'
         time.sleep(sleep)
         widget[region] = back
-
-    @classmethod
-    def _infowin_msg(cls, info, level='INFO'):
-        Caller.call(Global.EVT_INSERT_INFOWIN_TEXT, (info, level))
 
 
 class ViewUtil:
