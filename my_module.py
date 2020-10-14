@@ -313,7 +313,7 @@ class MyTreeView(object):
         try:
             back_tuple = (text, self.widgets[widgets], shell, print, showip)
         except Exception as e:
-            ToolTips.inner_error(e)
+            ToolTips.message_tips(e)
         else:
             self.callback(back_tuple)
 
