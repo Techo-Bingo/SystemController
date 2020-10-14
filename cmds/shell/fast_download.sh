@@ -16,10 +16,12 @@ function download()
 	if [ -f "${FILE_PATH}" ]
 	then
 		report_info "30" "Copying file..."
-		cp -f ${FILE_PATH} ./${pack_name}
+		cp -f ${FILE_PATH} ./${pack_name} 2>__error__
+		[ $? -ne 0 ] && report_err '60' "$(head -1 __error__)"
 	else
 		report_info "30" "Copying directory..."
-		cp -rf ${FILE_PATH} ./
+		cp -rf ${FILE_PATH} ./ 2>__error__
+		[ $? -ne 0 ] && report_err '60' "$(head -1 __error__)"
 		report_info "90" "Compress start"
 		local pack_name=$(compress ${pack_name})
 		[ $? -ne 0 ] && report_err '95' "Compress ${pack_name} failed"

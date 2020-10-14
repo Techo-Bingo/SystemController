@@ -111,19 +111,31 @@ class TimezonePage(Pager):
         _fm = tk.Frame(self.frame, width=self.width)
         _fm.pack(fill='x', padx=10, pady=10)
         opr_fm = MyFrame(_fm, self.width, self.height, True, "服务器选择").master()
-        ips_fm = tk.LabelFrame(opr_fm, width=self.width / 3 * 2, height=self.height / 5 * 2)
+        ips_fm = tk.LabelFrame(opr_fm, width=self.width / 5 * 3, height=self.height / 5 * 2)
         ips_fm.pack(fill='both', side='left', padx=10, pady=10)
-        btn_fm = tk.Frame(opr_fm, width=self.width / 3, height=self.height / 5 * 2)
+        opt_fm = tk.LabelFrame(opr_fm, width=self.width / 5, height=self.height / 5 * 2)
+        opt_fm.pack(fill='both', side='left', padx=10, pady=10)
+        btn_fm = tk.Frame(opr_fm, width=self.width / 5, height=self.height / 5 * 2)
         btn_fm.pack(fill='x', side='left', padx=10)
-        row, var_list = 0, []
+        row, var_list, opt_vars = 0, [], []
         for ip in self.ip_list:
             var_list.append(tk.IntVar())
             tk.Checkbutton(ips_fm, text=ip, font=(Global.G_FONT, 10), anchor='w', width=14, variable=var_list[-1]
                            ).grid(row=row, column=0)
             self.progress[ip] = ProgressBar(master=ips_fm, row=row, column=1)
             row += 1
+        for opt in ["root执行"]:
+            opt_vars.append(tk.IntVar())
+            tk.Checkbutton(opt_fm,
+                           text=opt,
+                           font=(Global.G_FONT, 10),
+                           anchor='w',
+                           width=16,
+                           variable=opt_vars[-1]
+                           ).pack()
+        opt_vars[0].set(1)
         # 执行按钮布局
-        ttk.Button(btn_fm, text='执行', width=20, command=lambda x=var_list: self.start_execute(x)
+        ttk.Button(btn_fm, text='执行', width=20, command=lambda x=var_list, y=opt_vars: self.start_execute(x, y)
                    ).grid(row=0, column=0, pady=15)
         ttk.Button(btn_fm, text='停止', width=20, command=lambda x=var_list: self.stop_execute(x)
                    ).grid(row=1, column=0, pady=15)
@@ -133,7 +145,7 @@ class TimezonePage(Pager):
             master['text'] = "%s: %s" % (ip, info)
         PageHandler.execute_for_showing_start(callback, ip, self.shell, 'ENTER')
 
-    def start_execute(self, var_list):
+    def start_execute(self, var_list, opt_vars):
         not_set = self.exist_not_set_combox()
         if not_set:
             WinMsg.warn("请设置夏令时参数:%s" % not_set[0])
@@ -146,7 +158,8 @@ class TimezonePage(Pager):
         if not select_ip:
             WinMsg.warn("请勾选IP地址")
             return
-        PageHandler.execute_for_progress_start(self.callback, select_ip, self.shell, self.options_combine())
+        is_root = True if opt_vars[0] else False
+        PageHandler.execute_for_progress_start(self.callback, select_ip, self.shell, self.options_combine(), is_root)
 
     def stop_execute(self, var_list):
         select_ip, index = [], 0

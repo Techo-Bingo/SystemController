@@ -294,6 +294,7 @@ class PageHandler:
                 if not info:
                     raise ReportError("Null progress, retry:{0}".format(__retry))
                 if status == 'FAILED':
+                    _last_prog = cur_prog
                     raise ReportError("Task failed:{0}, retry:{1}".format(info, __retry))
                 if _last_prog == cur_prog:
                     continue
@@ -390,9 +391,9 @@ class PageHandler:
         Utils.tell_info("{0} Task {1} kill success".format(ip, task))
 
     @classmethod
-    def execute_for_progress_start(cls, callback, ip_list, shell, param):
+    def execute_for_progress_start(cls, callback, ip_list, shell, param, root=True):
         for ip in ip_list:
-            cls.start_shell('progress', callback, ip, shell, param, True, True)
+            cls.start_shell('progress', callback, ip, shell, param, root, True)
 
     @classmethod
     def execute_for_progress_stop(cls, ip_list, shell):

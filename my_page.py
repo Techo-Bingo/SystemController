@@ -24,6 +24,7 @@ class PageClass(Pager):
         self.ip_choose = ip_choose
         self.widgets = widgets
         self.ip_vars = []
+        self.opt_vars = []
         self.progress = {}
         self.params = []
 
@@ -41,15 +42,18 @@ class PageClass(Pager):
             fm = tk.Frame(self.frame, width=self.width)
             fm.pack(fill='x', padx=10, pady=10)
             opr_fm = MyFrame(fm, self.width, self.height, True, "服务器选择").master()
-            ips_fm = tk.LabelFrame(opr_fm, width=self.width / 3 * 2, height=self.height / 5 * 2)
+            ips_fm = tk.LabelFrame(opr_fm, width=self.width / 5 * 3, height=self.height / 5 * 2)
             ips_fm.pack(fill='both', side='left', padx=10, pady=10)
-            btn_fm = tk.Frame(opr_fm, width=self.width / 3, height=self.height / 5 * 2)
+            opt_fm = tk.LabelFrame(opr_fm, width=self.width / 5, height=self.height / 5 * 2)
+            opt_fm.pack(fill='both', side='left', padx=10, pady=10)
+            btn_fm = tk.Frame(opr_fm, width=self.width / 5, height=self.height / 5 * 2)
             btn_fm.pack(fill='x', side='left', padx=10)
             # IP和按钮栏
             row = 0
             for ip in self.ip_list:
                 self.ip_vars.append(tk.IntVar())
-                tk.Checkbutton(ips_fm, text=ip,
+                tk.Checkbutton(ips_fm,
+                               text=ip,
                                font=(Global.G_FONT, 10),
                                anchor='w',
                                width=16,
@@ -57,6 +61,17 @@ class PageClass(Pager):
                                ).grid(row=row, column=0)
                 self.progress[ip] = ProgressBar(master=ips_fm, row=row, column=1)
                 row += 1
+            for opt in ["root执行"]:
+                self.opt_vars.append(tk.IntVar())
+                tk.Checkbutton(opt_fm,
+                               text=opt,
+                               font=(Global.G_FONT, 10),
+                               anchor='w',
+                               width=16,
+                               variable=self.opt_vars[-1]
+                               ).pack()
+            # 默认勾选root执行
+            self.opt_vars[0].set(1)
             ttk.Button(btn_fm, text='执行', width=20, command=self.start_execute).grid(row=0, column=0, pady=15)
             ttk.Button(btn_fm, text='停止', width=20, command=self.stop_execute).grid(row=1, column=0, pady=15)
 
@@ -149,7 +164,7 @@ class PageClass(Pager):
     def start_execute(self):
         def get_widget_input():
             if widget == 'Combobox':
-                return instance.current()
+                return str(instance.current())
             elif widget == 'Checkbox':
                 choose = [str(v.get()) for v in instance]
                 # 未选择任意一项
@@ -173,7 +188,7 @@ class PageClass(Pager):
                 if act == 'UploadFile':
                     func = PageHandler.upload_file
                     args = (self.ip_list, self.progress_callback, param, upload_path)
-                    functions.append((func, args))
+                    functions.append((act, func, args))
                     turn_path = True
                 else:
                     WinMsg.error("Not support WidgetAction: {}".format(act))
@@ -182,19 +197,21 @@ class PageClass(Pager):
 
         def do_widget_actions():
             for item in functions:
-                func, args = item
+                act, func, args = item
                 if not func(args):
                     WinMsg.error("Do active {} failed !".format(act))
                     ToolTips.message_tips("Do active {} failed !".format(act))
                     return False
             return True
         def get_selected_ip():
-            ips, i = [], 0
+            ips, opts, i = [], [], 0
             for v in self.ip_vars:
                 if int(v.get()):
                     ips.append(self.ip_list[i])
                 i += 1
-            return ips
+            for v in self.opt_vars:
+                opts.append(int(v.get()))
+            return ips, opts
         ''' 校验控件输入 '''
         shell_params, index, functions = "", 0, []
         for item in self.params:
@@ -204,6 +221,7 @@ class PageClass(Pager):
             # 获取控件输入信息
             param = get_widget_input()
             if not param and not can_be_null:
+                # ToolTips.widget_tips(instance)
                 WinMsg.warn("第{0}个必要控件{1}输入为空 !".format(index, widget))
                 return
             # 先解析预处理actions
@@ -215,15 +233,16 @@ class PageClass(Pager):
             # 组装脚本参数
             shell_params = "{0} '{1}'".format(shell_params, param)
         # 获取需要执行的IP
-        select_ip = get_selected_ip()
+        select_ip, opt_list = get_selected_ip()
         if not select_ip:
             WinMsg.warn("请选择IP地址")
             return
+        is_root = True if opt_list[0] else False
         # 处理控件预actions
         if not do_widget_actions():
             return
         # 远程执行脚本
-        PageHandler.execute_for_progress_start(self.progress_callback, select_ip, self.shell, shell_params)
+        PageHandler.execute_for_progress_start(self.progress_callback, select_ip, self.shell, shell_params, is_root)
 
     def stop_execute(self):
         pass

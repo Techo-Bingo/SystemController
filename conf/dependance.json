@@ -61,7 +61,7 @@
                     "SubTree": []
                 },
                 {
-                    "Text": "MySQL二进制日志采集",
+                    "Text": "MySQL Binlog采集",
                     "Image": "TV_FAST_LOG",
                     "Page": {
                         "Widgets": "MysqlBinlogPageWidgets",
@@ -170,12 +170,12 @@
             "Page": "NA",
             "SubTree": [
                 {
-                    "Text": "运行命令",
-                    "Image": "TV_RUN_CMD",
+                    "Text": "上传文件",
+                    "Image": "TV_UPLOAD",
                     "Page": {
-                        "Widgets": "FastCommandPageWidgets",
-                        "Shell": "fast_commands.sh",
-                        "PrintIn": "Window",
+                        "Widgets": "FastUploadPageWidgets",
+                        "Shell": "fast_upload.sh",
+                        "PrintIn": "Tips",
                         "IPChoose": "True"
                     },
                     "SubTree": []
@@ -192,12 +192,12 @@
                     "SubTree": []
                 },
                 {
-                    "Text": "上传文件",
-                    "Image": "TV_UPLOAD",
+                    "Text": "运行命令",
+                    "Image": "TV_RUN_CMD",
                     "Page": {
-                        "Widgets": "FastUploadPageWidgets",
-                        "Shell": "fast_upload.sh",
-                        "PrintIn": "Tips",
+                        "Widgets": "FastCommandPageWidgets",
+                        "Shell": "fast_commands.sh",
+                        "PrintIn": "Window",
                         "IPChoose": "True"
                     },
                     "SubTree": []
@@ -308,7 +308,7 @@
                 {
                     "WidgetType": "Checkbox",
                     "WidgetTips": [],
-                    "WidgetValues": ["root执行", "循环读取(2s)"],
+                    "WidgetValues": ["循环读取(2s)"],
                     "WidgetParams": {"Size": [900, 40, 40, 1], "CanBeNull": "True"},
                     "WidgetActions": []
                 }

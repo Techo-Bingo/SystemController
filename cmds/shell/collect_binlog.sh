@@ -1,5 +1,6 @@
 #!/bin/bash
 source $(dirname $0)/common_function.sh
+[ -f /opt/UBP/svc_profile.sh ] || report_err "15" "Miss Env file"
 source /opt/UBP/svc_profile.sh
 source /etc/profile
 
