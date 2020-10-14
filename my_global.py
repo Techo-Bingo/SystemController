@@ -81,6 +81,7 @@ G_LOG_DIR = '.\\log'
 G_CONF_DIR = '.\\conf'
 G_CMDS_DIR = '.\\cmds'
 G_SHELL_DIR = '.\\cmds\\shell'
+G_TEMP_DIR = '.\\cmds\\temp'
 G_DOWNLOAD_DIR = '.\\download'
 G_PID_FILE = '.\\conf\\tool.pid'
 G_LOCKS_DIR = '.\\conf\\lock'
@@ -90,6 +91,7 @@ G_LOG_PATH = '\\'.join([G_LOG_DIR, 'tool.log'])
 G_DEPEND_FILE = '\\'.join([G_CONF_DIR, 'dependance.json'])
 G_SETTING_FILE = '\\'.join([G_CONF_DIR, 'settings.json'])
 G_SERVER_DIR = '/home/Bingo'
+G_UPLOAD_DIR = '/home/Bingo/UPLOAD'
 G_LOG_LEVEL = 'info'
 
 # 事件相关定义
