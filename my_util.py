@@ -81,32 +81,21 @@ class Init:
 
     @classmethod
     def check_file(cls):
-        # 创建日志目录
-        if not Common.is_exists(Global.G_LOG_DIR):
-            Common.mkdir(Global.G_LOG_DIR)
-        if not Common.is_exists(Global.G_DOWNLOAD_DIR):
-            Common.mkdir(Global.G_DOWNLOAD_DIR)
-        if not Common.is_exists(Global.G_LOCKS_DIR):
-            Common.mkdir(Global.G_LOCKS_DIR)
+        for path in [Global.G_CONF_DIR,
+                     Global.G_SHELL_DIR,
+                     Global.G_DEPEND_FILE,
+                     Global.G_SETTING_FILE]:
+            if not Common.is_exists(path):
+                Logger.error("{} is not exist".format(path))
+                Utils.windows_error("{} is not exist".format(path))
+                return False
+        Common.mkdir(Global.G_LOG_DIR)
+        Common.mkdir(Global.G_DOWNLOAD_DIR)
+        Common.mkdir(Global.G_LOCKS_DIR)
+        Common.mkdir(Global.G_TEMP_DIR)
         # 日志大于阈值，清空
         if Common.file_size(Global.G_LOG_PATH) > Global.G_LOG_SIZE:
             Common.write_to_file(Global.G_LOG_PATH, 'Rollback init')
-        try:
-            if not Common.is_exists(Global.G_SHELL_DIR):
-                raise EnvError("%s is not exist" % Global.G_SHELL_DIR)
-
-            if not Common.is_exists(Global.G_CONF_DIR):
-                raise EnvError("%s is not exist" % Global.G_CONF_DIR)
-
-            if not Common.is_file(Global.G_DEPEND_FILE):
-                raise EnvError("%s is not exist" % Global.G_DEPEND_FILE)
-
-            if not Common.is_file(Global.G_SETTING_FILE):
-                raise EnvError("%s is not exist" % Global.G_SETTING_FILE)
-        except EnvError as e:
-            Logger.error(e)
-            Utils.windows_error(e)
-            return False
         return True
 
     @classmethod
