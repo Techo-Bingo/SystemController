@@ -14,13 +14,13 @@ import matplotlib.pyplot as plot
 
 
 class PageClass(Pager):
-    def __init__(self, master, width, height, ip_list, shell, print, ip_choose, widgets):
+    def __init__(self, master, width, height, ip_list, shell, print_in, ip_choose, widgets):
         self.master = master
         self.width = width
         self.height = height
         self.shell = shell
         self.ip_list = ip_list
-        self.print = print
+        self.print_in = print_in
         self.ip_choose = ip_choose
         self.widgets = widgets
         self.ip_vars = []
@@ -32,10 +32,13 @@ class PageClass(Pager):
         self.pack_edt()
         self.pack_ips()
 
-    def progress_callback(self, *args):
-        ip, value, color = args
+    def callback(self, *prog_args):  # , print_args=None):
+        ip, value, color = prog_args
+        # out, = print_args
         if self.alive():
             self.progress[ip].update(value, color)
+            #if self.print_in == 'Window':
+            #    WinMsg.info(value)
 
     def pack_ips(self):
         if self.ip_choose:
@@ -61,7 +64,7 @@ class PageClass(Pager):
                                ).grid(row=row, column=0)
                 self.progress[ip] = ProgressBar(master=ips_fm, row=row, column=1)
                 row += 1
-            for opt in ["root执行"]:
+            for opt in ["root执行", "后台执行"]:
                 self.opt_vars.append(tk.IntVar())
                 tk.Checkbutton(opt_fm,
                                text=opt,
@@ -187,7 +190,7 @@ class PageClass(Pager):
             for act in actions:
                 if act == 'UploadFile':
                     func = PageHandler.upload_file
-                    args = (self.ip_list, self.progress_callback, param, upload_path)
+                    args = (self.ip_list, self.callback, param, upload_path)
                     functions.append((act, func, args))
                     turn_path = True
                 else:
@@ -242,7 +245,7 @@ class PageClass(Pager):
         if not do_widget_actions():
             return
         # 远程执行脚本
-        PageHandler.execute_for_progress_start(self.progress_callback, select_ip, self.shell, shell_params, is_root)
+        PageHandler.execute_for_progress_start(self.callback, select_ip, self.shell, shell_params, is_root)
 
     def stop_execute(self):
         pass
@@ -262,7 +265,7 @@ class PageCtrl(object):
                 self.current_page.destroy()
             except:
                 pass
-        text, widgets, shell, print, ip_choose = args_tuple
+        text, widgets, shell, print_in, ip_choose = args_tuple
         if self.current_text == text:
             return
         self.current_text = text
@@ -286,7 +289,7 @@ class PageCtrl(object):
                         'height': height,
                         'ip_list': ViewUtil.get_ssh_ip_list(),
                         'shell': shell,
-                        'print': print,
+                        'print_in': print_in,
                         'ip_choose': ip_choose,
                         'widgets': widgets}
         self.current_page = eval(class_name)(**pager_params)

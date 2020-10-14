@@ -279,10 +279,10 @@ class MyTreeView(object):
             tag, values = 'tree.root', ""
         else:
             widgets = pages['Widgets']
-            print = pages['PrintIn']
+            print_in = pages['PrintIn']
             shell = pages['Shell']
-            showip = pages['IPChoose']
-            tag, values = 'tree.sub', [text, widgets, shell, print, showip]
+            show_ip = pages['IPChoose']
+            tag, values = 'tree.sub', [text, widgets, shell, print_in, show_ip]
         image = ViewUtil.get_image(img)
         sub_id = self.treeview.insert(id, 'end', text=text, image=image, tags=(tag, 'simple'), values=values)
         self.sub_id.append(sub_id)
@@ -309,9 +309,9 @@ class MyTreeView(object):
         args_tuple = self.treeview.item(self.treeview.selection()[-1], "values")
         if len(args_tuple) == 0:
             return
-        text, widgets, shell, print, showip = args_tuple
+        text, widgets, shell, print_in, show_ip = args_tuple
         try:
-            back_tuple = (text, self.widgets[widgets], shell, print, showip)
+            back_tuple = (text, self.widgets[widgets], shell, print_in, show_ip)
         except Exception as e:
             ToolTips.message_tips(e)
         else:

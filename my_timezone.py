@@ -10,7 +10,7 @@ from my_handler import PageHandler
 
 class TimezonePage(Pager):
 
-    def __init__(self, master, width, height, ip_list, shell, print, ip_choose, widgets):
+    def __init__(self, master, width, height, ip_list, shell, print_in, ip_choose, widgets):
         self.master = master
         self.width = width
         self.height = height
