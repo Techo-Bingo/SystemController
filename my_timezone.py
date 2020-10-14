@@ -131,7 +131,7 @@ class TimezonePage(Pager):
     def get_current_zoneinfo(self, ip, master):
         def callback(info):
             master['text'] = "%s: %s" % (ip, info)
-        PageHandler.execute_showing_start(callback, ip, self.shell, 'ENTER')
+        PageHandler.execute_for_showing_start(callback, ip, self.shell, 'ENTER')
 
     def start_execute(self, var_list):
         not_set = self.exist_not_set_combox()
@@ -146,7 +146,7 @@ class TimezonePage(Pager):
         if not select_ip:
             WinMsg.warn("请勾选IP地址")
             return
-        PageHandler.execute_download_start(self.callback, select_ip, self.shell, self.options_combine())
+        PageHandler.execute_for_progress_start(self.callback, select_ip, self.shell, self.options_combine())
 
     def stop_execute(self, var_list):
         select_ip, index = [], 0
@@ -157,7 +157,7 @@ class TimezonePage(Pager):
         if not select_ip:
             WinMsg.warn("请勾选IP地址")
             return
-        PageHandler.execute_download_stop(select_ip, self.shell)
+        PageHandler.execute_for_progress_stop(select_ip, self.shell)
 
     def callback(self, *args):
         ip, value, color = args
@@ -423,7 +423,7 @@ class TimezonePage(Pager):
         ''' 一些条件判断，比如2月不能设置大于28号；4,6,9,11月不能设置31号 '''
         if self.check_limit_dependence(optname, optval):
             self.opts_dict[optname] = optval
-        ToolTips._infowin_msg(self.options_combine())
+        ToolTips.message_tips(self.options_combine())
 
     def display_diff_mode(self, key, val):
         """ 无夏令时 """
