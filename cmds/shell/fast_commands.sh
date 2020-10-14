@@ -10,7 +10,7 @@ function main()
     sh ${SHELL_PATH}
 
     chmod -R 777 ${g_task_dir}/*
-	  report_info "100" "NULL"
+    report_info "100" "NULL"
 }
 
 main 
