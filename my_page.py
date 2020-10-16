@@ -7,7 +7,7 @@ from my_base import Pager
 from my_handler import PageHandler
 from my_viewutil import ViewUtil, WinMsg, ToolTips
 from my_timezone import TimezonePage
-from my_module import ProgressBar, MyFrame
+from my_module import ProgressBar, MyFrame, TopNotebook
 from my_bond import Caller, Bonder
 import numpy
 import matplotlib.pyplot as plot
@@ -31,14 +31,6 @@ class PageClass(Pager):
     def pack_frame(self):
         self.pack_edt()
         self.pack_ips()
-
-    def callback(self, *prog_args):  # , print_args=None):
-        ip, value, color = prog_args
-        # out, = print_args
-        if self.alive():
-            self.progress[ip].update(value, color)
-            #if self.print_in == 'Window':
-            #    WinMsg.info(value)
 
     def pack_ips(self):
         if self.ip_choose:
@@ -165,6 +157,14 @@ class PageClass(Pager):
             eval("widget_{}".format(type.lower()))()
 
     def start_execute(self):
+        def callback(*prog_args):  # , print_args=None):
+            ip, value, color = prog_args
+            # out, = print_args
+            if self.alive():
+                self.progress[ip].update(value, color)
+                if self.print_in == 'Window':
+                    # WinMsg.info(value)
+                    inserter(ip, value)
         def get_widget_input():
             if widget == 'Combobox':
                 return str(instance.current())
@@ -190,7 +190,7 @@ class PageClass(Pager):
             for act in actions:
                 if act == 'UploadFile':
                     func = PageHandler.upload_file
-                    args = (self.ip_list, self.callback, param, upload_path)
+                    args = (self.ip_list, callback, param, upload_path)
                     functions.append((act, func, args))
                     turn_path = True
                 else:
@@ -215,6 +215,13 @@ class PageClass(Pager):
             for v in self.opt_vars:
                 opts.append(int(v.get()))
             return ips, opts
+        # 获取需要执行的IP
+        select_ip, opt_list = get_selected_ip()
+        if not select_ip:
+            WinMsg.warn("请选择IP地址")
+            return
+        is_root = True if opt_list[0] else False
+        inserter = TopNotebook.show(select_ip)
         ''' 校验控件输入 '''
         shell_params, index, functions = "", 0, []
         for item in self.params:
@@ -235,17 +242,11 @@ class PageClass(Pager):
                 param = upload_path
             # 组装脚本参数
             shell_params = "{0} '{1}'".format(shell_params, param)
-        # 获取需要执行的IP
-        select_ip, opt_list = get_selected_ip()
-        if not select_ip:
-            WinMsg.warn("请选择IP地址")
-            return
-        is_root = True if opt_list[0] else False
         # 处理控件预actions
         if not do_widget_actions():
             return
         # 远程执行脚本
-        PageHandler.execute_for_progress_start(self.callback, select_ip, self.shell, shell_params, is_root)
+        PageHandler.execute_for_progress_start(callback, select_ip, self.shell, shell_params, is_root)
 
     def stop_execute(self):
         pass

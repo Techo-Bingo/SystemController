@@ -281,7 +281,6 @@ class GuiMain(GuiBase):
         if show:
             ViewUtil.set_widget_size(width=Global.G_MAIN_WIN_WIDTH, height=Global.G_MAIN_WIN_HEIGHT, center=False)
             self.help_window = tk.Frame(self.master, width=Global.G_MAIN_HELP_WIDTH, height=Global.G_MAIN_WIN_HEIGHT)
-
             self.help_window.pack(side='left')
             self.help_window.pack_propagate(0)
         else:

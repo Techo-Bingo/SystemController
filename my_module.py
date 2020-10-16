@@ -466,82 +466,108 @@ class MyFrame(object):
 
 class TopProgress:
     """ 顶窗提示进度 """
-    _toplevel = None
-    _progress = None
-    _infolab = None
-    _top_size = (300, 80)
+    top = None
+    lab = None
+    progress = None
 
     @classmethod
     def start(cls, msg=None):
-        width, height = cls._top_size
-        cls._toplevel = tk.Toplevel()
-        cls._toplevel.title('请稍候')
-        cls._toplevel.resizable(False, False)
-        cls._toplevel.wm_attributes('-topmost', 1)
-        cls._toplevel.protocol("WM_DELETE_WINDOW", cls.close)
-        ViewUtil.set_widget_size(cls._toplevel, width, height, True)
-        cls._infolab = tk.Label(cls._toplevel, font=(Global.G_FONT, 11))
-        cls._infolab.pack(pady=8)
-        cls._progress = ttk.Progressbar(cls._toplevel, mode='indeterminate', length=250)
-        cls._progress.pack(ipady=3)
+        def close():
+            pass
+        cls.top = t = tk.Toplevel()
+        t.title('请稍候')
+        t.resizable(False, False)
+        t.wm_attributes('-topmost', 1)
+        t.protocol("WM_DELETE_WINDOW", close)
+        ViewUtil.set_widget_size(t, 300, 80, True)
+        cls.lab = tk.Label(t, font=(Global.G_FONT, 11))
+        cls.lab.pack(pady=8)
+        cls.progress = ttk.Progressbar(t, mode='indeterminate', length=250)
+        cls.progress.pack(ipady=3)
         """ 开始滑块，并设置速度 """
-        cls._progress.start(10)
+        cls.progress.start(10)
 
     @classmethod
-    def update(cls, info):
-        if cls._infolab:
-            cls._infolab['text'] = info
+    def update(cls, msg):
+        if cls.lab:
+            cls.lab['text'] = msg
 
     @classmethod
     def destroy(cls, msg=None):
         try:
-            cls._progress.destroy()
-            cls._toplevel.destroy()
-            cls._infolab.destroy()
+            cls.progress.destroy()
+            cls.lab.destroy()
+            cls.top.destroy()
         except:
             pass
-        cls._toplevel = None
-        cls._progress = None
+        cls.top = None
+        cls.lab = None
+        cls.progress = None
+
+
+class TopNotebook:
+    showing = False
 
     @classmethod
-    def close(cls):
-        pass
+    def show(cls, ip_list):
+        if cls.showing:
+            return None
+        def close():
+            cls.showing = False
+            top.destroy()
+        def insert_text(i, info):
+            instance = text_instance[i]
+            instance['stat'] = 'normal'
+            instance.insert('end', '%s\n' % info)
+            instance.see('end')
+            instance['stat'] = 'disabled'
+        cls.showing = True
+        top = tk.Toplevel()
+        top.title('')
+        top.resizable(False, False)
+        top.wm_attributes('-topmost', 1)
+        top.protocol("WM_DELETE_WINDOW", close)
+        ViewUtil.set_widget_size(top, 800, 535, True)
+        notebook = ttk.Notebook(MyFrame(top, 800, 500, True, '输 出 结 果', True).master())
+        ttk.Style().configure(".", font=('微软雅黑', 11))
+        notebook.pack(ipady=5)
+        text_instance = {}
+        for ip in ip_list:
+            fm = tk.Frame(notebook)
+            fm.pack()
+            text = scrolledtext.ScrolledText(fm, width=120, height=40, bg='Gray20', fg='Snow')
+            text.pack(fill='both')
+            text['stat'] = 'disabled'
+            notebook.add(fm, text=ip)
+            text_instance[ip] = text
+        return insert_text
 
 
 class TopAbout:
     """ 关于窗 """
-    _top_size = (500, 340)
-    _toplevel = None
-    _showing = False
+    showing = False
 
     @classmethod
-    def show(cls, event=None):
-        if cls._showing:
+    def show(cls):
+        if cls.showing:
             return
-        cls._showing = True
-        width, height = cls._top_size
-        cls._toplevel = tk.Toplevel()
-        cls._toplevel.title('关于软件')
-        cls._toplevel.resizable(False, False)
-        cls._toplevel.wm_attributes('-topmost', 1)
-        cls._toplevel.protocol("WM_DELETE_WINDOW", cls.close)
-        ViewUtil.set_widget_size(cls._toplevel, width, height, True)
+        def close():
+            cls.showing = False
+            top.destroy()
+        cls.showing = True
+        top = tk.Toplevel()
+        top.title('关于软件')
+        top.resizable(False, False)
+        top.wm_attributes('-topmost', 1)
+        top.protocol("WM_DELETE_WINDOW", close)
+        ViewUtil.set_widget_size(top, 500, 340, True)
         # 图标
-        tk.Label(cls._toplevel, image=ViewUtil.get_image('ABOUT')).pack()
+        tk.Label(top, image=ViewUtil.get_image('ABOUT')).pack()
         # 中间部分说明
-        _infolab = tk.Label(cls._toplevel,
-                            bg='Snow',
-                            justify='left',
-                            text=Global.G_ABOUT_INFO,
-                            font=(Global.G_FONT, 10))
-        _infolab.pack(fill='both', ipady=5)
+        tk.Label(top, bg='Snow', justify='left', text=Global.G_ABOUT_INFO, font=(Global.G_FONT, 10)
+                 ).pack(fill='both', ipady=5)
         # 底部版权说明
-        tk.Label(cls._toplevel, text=Global.G_COPYRIGHT_INFO).pack()
-
-    @classmethod
-    def close(cls, event=None):
-        cls._showing = False
-        cls._toplevel.destroy()
+        tk.Label(top, text=Global.G_COPYRIGHT_INFO).pack()
 
 
 class MyScreenshot(object):

@@ -13,22 +13,19 @@ class _MultiEvent:
     @classmethod
     def deal(cls, event, msg):
         for name, callback in cls.events[event].items():
-            # Logger.debug('{} callback _MultiEvent: {} {}'.format(
-            #    name, event, callback))
+            # Logger.debug('{} callback _MultiEvent: {} {}'.format(name, event, callback))
             callback(msg)
 
     @classmethod
     def register(cls, event, handler):
         cls.events[event][handler.name] = handler.callback
-        # Logger.debug('{} register _MultiEvent: {} with {}'.format(
-        #    handler.name,event, handler.callback))
+        # Logger.debug('{} register _MultiEvent: {} with {}'.format(handler.name,event, handler.callback))
         # Logger.debug('ALL Evt: {}'.format(cls.events))
 
     @classmethod
     def unregister(cls, event, handler):
         try:
-            Logger.debug('{} unregister _MultiEvent: {}'.format(
-                handler.name, event))
+            Logger.debug('{} unregister _MultiEvent: {}'.format(handler.name, event))
             del cls.events[event][handler.name]
         except:
             pass
@@ -75,20 +72,17 @@ class _SingleEvent:
     @classmethod
     def deal(cls, event, msg):
         callback = cls.events[event]
-        # Logger.debug('{} callback _SingleEvent: {} {}'.format(
-        #    name, event, callback))
+        # Logger.debug('{} callback _SingleEvent: {} {}'.format(name, event, callback))
         return callback(msg)
 
     @classmethod
     def define(cls, event, callback):
         cls.events[event] = callback
-        # Logger.debug('{} define _SingleEvent: {} {}'.format(
-        #    name, event, callback))
+        # Logger.debug('{} define _SingleEvent: {} {}'.format(name, event, callback))
 
     @classmethod
     def undefine(cls, event):
-        # Logger.debug('{} undefine _SingleEvent: {} '.format(
-        #    name, event))
+        # Logger.debug('{} undefine _SingleEvent: {} '.format(name, event))
         try:
             del cls.events[event]
         except:
