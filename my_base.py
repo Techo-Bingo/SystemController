@@ -74,6 +74,7 @@ class Pager(object):
     width = None
     height = None
     frame = None
+    ip_choose = False
     _showing = False
 
     #def __new__(cls, *args, **kwargs):
