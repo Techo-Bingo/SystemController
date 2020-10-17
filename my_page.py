@@ -164,7 +164,7 @@ class PageClass(Pager):
                 self.progress[ip].update(value, color)
                 if self.print_in == 'Window':
                     # WinMsg.info(value)
-                    inserter(ip, value)
+                    TopNotebook.insert(ip, value)
         def get_widget_input():
             if widget == 'Combobox':
                 return str(instance.current())
@@ -220,8 +220,10 @@ class PageClass(Pager):
         if not select_ip:
             WinMsg.warn("请选择IP地址")
             return
+        TopNotebook.close()
         is_root = True if opt_list[0] else False
-        inserter = TopNotebook.show(select_ip)
+        if self.print_in == 'Window':
+            TopNotebook.show(select_ip)
         ''' 校验控件输入 '''
         shell_params, index, functions = "", 0, []
         for item in self.params:

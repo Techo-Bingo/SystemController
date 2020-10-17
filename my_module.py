@@ -507,31 +507,23 @@ class TopProgress:
 
 class TopNotebook:
     showing = False
+    top = None
+    instance = {}
 
     @classmethod
     def show(cls, ip_list):
         if cls.showing:
             return None
-        def close():
-            cls.showing = False
-            top.destroy()
-        def insert_text(i, info):
-            instance = text_instance[i]
-            instance['stat'] = 'normal'
-            instance.insert('end', '%s\n' % info)
-            instance.see('end')
-            instance['stat'] = 'disabled'
         cls.showing = True
-        top = tk.Toplevel()
+        cls.top = top = tk.Toplevel()
         top.title('')
         top.resizable(False, False)
         top.wm_attributes('-topmost', 1)
-        top.protocol("WM_DELETE_WINDOW", close)
+        top.protocol("WM_DELETE_WINDOW", cls.close)
         ViewUtil.set_widget_size(top, 800, 535, True)
         notebook = ttk.Notebook(MyFrame(top, 800, 500, True, '输 出 结 果', True).master())
         ttk.Style().configure(".", font=('微软雅黑', 11))
         notebook.pack(ipady=5)
-        text_instance = {}
         for ip in ip_list:
             fm = tk.Frame(notebook)
             fm.pack()
@@ -539,8 +531,22 @@ class TopNotebook:
             text.pack(fill='both')
             text['stat'] = 'disabled'
             notebook.add(fm, text=ip)
-            text_instance[ip] = text
-        return insert_text
+            cls.instance[ip] = text
+
+    @classmethod
+    def insert(cls, i, info):
+        instance = cls.instance[i]
+        instance['stat'] = 'normal'
+        instance.insert('end', '%s\n' % info)
+        instance.see('end')
+        instance['stat'] = 'disabled'
+
+    @classmethod
+    def close(cls):
+        cls.showing = False
+        cls.instance = {}
+        if cls.top:
+            cls.top.destroy()
 
 
 class TopAbout:
