@@ -236,7 +236,7 @@ class PageCtrl(object):
             else:
                 raise Exception("Not support widget of {}".format(widget))
         if len(set(widget_types)) != 1:
-            raise Exception("Self widget cannot coexist with Template widget")
+            raise Exception("<Self>自定义控件界面不能使用<Template>模板控件")
         width, height = Caller.call(Global.EVT_PAGE_INTERFACE, 'PAGE_SIZE')
         pager_params = {'master': Caller.call(Global.EVT_PAGE_INTERFACE, 'PAGE_MASTER'),
                         'width': width,
