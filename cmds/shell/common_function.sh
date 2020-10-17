@@ -1,5 +1,10 @@
 #!/bin/bash
 g_task_dir=$(pwd)
+g_print="__print__"
+g_error="__error__"
+g_call="__call__"
+g_progress="__progress__"
+g_split_flag='____BINGO_FILTER____'
 
 
 function init()
@@ -9,8 +14,8 @@ function init()
 
 function _report()
 {
-	echo "$1|$2|$3" >${g_task_dir}/__progress__.txt
-	chmod 777 ${g_task_dir}/__progress__.txt
+	echo "$1|$2|$3" >${g_task_dir}/${g_progress}
+	chmod 777 ${g_task_dir}/__*
 }
 
 function report_info()
