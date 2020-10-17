@@ -72,6 +72,17 @@
                     "SubTree": []
                 },
                 {
+                    "Text": "版本强制回滚",
+                    "Image": "TV_OAM",
+                    "Page": {
+                        "Widgets": "RollbackVersionWidgets",
+                        "Shell": "rollback_version.sh",
+                        "PrintIn": "Window",
+                        "IPChoose": "True"
+                    },
+                    "SubTree": []
+                },
+                {
                     "Text": "定时任务管理",
                     "Image": "TV_OAM",
                     "Page": {
@@ -220,7 +231,7 @@
                 {
                     "WidgetType": "Checkbox",
                     "WidgetTips": ["日志类型"],
-                    "WidgetValues": ["类型1日志", "类型2日志", "类型3日志", "类型4日志"],
+                    "WidgetValues": ["ISP日志", "MDC日志", "UDC日志", "MRS日志", "SDS/SSC日志", "SYSTEM日志"],
                     "WidgetParams": {"Size": [600, 200, 40, 1]},
                     "WidgetActions": []
                 }
@@ -231,6 +242,15 @@
                     "WidgetTips": ["采集时长"],
                     "WidgetValues": ["一天", "三天", "一周"],
                     "WidgetParams": {"Size": [600, 100, 20, 1]},
+                    "WidgetActions": []
+                }
+            ],
+            "RollbackVersionWidgets": [
+                {
+                    "WidgetType": "Label",
+                    "WidgetTips": ["警告"],
+                    "WidgetValues": ["eAPP版本将强制回滚至升级前的旧版本", "请谨慎操作！"],
+                    "WidgetParams": {"Size": [900, 100, 600, 100]},
                     "WidgetActions": []
                 }
             ],
