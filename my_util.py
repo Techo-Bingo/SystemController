@@ -91,8 +91,8 @@ class Init:
                 return False
         Common.mkdir(Global.G_LOG_DIR)
         Common.mkdir(Global.G_DOWNLOAD_DIR)
-        Common.mkdir(Global.G_LOCKS_DIR)
         Common.mkdir(Global.G_TEMP_DIR)
+        Common.record_pid(Global.G_PID_FILE)
         # 日志大于阈值，清空
         if Common.file_size(Global.G_LOG_PATH) > Global.G_LOG_SIZE:
             Common.write_to_file(Global.G_LOG_PATH, 'Rollback init')
@@ -143,7 +143,4 @@ class Init:
     def init(cls):
         Logger.info(Global.G_LOGO)
         return all([cls.check_file(), cls.conf_parser()])
-
-
-
 
