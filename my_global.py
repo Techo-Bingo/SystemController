@@ -82,9 +82,8 @@ G_CONF_DIR = '.\\conf'
 G_CMDS_DIR = '.\\cmds'
 G_SHELL_DIR = '.\\cmds\\shell'
 G_TEMP_DIR = '.\\cmds\\temp'
+G_PID_FILE = '.\\cmds\\temp\\tool.pid'
 G_DOWNLOAD_DIR = '.\\download'
-G_PID_FILE = '.\\conf\\tool.pid'
-G_LOCKS_DIR = '.\\conf\\lock'
 # 日志回滚大小
 G_LOG_SIZE = 10485760
 G_LOG_PATH = '\\'.join([G_LOG_DIR, 'tool.log'])
