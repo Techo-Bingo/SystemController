@@ -518,7 +518,7 @@ class TopNotebook:
         cls.top = top = tk.Toplevel()
         top.title('')
         top.resizable(False, False)
-        top.wm_attributes('-topmost', 1)
+        # top.wm_attributes('-topmost', 1)
         top.protocol("WM_DELETE_WINDOW", cls.close)
         ViewUtil.set_widget_size(top, 800, 535, True)
         notebook = ttk.Notebook(MyFrame(top, 800, 500, True, '输 出 结 果', True).master())
