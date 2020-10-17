@@ -1,5 +1,5 @@
 #!/bin/bash
-source $(dirname $0)/common_function.sh
+source ${g_home_dir}/common_function.sh
 
 SRC_FILE=$1
 DEST_PATH=$2
@@ -9,7 +9,9 @@ OWN_ATTR=$4
 function upload()
 {
 	[ -z "${SRC_FILE}" -o -z "${DEST_PATH}" -o -z "${MOD_ATTR}" -o -z "${OWN_ATTR}" ] && report_err "40" "invaild args"
-	
+
+	SRC_FILE=${g_upload_dir}/${SRC_FILE}
+
 	[ -f "${SRC_FILE}" ] || report_err "40" "${SRC_FILE} No such file"
 	
 	[ -d "${DEST_PATH}" ] || report_err "40" "${DEST_PATH} No such directory"
@@ -27,7 +29,6 @@ function upload()
 
 function main()
 {
-    init
     upload
 }
 

@@ -1,5 +1,5 @@
 #!/bin/bash
-source $(dirname $0)/common_function.sh
+source ${g_home_dir}/common_function.sh
 
 FILE_PATH=$1
 
@@ -10,30 +10,27 @@ function download()
 		report_err "20" "${FILE_PATH} No such file or directory"
 	fi
 	
-	cd ${g_task_dir}
-	local file_name=$(basename ${FILE_PATH})
-	local pack_name=${file_name}
+	local pack_name=$(basename ${FILE_PATH})
 	if [ -f "${FILE_PATH}" ]
 	then
 		report_info "30" "Copying file..."
-		cp -f ${FILE_PATH} ./${pack_name} 2>${g_error}
+		cp -f ${FILE_PATH} ${g_task_dir}/${pack_name} 2>${g_error}
 		[ $? -ne 0 ] && report_err '60' "$(head -1 ${g_error})"
 	else
 		report_info "30" "Copying directory..."
-		cp -rf ${FILE_PATH} ./ 2>${g_error}
+		cp -rf ${FILE_PATH} ${g_task_dir}/ 2>${g_error}
 		[ $? -ne 0 ] && report_err '60' "$(head -1 ${g_error})"
+		
 		report_info "90" "Compress start"
 		local pack_name=$(compress ${pack_name})
 		[ $? -ne 0 ] && report_err '95' "Compress ${pack_name} failed"
 	fi
 	
-	chmod -R 777 ${g_task_dir}/*
 	report_info "100" "${g_task_dir}/${pack_name}"
 }
 
 function main()
 {
-    init
     download
 }
 

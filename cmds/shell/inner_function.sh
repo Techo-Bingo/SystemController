@@ -1,19 +1,20 @@
 #!/bin/bash
-g_task_dir=''
-g_home_dir=$(dirname $0)
-cd ${g_home_dir}
-source common_function.sh
+cd $(dirname $0)
+export g_home_dir=$(pwd)
+export g_upload_dir=${g_home_dir}/UPLOAD
+source ./common_function.sh
 
 
-function make_task_dir()
+function init_task()
 {
     local task=$1
-    cd ${g_home_dir}
+    [ -z "${task}" ] && return 1
     mkdir -p ${task} 2>/dev/null
-    chmod 777 ${task} 2>/dev/null
-    chmod 777 ${task}/* 2>/dev/null
-    g_task_dir=${g_home_dir}/${task}
-    rm -rf ${g_task_dir}/*
+    rm -rf ${task}/* 2>/dev/null
+
+    export g_task_dir=${g_home_dir}/${task}
+    cd ${g_task_dir}
+    report_info "10" "server init ok"
 }
 
 function sync_call_shell()
@@ -22,10 +23,9 @@ function sync_call_shell()
     local shell=$2
     shift 2
     local params=$*
-    make_task_dir ${task}
-    cd ${g_task_dir}
+    init_task ${task}
     dos2unix ${g_home_dir}/${shell}
-    echo -e "$(whoami) \n sh ${g_home_dir}/${shell} ${params}" >${g_task_dir}/${g_call}
+    echo "$(whoami): sh ${g_home_dir}/${shell} ${params}" >${g_task_dir}/${g_call}
     sh ${g_home_dir}/${shell} ${params} >${g_task_dir}/${g_print} 2>&1
     return $?
 }
@@ -36,11 +36,11 @@ function async_call_shell()
     local shell=$2
     shift 2
     local params=$*
-    make_task_dir ${task}
-    cd ${g_task_dir}
+    init_task ${task}
     dos2unix ${g_home_dir}/${shell}
-    echo -e "$(whoami) \n sh ${g_home_dir}/${shell} ${params}" >${g_task_dir}/${g_call}
+    echo "$(whoami): sh ${g_home_dir}/${shell} ${params}" >${g_task_dir}/${g_call}
     sh ${g_home_dir}/${shell} ${params} >${g_task_dir}/${g_print} 2>&1 &
+    return $?
 }
 
 # 有些环境登陆后可能会预先打印用户环境信息，获取打印信息会造成混乱，

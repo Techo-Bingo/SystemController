@@ -250,7 +250,7 @@
                     "WidgetType": "Label",
                     "WidgetTips": ["警告"],
                     "WidgetValues": ["eAPP版本将强制回滚至升级前的旧版本", "请谨慎操作！"],
-                    "WidgetParams": {"Size": [900, 100, 600, 100]},
+                    "WidgetParams": {"Size": [900, 100, 900, 100]},
                     "WidgetActions": []
                 }
             ],

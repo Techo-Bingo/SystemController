@@ -5,6 +5,7 @@ View板块的单个子模块
 import tkinter as tk
 from tkinter import ttk, scrolledtext
 from PIL import ImageGrab
+from threading import Lock
 import my_global as Global
 from my_common import Common
 from my_bond import Bonder, Define, Caller
@@ -325,6 +326,7 @@ class InfoWindow(object):
         self.master = master
         self.infotext = None
         self.index = 0
+        self.lock = Lock()
         self.init_event()
         self.init_frame()
 
@@ -336,8 +338,7 @@ class InfoWindow(object):
                                                   font=(Global.G_FONT, 9),
                                                   bd=2,
                                                   relief='ridge',
-                                                  # fg='Blue',
-                                                  bg=Global.G_DEFAULT_COLOR,
+                                                  bg='gray90',  #Global.G_DEFAULT_COLOR,
                                                   height=40)
         self.infotext.insert(tk.END, Global.G_WELCOME_INFO)
         self.infotext['stat'] = 'disabled'
@@ -347,24 +348,24 @@ class InfoWindow(object):
 
     def insert_text(self, msg=None):
         info, level = msg
-        try:
-            """ 级别转换成对应的颜色 """
-            color = Global.G_INFOWIN_LEVEL_COLOR[level.upper()]
-        except KeyError:
-            color = Global.G_INFOWIN_LEVEL_COLOR['INFO']
-
-        """ 信息中加入时间戳 """
+        color = Global.G_INFOWIN_LEVEL_COLOR[level.upper()]
+        # 格式化字符串信息
         info = "\n[{0}] {1}: {2}".format(level.upper(), Common.get_time(), str(info))
-        self.infotext['stat'] = 'normal'
-        self.infotext.insert('end', info)
-        self.index += 1
-        line_num = len(info.split('\n'))
-        line_end = int(self.infotext.index('end').split('.')[0])
-        line_start = line_end - line_num + 1
-        self.infotext.tag_add('BINGO%s' % self.index, '%s.0' % line_start, '%s.end' % line_end)
-        self.infotext.tag_config('BINGO%s' % self.index, foreground=color)
-        self.infotext.see('end')
-        self.infotext['stat'] = 'disabled'
+        # 加锁
+        self.lock.acquire()
+        try:
+            self.infotext['stat'] = 'normal'
+            self.infotext.insert('end', info)
+            self.index += 1
+            line_num = len(info.split('\n'))
+            line_end = int(self.infotext.index('end').split('.')[0])
+            line_start = line_end - line_num + 1
+            self.infotext.tag_add('BINGO%s' % self.index, '%s.0' % line_start, '%s.end' % line_end)
+            self.infotext.tag_config('BINGO%s' % self.index, foreground=color)
+            self.infotext.see('end')
+            self.infotext['stat'] = 'disabled'
+        finally:
+            self.lock.release()
 
 
 class LabelButton(object):

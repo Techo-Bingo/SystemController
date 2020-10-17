@@ -142,17 +142,17 @@ class PageClass(Pager):
                 return None
             return out
         def parser_widget_actions():
-            remote = param
+            name = param
             for act in actions:
                 if act == 'UploadFile':
-                    remote = "{0}/{1}".format(Global.G_UPLOAD_DIR, Common.basename(param))
-                    upload_list.append((param, remote))
+                    uploads.append(param)
+                    name = Common.basename(param)
                 else:
                     WinMsg.error("Not support WidgetAction: {}".format(act))
                     continue
-            return remote
+            return name
         ''' 1. 校验控件输入并组装脚本参数 '''
-        shell_params, index, upload_list = "", 0, []
+        shell_params, index, uploads = "", 0, []
         for item in self.params:
             index += 1
             widget, instance, can_be_null = item[:3]
@@ -161,7 +161,7 @@ class PageClass(Pager):
             param = get_widget_input()
             if not param:
                 return
-            # 1.2 解析actions, 如果是需要上传的，则需要把参数转换成文件上传到服务器的路径
+            # 1.2 解析actions
             param = parser_widget_actions()
             # 1.3 组装脚本参数
             shell_params = "{0} '{1}'".format(shell_params, param)
@@ -169,7 +169,7 @@ class PageClass(Pager):
             TopNotebook.close()
             TopNotebook.show(ips)
         ''' 2. 处理控件动作事件并执行脚本 '''
-        handler.execute_start(self.callback, shell_params, upload_list)
+        handler.execute_start(self.callback, shell_params, uploads)
 
     def stop_execute(self, handler):
         handler.execute_stop(self.callback)

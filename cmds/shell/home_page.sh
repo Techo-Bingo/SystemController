@@ -1,5 +1,5 @@
 #!/bin/bash
-source $(dirname $0)/common_function.sh
+source ${g_home_dir}/common_function.sh
 
 function get_memory()
 {

@@ -1,5 +1,5 @@
 #!/bin/bash
-source $(dirname $0)/common_function.sh
+source ${g_home_dir}/common_function.sh
 
 OP_TYPE=$1
 ZONE_INFO=$OP_TYPE
@@ -30,7 +30,6 @@ function set_timezone()
 
 function main()
 {
-    init
 	if [ "${OP_TYPE}" = 'ENTER' ]
 	then
 		get_status

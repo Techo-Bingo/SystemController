@@ -1,17 +1,18 @@
 #!/bin/bash
-source $(dirname $0)/common_function.sh
+source ${g_home_dir}/common_function.sh
 
-SHELL_PATH=$1
+FILE_NAME=$1
 
 function main()
 {
-    init
-    dos2unix ${SHELL_PATH} 2>/dev/null
-    chmod +x ${SHELL_PATH} 2>/dev/null
-    sh ${SHELL_PATH}
+	local shell_path=${g_task_dir}/run_cmd.sh
+	mv -f ${g_upload_dir}/${FILE_NAME} ${shell_path} || report_err "40" "Create shell script failed."
 
-    chmod -R 777 ${g_task_dir}/* 2>/dev/null
-    rm -f ${SHELL_PATH} 2>/dev/null
+    dos2unix ${shell_path} 2>/dev/null
+    chmod +x ${shell_path} 2>/dev/null
+    sh ${shell_path}
+
+    rm -f ${shell_path} 2>/dev/null
     report_info "100" "NULL"
 }
 

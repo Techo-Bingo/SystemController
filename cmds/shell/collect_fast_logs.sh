@@ -1,5 +1,5 @@
 #!/bin/bash
-source $(dirname $0)/common_function.sh
+source ${g_home_dir}/common_function.sh
 
 LOG_FLAGS=$1
 
@@ -37,7 +37,6 @@ function collect()
 
 function main()
 {
-    init
 	parser_param
 	collect
 	compress_pack
