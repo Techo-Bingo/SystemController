@@ -12,7 +12,7 @@ from my_viewutil import WinMsg, ToolTips, ViewUtil
 # from my_logger import Logger
 
 
-class ToolTip(object):
+class WidgetTip(object):
     def __init__(self, widget):
         self.widget = widget
         self.tipwindow = None
@@ -47,7 +47,7 @@ class ToolTip(object):
 
 
 def createToolTip(widget, text):
-    toolTip = ToolTip(widget)
+    toolTip = WidgetTip(widget)
     def enter(event):
         toolTip.showtip(text)
     def leave(event):
@@ -637,3 +637,50 @@ class MyScreenshot(object):
         #让canvas充满窗口，并随窗口自动适应大小
         self.canvas.pack(fill='both', expand=1)
 
+
+def CreateIPBar(master, width, height, ip_list, callback):
+    def execute(oper):
+        ips, opts, i = [], [], 0
+        for v in ip_vars:
+            if int(v.get()):
+                ips.append(ip_list[i])
+            i += 1
+        for v in opt_vars:
+            opts.append(int(v.get()))
+        callback(oper, ips, opts)
+    fm = tk.Frame(master, width=width)
+    fm.pack(fill='x', padx=10, pady=10)
+    opr_fm = MyFrame(fm, width, height, True, "服务器选择").master()
+    ips_fm = tk.LabelFrame(opr_fm, width=width / 5 * 3, height=height)
+    ips_fm.pack(fill='both', side='left', padx=10, pady=10)
+    opt_fm = tk.LabelFrame(opr_fm, width=width / 5, height=height)
+    opt_fm.pack(fill='both', side='left', padx=10, pady=10)
+    btn_fm = tk.Frame(opr_fm, width=width / 5, height=height)
+    btn_fm.pack(fill='x', side='left', padx=10)
+
+    progress, ip_vars, opt_vars, row = {}, [], [], 0
+    for ip in ip_list:
+        ip_vars.append(tk.IntVar())
+        tk.Checkbutton(ips_fm,
+                       text=ip,
+                       font=(Global.G_FONT, 10),
+                       anchor='w',
+                       width=16,
+                       variable=ip_vars[-1]
+                       ).grid(row=row, column=0)
+        progress[ip] = ProgressBar(master=ips_fm, row=row, column=1)
+        row += 1
+    for opt in ["root执行", "后台执行"]:
+        opt_vars.append(tk.IntVar())
+        tk.Checkbutton(opt_fm,
+                       text=opt,
+                       font=(Global.G_FONT, 10),
+                       anchor='w',
+                       width=16,
+                       variable=opt_vars[-1]
+                       ).pack()
+    # 默认勾选root执行
+    opt_vars[0].set(1)
+    ttk.Button(btn_fm, text='执行', width=20, command=lambda op='start': execute(op)).grid(row=0, column=0, pady=15)
+    ttk.Button(btn_fm, text='停止', width=20, command=lambda op='stop': execute(op)).grid(row=1, column=0, pady=15)
+    return progress
