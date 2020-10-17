@@ -93,7 +93,7 @@ class SSHUtil:
     def upload_file(cls, ssh_inst, local, remote):
         path = os.path.split(remote)[0]
         try:
-            ssh_inst.execute('mkdir -p {0};chmod 777 {0}'.format(path), root=True)
+            ssh_inst.execute('rm -f {1};mkdir -p {0};chmod 777 {0}'.format(path, remote), root=True)
             # 此处等待一小段时间，否则后面upload会失败
             sleep(0.2)
             ssh_inst.upload(local, remote)
