@@ -4,7 +4,7 @@ from tkinter import ttk
 import my_global as Global
 from my_base import Pager
 from my_viewutil import ToolTips, WinMsg
-from my_module import ProgressBar, MyFrame
+from my_module import ProgressBar, MyFrame, CreateIPBar
 from my_handler import PageHandler
 
 
@@ -56,14 +56,21 @@ class TimezonePage(Pager):
         self.cmbval_list[4][6] = self.get_min_second_tup()
 
     def create_grid(self):
+        def show_current_status():
+            state_fm = tk.Frame(self.frame, width=self.width)
+            state_fm.pack(fill='x', padx=10)
+            shw_fm = MyFrame(state_fm, self.width, 100, True, '当前状态').master()
+            handler = PageHandler(self.ip_list, self.shell, True, False)
+            lab_dict = {}
+            for ip in self.ip_list:
+                status_lab = tk.Label(shw_fm, text="%s: " % ip, anchor='w')
+                status_lab.pack(fill='x')
+                lab_dict[ip] = status_lab
+            def callback(ip, out_print):
+                lab_dict[ip]['text'] = "%s: %s" % (ip, out_print)
+            handler.execute_enter(callback)
+        show_current_status()
         bg_color = 'Snow'
-        state_fm = tk.Frame(self.frame, width=self.width)
-        state_fm.pack(fill='x', padx=10)
-        shw_fm = MyFrame(state_fm, self.width, 100, True, '当前状态').master()
-        for ip in self.ip_list:
-            status_lab = tk.Label(shw_fm, text="%s: " % ip, anchor='w')
-            status_lab.pack(fill='x')
-            self.get_current_zoneinfo(ip, status_lab)
         opt_fm = tk.LabelFrame(self.frame, bg=bg_color, width=self.width)
         opt_fm.pack(fill='x', padx=10, pady=5)
         for x in range(self.row):
@@ -106,76 +113,28 @@ class TimezonePage(Pager):
                     # 子窗体中的combox存入二位数组
                     self.subcmb_list[x][y] = cmb
         # IP和进度条等布局
-        # opr_fm = tk.Frame(self.frame, width=self.width)
-        # opr_fm.pack(fill='x', padx=10)
-        _fm = tk.Frame(self.frame, width=self.width)
-        _fm.pack(fill='x', padx=10, pady=10)
-        opr_fm = MyFrame(_fm, self.width, self.height, True, "服务器选择").master()
-        ips_fm = tk.LabelFrame(opr_fm, width=self.width / 5 * 3, height=self.height / 5 * 2)
-        ips_fm.pack(fill='both', side='left', padx=10, pady=10)
-        opt_fm = tk.LabelFrame(opr_fm, width=self.width / 5, height=self.height / 5 * 2)
-        opt_fm.pack(fill='both', side='left', padx=10, pady=10)
-        btn_fm = tk.Frame(opr_fm, width=self.width / 5, height=self.height / 5 * 2)
-        btn_fm.pack(fill='x', side='left', padx=10)
-        row, var_list, opt_vars = 0, [], []
-        for ip in self.ip_list:
-            var_list.append(tk.IntVar())
-            tk.Checkbutton(ips_fm, text=ip, font=(Global.G_FONT, 10), anchor='w', width=14, variable=var_list[-1]
-                           ).grid(row=row, column=0)
-            self.progress[ip] = ProgressBar(master=ips_fm, row=row, column=1)
-            row += 1
-        for opt in ["root执行"]:
-            opt_vars.append(tk.IntVar())
-            tk.Checkbutton(opt_fm,
-                           text=opt,
-                           font=(Global.G_FONT, 10),
-                           anchor='w',
-                           width=16,
-                           variable=opt_vars[-1]
-                           ).pack()
-        opt_vars[0].set(1)
-        # 执行按钮布局
-        ttk.Button(btn_fm, text='执行', width=20, command=lambda x=var_list, y=opt_vars: self.start_execute(x, y)
-                   ).grid(row=0, column=0, pady=15)
-        ttk.Button(btn_fm, text='停止', width=20, command=lambda x=var_list: self.stop_execute(x)
-                   ).grid(row=1, column=0, pady=15)
+        self.progress = CreateIPBar(self.frame, self.width, self.height/5*2, self.ip_list, self.button_callback)
 
-    def get_current_zoneinfo(self, ip, master):
-        def callback(info):
-            master['text'] = "%s: %s" % (ip, info)
-        PageHandler.execute_for_showing_start(callback, ip, self.shell, 'ENTER')
-
-    def start_execute(self, var_list, opt_vars):
+    def button_callback(self, oper, ips, opts):
         not_set = self.exist_not_set_combox()
         if not_set:
             WinMsg.warn("请设置夏令时参数:%s" % not_set[0])
             return
-        select_ip, index = [], 0
-        for v in var_list:
-            if int(v.get()):
-                select_ip.append(self.ip_list[index])
-            index += 1
-        if not select_ip:
+        if not ips:
             WinMsg.warn("请勾选IP地址")
             return
-        is_root = True if opt_vars[0] else False
-        PageHandler.execute_for_progress_start(self.callback, select_ip, self.shell, self.options_combine(), is_root)
+        in_root = True if opts[0] == 1 else False
+        in_back = True if opts[1] == 1 else False
+        handler = PageHandler(ips, self.shell, in_root, in_back)
+        if oper == 'start':
+            handler.execute_start(self.callback, self.options_combine(), [])
+        else:
+            handler.execute_stop(self.callback)
 
-    def stop_execute(self, var_list):
-        select_ip, index = [], 0
-        for v in var_list:
-            if int(v.get()):
-                select_ip.append(self.ip_list[index])
-            index += 1
-        if not select_ip:
-            WinMsg.warn("请勾选IP地址")
-            return
-        PageHandler.execute_for_progress_stop(select_ip, self.shell)
-
-    def callback(self, *args):
-        ip, value, color = args
+    def callback(self, ip, progress, success, out):
+        color = False if success else 'Red'
         if self.alive():
-            self.progress[ip].update(value, color)
+            self.progress[ip].update(progress, color)
 
     def get_labname(self, x, y):
         return [['TimeZone\n时区', 'Start month\n开始月份', 'End month\n结束月份'],
