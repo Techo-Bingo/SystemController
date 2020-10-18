@@ -14,105 +14,156 @@ import matplotlib.pyplot as plot
 
 
 class PageClass(Pager):
-    def __init__(self, master, width, height, ip_list, shell, print_in, ip_choose, widgets):
+    def __init__(self, master, width, height, ip_list, shell, buttons, window, widgets):
         self.master = master
         self.width = width
         self.height = height
         self.shell = shell
         self.ip_list = ip_list
-        self.print_in = print_in
-        self.ip_choose = ip_choose
+        self.buttons = buttons
+        self.window = window
         self.widgets = widgets
         # 进度条实例
         self.progress = {}
         # 各控件实例和控件事件
-        self.params = []
+        self.instance = []
 
-    def pack_edt(self):
+    def pack_frame(self):
+        self.pack_widgets()
+        if self.buttons:
+            self.progress = CreateIPBar(self.frame, self.width, self.height/4, self.ip_list, self.button_callback)
+
+    def pack_widgets(self):
         def get_widget_params():
-            top_w, top_h, widget_w, widget_h = params['Size']
-            can_null = False
-            if 'CanBeNull' in params:
-                can_null = True if params['CanBeNull'] == 'True' else False
-            return top_w, top_h, widget_w, widget_h, can_null
+            top_w, top_h, widget_w, widget_h = widget_params['Size']
+            return (top_w, top_h), (widget_w, widget_h)
+        def get_widget_attrs():
+            if 'ShowEnterResult' in widget_attrs:
+                result_widget.append((widget_name, instance))
+            can_null = True if 'CanBeNull' in widget_attrs else False
+            execute = True if 'ShowExecResult' in widget_attrs else False
+            return can_null, execute
+        def enter_callback(ip, out_print):
+            for key, inst in result_widget:
+                if key == 'Label':
+                    inst.set("{0}\n【 {1} 】\n{2}".format(inst.get(), ip, out_print))
+                elif key == 'Notebook':
+                    text = inst[ip]
+                    text['stat'] = 'normal'
+                    text.delete('0.0', 'end')
+                    text.insert('end', '{}\n'.format(out_print))
+                    text.see('end')
+                    text['stat'] = 'disabled'
+        ''' 1. 控件解析和布局 '''
+        # edt_fm = tk.LabelFrame(self.frame, width=self.width)
+        edt_fm = tk.Frame(self.frame, width=self.width)
+        edt_fm.pack(fill='x', padx=10, pady=10)
+        result_widget = []
+        for widget in self.widgets:
+            widget_type = widget['WidgetType']
+            widget_tips = widget['WidgetTips']
+            widget_values = widget['WidgetValues']
+            widget_params = widget['WidgetParams']
+            widget_attrs = widget['WidgetAttrs']
+            widget_actions = widget['WidgetActions']
+            # 获取控件参数
+            top_size, widget_size = get_widget_params()
+            # 布局控件
+            master_fm = MyFrame(master=edt_fm,
+                                width=top_size[0],
+                                height=top_size[1],
+                                head=True if widget_tips else False,
+                                title='\n'.join(widget_tips)).master()
+            widget_name, instance = self.create_widget(master_fm, widget_type, widget_values, widget_size)
+            # 获取控件属性
+            attrs = (get_widget_attrs())
+            # 添加控件实例，用于后续点击按钮后处理
+            # Label和Notebook目前只读，用于提示和显示界面Enter的结果
+            if widget_name not in ["Label", "Notebook"]:
+                self.instance.append(((widget_name, instance), attrs, widget_actions))
+        ''' 2. 执行界面ENTER脚本 '''
+        PageHandler(self.ip_list, self.shell, True, False).execute_enter(enter_callback)
+
+    def create_widget(self, master, widget_type, widget_values, widget_size):
         def widget_label():
-            tk.Label(sub_fm,
-                     text='\n'.join(values),
-                     width=widget_width,
-                     height=widget_height
-                     ).pack(side='left', padx=10)
+            var = tk.StringVar()
+            tk.Label(master,
+                     textvariable=var,
+                     anchor='w',
+                     justify = "left",
+                     width=width,
+                     height=height).pack(side='left', padx=10)
+            var.set('\n'.join(widget_values))
+            return 'Label', var
         def widget_combobox():
-            combobox = ttk.Combobox(sub_fm, width=widget_width)
-            combobox['values'] = tuple(values)
+            combobox = ttk.Combobox(master, width=width, values=widget_values, state='readonly')
             combobox.current(0)
-            combobox['state'] = 'readonly'
             combobox.pack(side='left', padx=10)
-            self.params.append(['Combobox', combobox, can_be_null] + actions)
+            return 'Combobox', combobox
         def widget_checkbox():
             max_column, index, row, column, vars = 2, 0, 0, 0, []
-            for opt in values:
+            for opt in widget_values:
                 column = index - (row * max_column)
                 index += 1
                 if column == max_column:
                     row += 1
                     column = 0
                 vars.append(tk.IntVar())
-                tk.Checkbutton(sub_fm,
+                tk.Checkbutton(master,
                                text=opt,
                                anchor='w',
-                               width=widget_width,
-                               height=widget_height,
+                               width=width,
+                               height=height,
                                variable=vars[-1]
                                ).grid(row=row, column=column)
-            self.params.append(['Checkbox', vars, can_be_null] + actions)
+            return 'Checkbox', vars
         def widget_entry():
             var = tk.StringVar()
-            entry = ttk.Entry(sub_fm, width=widget_width, textvariable=var)
+            entry = ttk.Entry(master, width=width, textvariable=var)
             entry.pack(side='left', padx=10)
-            if values:
-                var.set('\n'.join(values).strip())
-            self.params.append(['Entry', entry, can_be_null] + actions)
+            if widget_values:
+                var.set('\n'.join(widget_values).strip())
+            return 'Entry', entry
         def widget_text():
-            text = scrolledtext.ScrolledText(sub_fm,
+            text = scrolledtext.ScrolledText(master,
                                              font=(Global.G_FONT, 10),
                                              bd=2,
                                              relief='ridge',
                                              bg='Snow',
-                                             height=widget_height,
-                                             width=widget_width)
+                                             height=height,
+                                             width=width)
             text.pack()
-            self.params.append(['Text', text, can_be_null] + actions)
+            return 'Text', text
         def widget_button():
-            interface, types = values[:2]
+            interface, types = widget_values[:2]
             if interface == 'ChooseFile':
                 def choose_file(var):
                     local_path = filedialog.askopenfilename()
                     var.set(local_path)
                 entry_var = tk.StringVar()
-                entry = ttk.Entry(sub_fm, width=70, textvariable=entry_var, state='disabled')
+                entry = ttk.Entry(master, width=70, textvariable=entry_var, state='disabled')
                 entry.pack(side='left', padx=10)
-                btn_style = ttk.Style()
-                btn_style.configure("F.TButton", font=(Global.G_FONT, 8))
-                ttk.Button(sub_fm,
+                ttk.Button(master,
                            text="...",
                            width=3,
-                           style="F.TButton",
                            command=lambda x=entry_var: choose_file(x)
                            ).pack(side='left')
-                self.params.append(['Entry', entry, can_be_null] + actions)
-        # edt_fm = tk.LabelFrame(self.frame, width=self.width)
-        edt_fm = tk.Frame(self.frame, width=self.width)
-        edt_fm.pack(fill='x', padx=10, pady=10)
-        for widget in self.widgets:
-            type = widget['WidgetType']
-            tips = widget['WidgetTips']
-            values = widget['WidgetValues']
-            params = widget['WidgetParams']
-            actions = widget['WidgetActions']
-            head = True if tips else False
-            top_width, top_height, widget_width, widget_height, can_be_null = get_widget_params()
-            sub_fm = MyFrame(edt_fm, top_width, top_height, head, '\n'.join(tips)).master()
-            eval("widget_{}".format(type.lower()))()
+                return 'Entry', entry
+        def widget_notebook():
+            notebook = ttk.Notebook(master, width=width, height=height)
+            notebook.pack(side='left')
+            instance = {}
+            for ip in self.ip_list:
+                fm = tk.Frame(notebook)
+                fm.pack()
+                text = scrolledtext.ScrolledText(fm, width=120, height=60)
+                text.pack(fill='both')
+                text['stat'] = 'disabled'
+                notebook.add(fm, text=ip)
+                instance[ip] = text
+            return 'Notebook', instance
+        width, height = widget_size
+        return eval("widget_{}".format(widget_type.lower()))()
 
     def start_execute(self, ips, handler):
         def get_widget_input():
@@ -153,10 +204,11 @@ class PageClass(Pager):
             return name
         ''' 1. 校验控件输入并组装脚本参数 '''
         shell_params, index, uploads = "", 0, []
-        for item in self.params:
+        for item in self.instance:
+            widget, instance = item[0]
+            can_be_null, show_result = item[1]
+            actions = item[2]
             index += 1
-            widget, instance, can_be_null = item[:3]
-            actions = item[3:]
             # 1.1 获取控件输入信息
             param = get_widget_input()
             if not param:
@@ -165,19 +217,28 @@ class PageClass(Pager):
             param = parser_widget_actions()
             # 1.3 组装脚本参数
             shell_params = "{0} '{1}'".format(shell_params, param)
-        if self.print_in == 'Window':
+        ''' 2. 开启Top窗体显示执行结果 '''
+        if self.window:
             TopNotebook.close()
             TopNotebook.show(ips)
-        ''' 2. 处理控件动作事件并执行脚本 '''
-        handler.execute_start(self.callback, shell_params, uploads)
+        ''' 3. 处理控件动作事件并执行脚本 '''
+        handler.execute_start(self.result_callback, shell_params, uploads)
 
     def stop_execute(self, handler):
-        handler.execute_stop(self.callback)
+        handler.execute_stop(self.result_callback)
 
-    def pack_frame(self):
-        self.pack_edt()
-        if self.ip_choose:
-            self.progress = CreateIPBar(self.frame, self.width, self.height/5*2, self.ip_list, self.button_callback)
+    def result_callback(self, ip, progress, success, out_print):
+        color = False if success else 'Red'
+        if not self.alive():
+            return
+        # 更新进度条
+        self.progress[ip].update(progress, color)
+        if not out_print:
+            return
+        if self.window:
+            TopNotebook.insert(ip, out_print)
+        else:
+            ToolTips.message_tips(out_print)
 
     def button_callback(self, oper, ips, opts):
         if not ips:
@@ -191,19 +252,6 @@ class PageClass(Pager):
         else:
             self.stop_execute(handler)
 
-    def callback(self, ip, progress, success, out_print):
-        color = False if success else 'Red'
-        if not self.alive():
-            return
-        # 更新进度条
-        self.progress[ip].update(progress, color)
-        if not out_print:
-            return
-        if self.print_in == 'Window':
-            TopNotebook.insert(ip, out_print)
-        else:
-            ToolTips.message_tips(out_print)
-
 
 class PageCtrl(object):
     """ 页面切换控制类 """
@@ -213,18 +261,27 @@ class PageCtrl(object):
         self.current_page = None
         # Bonder('__PageCtrl__').bond(Global.EVT_CLOSE_GUI, PlotMaker.close)
 
+    def default(self, master):
+        _master = tk.Frame(master)
+        _master.pack()
+        self.current_page = _master
+        my_fm = MyFrame(_master, 900, 600, True, "简 单 向 导", True).master()
+        fm = tk.Frame(my_fm)
+        fm.pack(fill='both')
+        tk.Label(fm, image=ViewUtil.get_image('GUIDE')).pack()
+
     def switch_page(self, args_tuple):
         def destroy_page():
             try:
                 self.current_page.destroy()
             except:
+                print('err')
                 pass
-        text, widgets, shell, print_in, ip_choose = args_tuple
+        text, widgets, shell, buttons, window = args_tuple
         if self.current_text == text:
             return
         self.current_text = text
         destroy_page()
-        ip_choose = True if ip_choose == 'True' else False
         class_name, widget_types = 'PageClass', []
         for one in widgets:
             widget = one['WidgetType']
@@ -243,8 +300,8 @@ class PageCtrl(object):
                         'height': height,
                         'ip_list': ViewUtil.get_ssh_ip_list(),
                         'shell': shell,
-                        'print_in': print_in,
-                        'ip_choose': ip_choose,
+                        'buttons': buttons,
+                        'window': window,
                         'widgets': widgets}
         self.current_page = eval(class_name)(**pager_params)
         self.current_page.pack()

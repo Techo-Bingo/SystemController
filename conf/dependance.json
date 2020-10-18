@@ -1,7 +1,7 @@
 {
     "Images": {
         "ICO": ".\\image\\item.ico",
-        "BINGO": ".\\image\\bingo.jpg",
+        "GUIDE": ".\\image\\guide.png",
         "ABOUT": ".\\image\\about.png",
         "LGN_HEAD": ".\\image\\login_head.jpg",
         "LGN_EYE": ".\\image\\login_eye.png",
@@ -39,8 +39,7 @@
             "Page": {
                 "Widgets": "HomePageWidgets",
                 "Shell": "home_page.sh",
-                "PrintIn": "Tips",
-                "IPChoose": "False"
+                "Attrs": []
             },
             "SubTree": []
         },
@@ -55,8 +54,7 @@
                     "Page": {
                         "Widgets": "FastLogPageWidgets",
                         "Shell": "collect_fast_logs.sh",
-                        "PrintIn": "Tips",
-                        "IPChoose": "True"
+                        "Attrs": ["OperateButtons"]
                     },
                     "SubTree": []
                 },
@@ -66,8 +64,7 @@
                     "Page": {
                         "Widgets": "MysqlBinlogPageWidgets",
                         "Shell": "collect_binlog.sh",
-                        "PrintIn": "Tips",
-                        "IPChoose": "True"
+                        "Attrs": ["OperateButtons"]
                     },
                     "SubTree": []
                 },
@@ -77,8 +74,7 @@
                     "Page": {
                         "Widgets": "RollbackVersionWidgets",
                         "Shell": "rollback_version.sh",
-                        "PrintIn": "Window",
-                        "IPChoose": "True"
+                        "Attrs": ["OperateButtons", "ResultWindow"]
                     },
                     "SubTree": []
                 },
@@ -88,8 +84,7 @@
                     "Page": {
                         "Widgets": "CronPageWidgets",
                         "Shell": "NA",
-                        "PrintIn": "Tips",
-                        "IPChoose": "False"
+                        "Attrs": []
                     },
                     "SubTree": []
                 },
@@ -99,8 +94,7 @@
                     "Page": {
                         "Widgets": "TimezonePageWidgets",
                         "Shell": "timezone_operate.sh",
-                        "PrintIn": "Tips",
-                        "IPChoose": "True"
+                        "Attrs": []
                     },
                     "SubTree": []
                 }
@@ -117,8 +111,7 @@
                     "Page": {
                         "Widgets": "ProcessStatePageWidgets",
                         "Shell": "get_process_state.sh",
-                        "PrintIn": "Tips",
-                        "IPChoose": "False"
+                        "Attrs": []
                     },
                     "SubTree": []
                 },
@@ -133,8 +126,7 @@
                             "Page": {
                                 "Widgets": "MemoryStatePageWidgets",
                                 "Shell": "get_system_memory_state.sh",
-                                "PrintIn": "Tips",
-                                "IPChoose": "False"
+                                "Attrs": []
                             },
                             "SubTree": []
                         },
@@ -144,8 +136,7 @@
                             "Page": {
                                 "Widgets": "CpuStatePageWidgets",
                                 "Shell": "get_system_cpu_state.sh",
-                                "PrintIn": "Tips",
-                                "IPChoose": "False"
+                                "Attrs": []
                             },
                             "SubTree": []
                         },
@@ -155,8 +146,7 @@
                             "Page": {
                                 "Widgets": "IOStatePageWidgets",
                                 "Shell": "get_system_io_state.sh",
-                                "PrintIn": "Tips",
-                                "IPChoose": "False"
+                                "Attrs": []
                             },
                             "SubTree": []
                         },
@@ -166,8 +156,7 @@
                             "Page": {
                                 "Widgets": "DiskStatePageWidgets",
                                 "Shell": "get_system_disk_state,sh",
-                                "PrintIn": "Tips",
-                                "IPChoose": "False"
+                                "Attrs": []
                             },
                             "SubTree": []
                         }
@@ -186,8 +175,7 @@
                     "Page": {
                         "Widgets": "FastUploadPageWidgets",
                         "Shell": "fast_upload.sh",
-                        "PrintIn": "Tips",
-                        "IPChoose": "True"
+                        "Attrs": ["OperateButtons"]
                     },
                     "SubTree": []
                 },
@@ -197,8 +185,7 @@
                     "Page": {
                         "Widgets": "FastDownloadPageWidgets",
                         "Shell": "fast_download.sh",
-                        "PrintIn": "Tips",
-                        "IPChoose": "True"
+                        "Attrs": ["OperateButtons"]
                     },
                     "SubTree": []
                 },
@@ -208,8 +195,7 @@
                     "Page": {
                         "Widgets": "FastCommandPageWidgets",
                         "Shell": "fast_commands.sh",
-                        "PrintIn": "Window",
-                        "IPChoose": "True"
+                        "Attrs": ["OperateButtons", "ResultWindow"]
                     },
                     "SubTree": []
                 }
@@ -220,10 +206,11 @@
 
             "HomePageWidgets": [
                 {
-                    "WidgetType": "Label",
-                    "WidgetTips": [],
+                    "WidgetType": "Notebook",
+                    "WidgetTips": ["服务器信息"],
                     "WidgetValues": [],
-                    "WidgetParams": {"Size": [900, 300, 600, 300]},
+                    "WidgetParams": {"Size": [900, 500, 900, 500]},
+                    "WidgetAttrs": ["ShowEnterResult"],
                     "WidgetActions": []
                 }
             ],
@@ -231,8 +218,9 @@
                 {
                     "WidgetType": "Checkbox",
                     "WidgetTips": ["日志类型"],
-                    "WidgetValues": ["ISP日志", "MDC日志", "UDC日志", "MRS日志", "SDS/SSC日志", "SYSTEM日志"],
+                    "WidgetValues": ["日志类型A", "日志类型B", "日志类型C", "日志类型D"],
                     "WidgetParams": {"Size": [600, 200, 40, 1]},
+                    "WidgetAttrs": [],
                     "WidgetActions": []
                 }
             ],
@@ -242,6 +230,7 @@
                     "WidgetTips": ["采集时长"],
                     "WidgetValues": ["一天", "三天", "一周"],
                     "WidgetParams": {"Size": [600, 100, 20, 1]},
+                    "WidgetAttrs": [],
                     "WidgetActions": []
                 }
             ],
@@ -251,6 +240,7 @@
                     "WidgetTips": ["警告"],
                     "WidgetValues": ["eAPP版本将强制回滚至升级前的旧版本", "请谨慎操作！"],
                     "WidgetParams": {"Size": [900, 100, 900, 100]},
+                    "WidgetAttrs": [],
                     "WidgetActions": []
                 }
             ],
@@ -260,6 +250,7 @@
                     "WidgetTips": [],
                     "WidgetValues": ["TimezonePage"],
                     "WidgetParams": {},
+                    "WidgetAttrs": [],
                     "WidgetActions": []
                 }
             ],
@@ -269,6 +260,7 @@
                     "WidgetTips": [],
                     "WidgetValues": [],
                     "WidgetParams": {"Size": [900, 300, 600, 300]},
+                    "WidgetAttrs": [],
                     "WidgetActions": []
                 }
             ],
@@ -278,6 +270,7 @@
                     "WidgetTips": [],
                     "WidgetValues": [],
                     "WidgetParams": {"Size": [900, 300, 600, 300]},
+                    "WidgetAttrs": [],
                     "WidgetActions": []
                 }
             ],
@@ -287,6 +280,7 @@
                     "WidgetTips": [],
                     "WidgetValues": [],
                     "WidgetParams": {"Size": [900, 300, 600, 300]},
+                    "WidgetAttrs": [],
                     "WidgetActions": []
                 }
             ],
@@ -296,6 +290,7 @@
                     "WidgetTips": [],
                     "WidgetValues": [],
                     "WidgetParams": {"Size": [900, 300, 600, 300]},
+                    "WidgetAttrs": [],
                     "WidgetActions": []
                 }
             ],
@@ -305,6 +300,7 @@
                     "WidgetTips": [],
                     "WidgetValues": [],
                     "WidgetParams": {"Size": [900, 300, 600, 300]},
+                    "WidgetAttrs": [],
                     "WidgetActions": []
                 }
             ],
@@ -314,6 +310,7 @@
                     "WidgetTips": [],
                     "WidgetValues": [],
                     "WidgetParams": {"Size": [900, 300, 600, 300]},
+                    "WidgetAttrs": [],
                     "WidgetActions": []
                 }
             ],
@@ -323,14 +320,8 @@
                     "WidgetTips": ["命令输入框"],
                     "WidgetValues": [],
                     "WidgetParams": {"Size": [900, 300, 110, 20]},
+                    "WidgetAttrs": [],
                     "WidgetActions": ["UploadFile"]
-                },
-                {
-                    "WidgetType": "Checkbox",
-                    "WidgetTips": [],
-                    "WidgetValues": ["循环读取(2s)"],
-                    "WidgetParams": {"Size": [900, 40, 40, 1], "CanBeNull": "True"},
-                    "WidgetActions": []
                 }
             ],
             "FastDownloadPageWidgets": [
@@ -339,6 +330,7 @@
                     "WidgetTips": ["提示"],
                     "WidgetValues": ["路径为文件夹时将会打包下载（暂不支持正则表达式）"],
                     "WidgetParams": {"Size": [600, 40, 400, 40]},
+                    "WidgetAttrs": [],
                     "WidgetActions": []
                 },
                 {
@@ -346,6 +338,7 @@
                     "WidgetTips": ["服务器文件(夹)路径"],
                     "WidgetValues": [],
                     "WidgetParams": {"Size": [600, 30, 70, 1]},
+                    "WidgetAttrs": [],
                     "WidgetActions": []
                 }
             ],
@@ -355,6 +348,7 @@
                     "WidgetTips": ["选择本地文件"],
                     "WidgetValues": ["ChooseFile", "*"],
                     "WidgetParams": {"Size": [600, 40, 10, 1]},
+                    "WidgetAttrs": [],
                     "WidgetActions": ["UploadFile"]
                 },
                 {
@@ -362,20 +356,23 @@
                     "WidgetTips": ["服务器目录"],
                     "WidgetValues": [],
                     "WidgetParams": {"Size": [600, 30, 70, 1]},
+                    "WidgetAttrs": [],
                     "WidgetActions": []
                 },
                 {
                     "WidgetType": "Entry",
                     "WidgetTips": ["设置权限"],
                     "WidgetValues": ["0640"],
-                    "WidgetParams": {"Size": [400, 30, 20, 1]},
+                    "WidgetParams": {"Size": [600, 30, 20, 1]},
+                    "WidgetAttrs": [],
                     "WidgetActions": []
                 },
                 {
                     "WidgetType": "Entry",
                     "WidgetTips": ["设置属主/组"],
                     "WidgetValues": ["root:root"],
-                    "WidgetParams": {"Size": [400, 30, 20, 1]},
+                    "WidgetParams": {"Size": [600, 30, 20, 1]},
+                    "WidgetAttrs": [],
                     "WidgetActions": []
                 }
             ]

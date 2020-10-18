@@ -243,14 +243,11 @@ class ProgressBar(object):
 class MyToolBar(object):
     """ 快捷工具栏 """
     def __init__(self, master, images, callback):
-        btn_style = ttk.Style()
-        btn_style.theme_use('clam')
-        btn_style.configure("C.TButton", borderwidth=0, background=Global.G_MAIN_OPER_BG)
         for image_set in images:
             image, text = image_set
             btn = ttk.Button(master,
                              image=ViewUtil.get_image(image),
-                             style="C.TButton",
+                             style="MyToolBar.TButton",
                              command=lambda x=image: callback(x))
             btn.pack(side='left')
             createToolTip(btn, text)
@@ -272,19 +269,19 @@ class MyTreeView(object):
             self.widgets = root
             return
         text = ' ' + root['Text']
-        img = root['Image']
+        image = root['Image']
         pages = root['Page']
         subtree = root['SubTree']
-
         if pages == 'NA':
             tag, values = 'tree.root', ""
         else:
             widgets = pages['Widgets']
-            print_in = pages['PrintIn']
             shell = pages['Shell']
-            show_ip = pages['IPChoose']
-            tag, values = 'tree.sub', [text, widgets, shell, print_in, show_ip]
-        image = ViewUtil.get_image(img)
+            attrs = pages['Attrs']
+            buttons = 'True' if "OperateButtons" in attrs else 'False'
+            window = 'True' if "ResultWindow" in attrs else 'False'
+            tag, values = 'tree.sub', [text, widgets, shell, buttons, window]
+        image = ViewUtil.get_image(image)
         sub_id = self.treeview.insert(id, 'end', text=text, image=image, tags=(tag, 'simple'), values=values)
         self.sub_id.append(sub_id)
         if isinstance(subtree, list) and len(subtree) != 0:
@@ -310,9 +307,11 @@ class MyTreeView(object):
         args_tuple = self.treeview.item(self.treeview.selection()[-1], "values")
         if len(args_tuple) == 0:
             return
-        text, widgets, shell, print_in, show_ip = args_tuple
+        text, widgets, shell, buttons, window = args_tuple
+        buttons = True if buttons == 'True' else False
+        window = True if window == 'True' else False
         try:
-            back_tuple = (text, self.widgets[widgets], shell, print_in, show_ip)
+            back_tuple = (text, self.widgets[widgets], shell, buttons, window)
         except Exception as e:
             ToolTips.message_tips(e)
         else:
@@ -340,7 +339,7 @@ class InfoWindow(object):
                                                   relief='ridge',
                                                   bg='gray90',  #Global.G_DEFAULT_COLOR,
                                                   height=40)
-        self.infotext.insert(tk.END, Global.G_WELCOME_INFO)
+        self.infotext.insert('end', Global.G_WELCOME_INFO)
         self.infotext['stat'] = 'disabled'
         self.infotext.pack(fill='x')
         # 设置infowin可以接受事件的变量为True
@@ -443,10 +442,6 @@ class MyButton(object):
 class MyFrame(object):
     """ 封装Frame，带有头部的个性化Frame """
     def __init__(self, master, width, height, head=False, title=None, center=False):
-        self.body = None
-        self.pack_frame(master, width, height, head, title, center)
-
-    def pack_frame(self, master, width, height, head, title, center):
         head_height = 25 if head else 0
         _master = tk.LabelFrame(master, width=width, height=height+head_height)
         _master.pack(anchor='w')
@@ -522,15 +517,14 @@ class TopNotebook:
         # top.wm_attributes('-topmost', 1)
         top.protocol("WM_DELETE_WINDOW", cls.close)
         ViewUtil.set_widget_size(top, 800, 535, True)
-        notebook = ttk.Notebook(MyFrame(top, 800, 500, True, '输 出 结 果', True).master())
-        ttk.Style().configure(".", font=('微软雅黑', 11))
+        notebook = ttk.Notebook(MyFrame(top, 800, 500, True, '输 出 结 果', True).master(),
+                                style="TopNotebook.TNotebook")
         notebook.pack(ipady=5)
         for ip in ip_list:
             fm = tk.Frame(notebook)
             fm.pack()
-            text = scrolledtext.ScrolledText(fm, width=120, height=40, bg='Gray20', fg='Snow')
+            text = scrolledtext.ScrolledText(fm, width=120, height=40, bg='Gray20', fg='Snow', stat='disabled')
             text.pack(fill='both')
-            text['stat'] = 'disabled'
             notebook.add(fm, text=ip)
             cls.instance[ip] = text
 
@@ -538,7 +532,8 @@ class TopNotebook:
     def insert(cls, i, info):
         instance = cls.instance[i]
         instance['stat'] = 'normal'
-        instance.insert('end', '%s\n' % info)
+        instance.delete('0.0', 'end')
+        instance.insert('end', '{}\n'.format(info))
         instance.see('end')
         instance['stat'] = 'disabled'
 
@@ -680,8 +675,8 @@ def CreateIPBar(master, width, height, ip_list, callback):
                        width=16,
                        variable=opt_vars[-1]
                        ).pack()
-    # 默认勾选root执行
-    opt_vars[0].set(1)
+    # 默认勾选后台执行
+    opt_vars[1].set(1)
     ttk.Button(btn_fm, text='执行', width=20, command=lambda op='start': execute(op)).grid(row=0, column=0, pady=15)
     ttk.Button(btn_fm, text='停止', width=20, command=lambda op='stop': execute(op)).grid(row=1, column=0, pady=15)
     return progress

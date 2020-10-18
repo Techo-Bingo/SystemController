@@ -69,8 +69,8 @@ class Gui(tk.Tk):
         tool_frame = tk.Frame(self)
         tool_frame.pack(fill='x')
         # 主界面
-        master_frame = tk.Frame(self)
-        master_frame.pack()
+        master_frame = tk.LabelFrame(self)
+        master_frame.pack(pady=5)
         main = GuiMain(master_frame, menu_bar, tool_frame)
         main.show()
         self._in_main_gui = True
@@ -223,7 +223,7 @@ class GuiMain(GuiBase):
                   ('TB_UPLOAD', "快速上传"),
                   ('TB_SCREEN_CUT', "截取屏幕"),
                   ('TB_SETTING', "设置"),
-                  ('TB_HELP', "帮忙信息"),
+                  ('TB_HELP', "帮助信息"),
                   ('TB_INFO', "关于软件")]
         MyToolBar(toolbar, images, self.press_callback)
 
@@ -239,7 +239,6 @@ class GuiMain(GuiBase):
         paned_win_h.add(oper_window, weight=3)
         paned_win_h.pack()
         self.tree_window = tree_window
-
         paned_win_v = ttk.Panedwindow(oper_window, orient=tk.VERTICAL)
         fm_style = {'master': oper_window,
                     'width': Global.G_MAIN_OPER_WIDTH,
@@ -273,6 +272,7 @@ class GuiMain(GuiBase):
         Define.define(Global.EVT_PAGE_INTERFACE, self.page_interface)
         # 初始化page
         self.pager = PageCtrl()
+        self.pager.default(self.oper_fm)
 
     def show_help_window(self, show=False):
         if show:

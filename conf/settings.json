@@ -7,7 +7,9 @@
 		"log_level": "debug",
 		
 		"log_size": 10485760,
-		
+
+		"server_home": "/home/Bingo",
+
 		"retry_times": 2,
 
 		"passwords": {

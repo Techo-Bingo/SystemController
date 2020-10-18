@@ -220,7 +220,6 @@ class LoginHandler:
 
 class PageHandler(object):
     """ 页面事件处理类 """
-    # _stop_task_ips = {}
 
     def __init__(self, ip_list, shell, in_root, in_back):
         self.ip_list = ip_list
@@ -266,7 +265,7 @@ class PageHandler(object):
         SSHUtil.exec_ret(ssh, cmd, self.in_root)
 
     def _kill_shell(self, ssh):
-        cmd = "{0} kill_shell {1}".format(self.inner_caller, self.shell)
+        cmd = "{0} kill_shell {1} {2}".format(self.inner_caller, self.task, self.shell)
         SSHUtil.exec_ret(ssh, cmd, True)
 
     def tell_info(self, ip, progress, info, level='INFO'):
@@ -313,7 +312,7 @@ class PageHandler(object):
     def _upload_file(self, ssh, ip, uploads):
         for local in uploads:
             remote = "{0}/{1}".format(Global.G_UPLOAD_DIR, Common.basename(local))
-            self.tell_info(ip, 5, 'Uploading {}'.format(local))
+            self.tell_info(ip, 1, 'Uploading {}'.format(local))
             ret, _ = SSHUtil.upload_file(ssh, local, remote)
             if not ret:
                 self.tell_info(ip, 5, 'Upload {} failed !'.format(local), 'ERROR')
@@ -333,6 +332,7 @@ class PageHandler(object):
             self.tell_info(ip, 0, 'Repeat, please wait...', level='WARN')
             return
         ssh = self._get_ssh(ip)
+        callback(ip, 1, True, "")
         if not self._upload_file(ssh, ip, uploads):
             callback(ip, 5, False, "")
             self._mutex(ip, self.task, False)
@@ -340,7 +340,6 @@ class PageHandler(object):
         # 执行脚本
         self.tell_info(ip, 10, 'Starting execute...')
         self._exec_shell(ssh, params)
-        # self._stop_task(task, ip, 'remove')
         self._check_result(ssh, ip, callback)
         # 清除锁
         self._mutex(ip, self.task, False)
@@ -360,42 +359,4 @@ class PageHandler(object):
             self.tell_info(ip, 0, "kill success")
             callback(ip, 0, True, "")
 
-    """
-    @classmethod
-    def _stop_task(cls, task, ip, op='get'):
-        # 暂停后台循环任务
-        if op == 'remove':
-            if task not in cls._stop_task_ips:
-                cls._stop_task_ips[task] = []
-                return
-            if ip in cls._stop_task_ips[task]:
-                cls._stop_task_ips[task].remove(ip)
-        elif op == 'append':
-            if task not in cls._stop_task_ips:
-                cls._stop_task_ips[task] = []
-            if ip not in cls._stop_task_ips[task]:
-                cls._stop_task_ips[task].append(ip)
-        else:
-            return True if ip in cls._stop_task_ips[task] else False
 
-    @classmethod
-    def _get_print(cls, ssh, callback, ip, task, run_root, run_back):
-        cmd = "{0} get_task_stdout {1}".format(cls._inner_caller, task)
-        def get_print():
-            ret_info = cls._get_exec_info(ssh, cmd, run_root)
-            Utils.tell_info("{0} (100%) Task {1} result:\n{2}".format(ip, task, ret_info))
-            if callback:
-                try:
-                    callback(ret_info)
-                except:
-                    pass
-        if run_back:
-            while True:
-                if cls._stop_task(task, ip):
-                    Utils.tell_info("{0} Stopped {1}".format(ip, task))
-                    break
-                Common.sleep(2)
-                get_print()
-        else:
-            get_print()
-    """

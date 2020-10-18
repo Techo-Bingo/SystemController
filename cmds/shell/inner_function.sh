@@ -10,6 +10,7 @@ function init_task()
     local task=$1
     [ -z "${task}" ] && return 1
     mkdir -p ${task} 2>/dev/null
+    chmod 777 ${task} 2>/dev/null
     rm -rf ${task}/* 2>/dev/null
 
     export g_task_dir=${g_home_dir}/${task}
@@ -63,9 +64,12 @@ function get_task_stdout()
 
 function kill_shell()
 {
-    local shell=$1
+    local task=$1
+    local shell=$2
     local top_pid=$(ps -ef|grep -w "${shell}"|awk '{print $2}'|head -1)
     pstree ${top_pid} -p|tr '(' '\n'|grep '^[0-9]'|cut -d')' -f1|xargs kill -9
+    init_task ${task}
+    report_err "100" "Interrupted"
 }
 
 $*

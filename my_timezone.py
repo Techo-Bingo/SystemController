@@ -10,7 +10,7 @@ from my_handler import PageHandler
 
 class TimezonePage(Pager):
 
-    def __init__(self, master, width, height, ip_list, shell, print_in, ip_choose, widgets):
+    def __init__(self, master, width, height, ip_list, shell, **argv):
         self.master = master
         self.width = width
         self.height = height
@@ -113,7 +113,7 @@ class TimezonePage(Pager):
                     # 子窗体中的combox存入二位数组
                     self.subcmb_list[x][y] = cmb
         # IP和进度条等布局
-        self.progress = CreateIPBar(self.frame, self.width, self.height/5*2, self.ip_list, self.button_callback)
+        self.progress = CreateIPBar(self.frame, self.width, self.height/4, self.ip_list, self.button_callback)
 
     def button_callback(self, oper, ips, opts):
         not_set = self.exist_not_set_combox()

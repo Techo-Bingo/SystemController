@@ -75,7 +75,7 @@ G_TIG_FG_COLOR = {'DEFAULT': 'Snow',
                   'LOGING': 'DarkGrey',
                   'FAILED': 'OrangeRed'}
 # 支持的模板控件
-G_SUPPORTED_WIDGETS = ['Label', 'Checkbox', 'Combobox', 'Entry', 'Text', 'Button']
+G_SUPPORTED_WIDGETS = ['Label', 'Checkbox', 'Combobox', 'Entry', 'Text', 'Button', 'Notebook']
 # 运行环境相关定义
 G_LOG_DIR = '.\\log'
 G_CONF_DIR = '.\\conf'
@@ -84,13 +84,13 @@ G_SHELL_DIR = '.\\cmds\\shell'
 G_TEMP_DIR = '.\\cmds\\temp'
 G_PID_FILE = '.\\cmds\\temp\\tool.pid'
 G_DOWNLOAD_DIR = '.\\download'
+G_SERVER_DIR = '/home/Bingo'
+G_UPLOAD_DIR = ''
 # 日志回滚大小
 G_LOG_SIZE = 10485760
 G_LOG_PATH = '\\'.join([G_LOG_DIR, 'tool.log'])
 G_DEPEND_FILE = '\\'.join([G_CONF_DIR, 'dependance.json'])
 G_SETTING_FILE = '\\'.join([G_CONF_DIR, 'settings.json'])
-G_SERVER_DIR = '/home/Bingo'
-G_UPLOAD_DIR = '/home/Bingo/UPLOAD'
 G_LOG_LEVEL = 'info'
 
 # 事件相关定义
@@ -122,6 +122,7 @@ def reload():
     global G_TITLE
     global G_WELCOME_INFO
     global G_ABOUT_INFO
+    global G_UPLOAD_DIR
     G_TITLE = '%s V%s' % (G_TOOL_NAMED, G_VERSION)
     G_WELCOME_INFO= ' ' * 70 + '【 欢迎使用%s 】' % G_TOOL_NAMED
     G_ABOUT_INFO = '''%s%s
@@ -131,9 +132,11 @@ def reload():
               1. 此工具可根据需求场景自定义界面和功能实现；
               2. 控件模板化，通过配置文件增删界面及其功能；
               3. 此工具稳定，快速，具有极强的扩展性；
+              
      版本：      %s
      作者：      %s
      联系方式：linux_bingo@163.com''' % (' '*30, G_TOOL_NAMED, G_VERSION, __author__)
+    G_UPLOAD_DIR = '%s/UPLOAD' % G_SERVER_DIR
 
 
 

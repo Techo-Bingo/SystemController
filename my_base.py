@@ -2,11 +2,6 @@
 import tkinter as tk
 
 
-class EnvError(Exception):
-    """ 环境异常 """
-    pass
-
-
 class FileError(Exception):
     """ 文件异常 """
     pass

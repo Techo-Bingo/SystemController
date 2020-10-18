@@ -8,7 +8,7 @@ from my_logger import Logger
 from my_viewmodel import ViewModel
 from PIL import Image, ImageTk
 from my_common import Common, JSONParser
-from my_base import EnvError, FileError
+from my_base import FileError
 from my_bond import Caller, Define
 
 
@@ -137,6 +137,14 @@ class Init:
 
         del _depend_data
         del _setting_data
+        return True
+
+    @classmethod
+    def init_style(cls, style):
+        style.theme_use('clam')   # vista
+        style.configure("DEFAULT.TButton", forceground='Red')
+        style.configure("TopNotebook.TNotebook", font=('微软雅黑', 11))
+        style.configure("MyToolBar.TButton", borderwidth=0, relief='flat')  #background=Global.G_MAIN_OPER_BG)
         return True
 
     @classmethod
