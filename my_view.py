@@ -14,7 +14,7 @@ from my_page import PageCtrl
 from my_handler import LoginHandler
 from my_viewutil import WinMsg, ViewUtil
 from my_bond import Packer, Define, Caller
-from my_module import SubLogin, InfoWindow, TopProgress, MyButton, MyTreeView, MyToolBar, TopAbout, MyScreenshot
+from my_module import SubLogin, InfoWindow, TopProgress, MyButton, MyTreeView, MyToolBar, TopAbout, MyScreenshot, MyFrame
 
 
 class Gui(tk.Tk):
@@ -37,7 +37,6 @@ class Gui(tk.Tk):
 
     def pack(self):
         ViewUtil.init_root(self)
-        ViewUtil.set_screensize(self.maxsize())
         self.title(Global.G_TITLE)
         self.iconbitmap(ViewUtil.get_image('ICO'))
         self.resizable(False, False)
@@ -62,6 +61,7 @@ class Gui(tk.Tk):
         login.show()
 
     def Main(self, msg=None):
+        ViewUtil.calculate_size()
         # 菜单栏
         menu_bar = tk.Menu(self)
         self.config(menu=menu_bar)
@@ -228,36 +228,42 @@ class GuiMain(GuiBase):
         MyToolBar(toolbar, images, self.press_callback)
 
     def init_frame(self):
-        paned_win_h = ttk.Panedwindow(self.master, orient=tk.HORIZONTAL)
-        win_style = {'master': self.master,
+        paned_win_h = ttk.Panedwindow(self.master,
+                                      orient=tk.HORIZONTAL,
+                                      width=Global.G_MAIN_TREE_WIDTH + Global.G_MAIN_OPER_WIDTH,
+                                      height=Global.G_MAIN_WIN_HEIGHT)
+        win_style = {'master': paned_win_h,
                      'height': Global.G_MAIN_WIN_HEIGHT}
         tree_window = tk.Frame(width=Global.G_MAIN_TREE_WIDTH, **win_style)
         oper_window = tk.Frame(width=Global.G_MAIN_OPER_WIDTH, **win_style)
-        tree_window.pack(fill='both')
-        oper_window.pack(fill='both')
+        tree_window.pack(side='left', fill='both')
+        tree_window.pack_propagate(0)
+        oper_window.pack(side='left', fill='both')
+        oper_window.pack_propagate(0)
         paned_win_h.add(tree_window, weight=1)
         paned_win_h.add(oper_window, weight=3)
-        paned_win_h.pack()
-        self.tree_window = tree_window
-        paned_win_v = ttk.Panedwindow(oper_window, orient=tk.VERTICAL)
-        fm_style = {'master': oper_window,
+        paned_win_h.pack(side='left', fill='both')
+        paned_win_v = ttk.Panedwindow(oper_window,
+                                      orient=tk.VERTICAL,
+                                      width=Global.G_MAIN_OPER_WIDTH,
+                                      height=Global.G_MAIN_WIN_HEIGHT)
+        fm_style = {'master': paned_win_v,
                     'width': Global.G_MAIN_OPER_WIDTH,
                     'background': Global.G_MAIN_OPER_BG}
         self.oper_fm = tk.Frame(height=Global.G_MAIN_OPER_HEIGHT, **fm_style)
         self.info_fm = tk.Frame(height=Global.G_MAIN_INFO_HEIGHT, **fm_style)
         self.oper_fm.pack(fill='both')
+        self.oper_fm.pack_propagate(0)
         self.info_fm.pack(fill='both')
-        paned_win_v.add(self.oper_fm, weight=2)
+        self.info_fm.pack_propagate(0)
+        paned_win_v.add(self.oper_fm, weight=3)
         paned_win_v.add(self.info_fm, weight=1)
-        paned_win_v.pack()
+        paned_win_v.pack(fill='both')
+        self.tree_window = tree_window
 
     def pack_frame(self):
         self.pack_subframe()
-        # 先设置最大窗口的中心布局，后进行初始窗体大小设置
-        ViewUtil.set_widget_size(width=Global.G_MAIN_WIN_WIDTH, height=Global.G_MAIN_WIN_HEIGHT)
-        ViewUtil.set_widget_size(width=Global.G_MAIN_TREE_WIDTH + Global.G_MAIN_OPER_WIDTH,
-                                 height=Global.G_MAIN_WIN_HEIGHT,
-                                 center=False)
+        ViewUtil.reposition(Global.G_MAIN_WIN_WIDTH-Global.G_MAIN_HELP_WIDTH, Global.G_MAIN_WIN_HEIGHT)
 
     def pack_subframe(self):
         try:
@@ -266,13 +272,13 @@ class GuiMain(GuiBase):
             WinMsg.error("界面数据异常： %s" % str(e))
             Logger.error(traceback.format_exc())
             return
-        # 初始化信息提示栏
-        InfoWindow(self.info_fm)
         # 定义page页接口事件回调函数
         Define.define(Global.EVT_PAGE_INTERFACE, self.page_interface)
         # 初始化page
         self.pager = PageCtrl()
-        self.pager.default(self.oper_fm)
+        self.pager.default(self.oper_fm, Global.G_MAIN_OPER_WIDTH, Global.G_MAIN_OPER_HEIGHT)
+        # 初始化信息提示栏
+        InfoWindow(self.info_fm)
 
     def show_help_window(self, show=False):
         if show:
@@ -280,8 +286,9 @@ class GuiMain(GuiBase):
             self.help_window = tk.Frame(self.master, width=Global.G_MAIN_HELP_WIDTH, height=Global.G_MAIN_WIN_HEIGHT)
             self.help_window.pack(side='left')
             self.help_window.pack_propagate(0)
+            MyFrame(self.help_window, Global.G_MAIN_HELP_WIDTH, Global.G_MAIN_WIN_HEIGHT, True, "帮助界面", True).master()
         else:
-            ViewUtil.set_widget_size(width=Global.G_MAIN_TREE_WIDTH+Global.G_MAIN_OPER_WIDTH,
+            ViewUtil.set_widget_size(width=Global.G_MAIN_TREE_WIDTH + Global.G_MAIN_OPER_WIDTH,
                                      height=Global.G_MAIN_WIN_HEIGHT,
                                      center=False)
             self.help_window.destroy()
@@ -315,4 +322,6 @@ class GuiMain(GuiBase):
             TopAbout.show()
         elif text == 'TB_SCREEN_CUT':
             MyScreenshot(self.master)
+        else:
+            WinMsg.info("敬请期待 !")
 
