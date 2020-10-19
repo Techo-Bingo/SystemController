@@ -65,32 +65,46 @@ class ViewUtil:
     函数名要求：<动词>_<宾语>
     """
     _root = None
+    _X = 0
+    _Y = 0
 
     @classmethod
     def init_root(cls, root_gui):
         cls._root = root_gui
+        ViewModel.cache('SCREEN_SIZE_LIST', type='ADD', data=root_gui.maxsize())
 
     @classmethod
-    def set_screensize(cls, size_tuple):
-        ViewModel.cache('SCREEN_SIZE_LIST', type='ADD', data=size_tuple)
-        # 适配几款主流的显示屏大小
-        width, height = size_tuple
-        if width >= 1600:
+    def calculate_size(cls):
+        gui = cls._root
+        gui.resizable(True, True)
+        gui.state('zoomed')
+        gui.update()
+        screen_str = gui.winfo_geometry()
+        gui.state('normal')
+        w, h = screen_str.split('+')[0].split('x')
+        x, y = screen_str.split('+')[1:]
+        w, h = int(w), int(h)
+        cls._X = 10 if int(x) < 0 else int(x) + 10
+        cls._Y = 10 if int(y) < 0 else int(y) + 10
+        Global.G_MAIN_WIN_WIDTH = w
+        Global.G_MAIN_WIN_HEIGHT = h
+        if w >= 1600:
             Global.G_MAIN_WIN_WIDTH = 1500
-        elif 1360 <= width < 1600:
+        elif 1360 <= w < 1600:
             Global.G_MAIN_WIN_WIDTH = 1200
-        else:
-            Global.G_MAIN_WIN_WIDTH = 1000
-        if height >= 1000:
+        if h >= 1000:
             Global.G_MAIN_WIN_HEIGHT = 900
-        elif 760 <= height < 1000:
+        elif 760 <= h < 1000:
             Global.G_MAIN_WIN_HEIGHT = 700
-        else:
-            Global.G_MAIN_WIN_HEIGHT = 600
 
     @classmethod
     def get_screensize(cls):
         return ViewModel.cache('SCREEN_SIZE_LIST', type='QUE')[-1]
+
+    @classmethod
+    def reposition(cls, width, height):
+        cls._root.geometry("{}x{}+{}+{}".format(width, height, cls._X, cls._Y))
+        cls._root.resizable(False, False)
 
     @classmethod
     def set_widget_size(cls, widget=None, width=None, height=None, center=True):
