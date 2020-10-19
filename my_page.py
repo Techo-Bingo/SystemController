@@ -9,8 +9,8 @@ from my_viewutil import ViewUtil, WinMsg, ToolTips
 from my_timezone import TimezonePage
 from my_module import ProgressBar, MyFrame, TopNotebook, CreateIPBar
 from my_bond import Caller, Bonder
-import numpy
-import matplotlib.pyplot as plot
+# import numpy
+# import matplotlib.pyplot as plot
 
 
 class PageClass(Pager):
@@ -275,7 +275,6 @@ class PageCtrl(object):
             try:
                 self.current_page.destroy()
             except:
-                print('err')
                 pass
         text, widgets, shell, buttons, window = args_tuple
         if self.current_text == text:
