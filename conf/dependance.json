@@ -83,7 +83,7 @@
                     "Image": "TV_OAM",
                     "Page": {
                         "Widgets": "CronPageWidgets",
-                        "Shell": "NA",
+                        "Shell": "crontab_management.sh",
                         "Attrs": []
                     },
                     "SubTree": []
@@ -218,7 +218,7 @@
                 {
                     "WidgetType": "Checkbox",
                     "WidgetTips": ["日志类型"],
-                    "WidgetValues": ["日志类型A", "日志类型B", "日志类型C", "日志类型D"],
+                    "WidgetValues": ["ISP日志", "MDC日志", "UDC日志", "MRS日志", "SDS/SSC日志", "SYSTEM日志"],
                     "WidgetParams": {"Size": [600, 200, 40, 1]},
                     "WidgetAttrs": [],
                     "WidgetActions": []
@@ -238,7 +238,7 @@
                 {
                     "WidgetType": "Label",
                     "WidgetTips": ["警告"],
-                    "WidgetValues": ["eAPP版本将强制回滚至升级前的旧版本", "请谨慎操作！"],
+                    "WidgetValues": ["eAPP版本将强制回滚至升级前的旧版本", "此回滚动作只适用于TTR6.0 eAPP版本", "请谨慎操作！"],
                     "WidgetParams": {"Size": [900, 100, 900, 100]},
                     "WidgetAttrs": [],
                     "WidgetActions": []
@@ -257,20 +257,20 @@
             "CronPageWidgets": [
                 {
                     "WidgetType": "Label",
-                    "WidgetTips": [],
+                    "WidgetTips": ["定时任务列表"],
                     "WidgetValues": [],
-                    "WidgetParams": {"Size": [900, 300, 600, 300]},
-                    "WidgetAttrs": [],
+                    "WidgetParams": {"Size": [900, 300, 900, 300]},
+                    "WidgetAttrs": ["ShowEnterResult"],
                     "WidgetActions": []
                 }
             ],
             "ProcessStatePageWidgets": [
                 {
-                    "WidgetType": "Label",
-                    "WidgetTips": [],
+                    "WidgetType": "Notebook",
+                    "WidgetTips": ["UBP进程状态"],
                     "WidgetValues": [],
-                    "WidgetParams": {"Size": [900, 300, 600, 300]},
-                    "WidgetAttrs": [],
+                    "WidgetParams": {"Size": [900, 500, 900, 500]},
+                    "WidgetAttrs": ["ShowEnterResult"],
                     "WidgetActions": []
                 }
             ],
