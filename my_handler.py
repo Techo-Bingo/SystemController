@@ -269,12 +269,14 @@ class PageHandler(object):
         SSHUtil.exec_ret(ssh, cmd, True)
 
     def tell_info(self, ip, progress, info, level='INFO'):
+        if info in [None, "", "NULL"]:
+            return
         Utils.tell_info("{0} [{1}] ({2}%): {3}".format(ip, self.task, progress, info), level)
 
     def _check_result(self, ssh, ip, callback):
         progress_cmd = "{0} get_task_progress {1}".format(self.inner_caller, self.task)
         print_cmd = "{0} get_task_stdout {1}".format(self.inner_caller, self.task)
-        progress, out_print, retry = 0, "", 1
+        progress, last, retry, out_print = 0, 0, 1, ""
         while True:
             Common.sleep(0.5)
             try:
@@ -283,7 +285,11 @@ class PageHandler(object):
                 out_print = self._execute_out(ssh, print_cmd)
                 if status == 'FAILED':
                     raise ReportError(info)
+                if last == progress:
+                    continue
+                last = progress
                 callback(ip, progress, True, out_print)
+                self.tell_info(ip, progress, info)
                 if progress == 100:
                     if not self._download_file(ssh, ip, info):
                         raise ReportError("Download {0} failed !".format(info))
