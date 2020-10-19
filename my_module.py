@@ -341,7 +341,7 @@ class InfoWindow(object):
                                                   height=40)
         self.infotext.insert('end', Global.G_WELCOME_INFO)
         self.infotext['stat'] = 'disabled'
-        self.infotext.pack(fill='x')
+        self.infotext.pack(fill='both')
         # 设置infowin可以接受事件的变量为True
         ViewUtil.set_infowin_flag()
 
