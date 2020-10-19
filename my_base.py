@@ -80,7 +80,7 @@ class Pager(object):
     def _init(self):
         self._showing = True
         self.frame = tk.LabelFrame(self.master, width=self.width, height=self.height)
-        self.frame.pack()
+        self.frame.pack(fill='both')
         self.frame.pack_propagate(0)
 
     def pack(self):
