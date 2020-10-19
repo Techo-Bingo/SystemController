@@ -98,7 +98,7 @@ class PageClass(Pager):
         def widget_combobox():
             combobox = ttk.Combobox(master, width=width, values=widget_values, state='readonly')
             combobox.current(0)
-            combobox.pack(side='left', padx=10)
+            combobox.pack(side='left', padx=10, pady=2)
             return 'Combobox', combobox
         def widget_checkbox():
             max_column, index, row, column, vars = 2, 0, 0, 0, []
@@ -120,7 +120,7 @@ class PageClass(Pager):
         def widget_entry():
             var = tk.StringVar()
             entry = ttk.Entry(master, width=width, textvariable=var)
-            entry.pack(side='left', padx=10)
+            entry.pack(side='left', padx=10, pady=2)
             if widget_values:
                 var.set('\n'.join(widget_values).strip())
             return 'Entry', entry
@@ -147,7 +147,7 @@ class PageClass(Pager):
                            text="...",
                            width=3,
                            command=lambda x=entry_var: choose_file(x)
-                           ).pack(side='left')
+                           ).pack(side='left', pady=2)
                 return 'Entry', entry
         def widget_notebook():
             notebook = ttk.Notebook(master, width=width, height=height)

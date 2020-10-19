@@ -6,6 +6,7 @@ import tkinter as tk
 from tkinter import ttk, scrolledtext
 from PIL import ImageGrab
 from threading import Lock
+from collections import OrderedDict
 import my_global as Global
 from my_common import Common
 from my_bond import Bonder, Define, Caller
@@ -243,8 +244,7 @@ class ProgressBar(object):
 class MyToolBar(object):
     """ 快捷工具栏 """
     def __init__(self, master, images, callback):
-        for image_set in images:
-            image, text = image_set
+        for image, text in images:
             btn = ttk.Button(master,
                              image=ViewUtil.get_image(image),
                              style="MyToolBar.TButton",
@@ -256,13 +256,20 @@ class MyToolBar(object):
 class MyTreeView(object):
     """ 侧边折叠菜单栏 """
     def __init__(self, master, treelist, callback):
-        self.master = master
-        self.treelist = treelist
         self.callback = callback
-        self.treeview = None
         self.widgets = None
         self.sub_id = []
-        self.init_frame()
+        self.toolbar_id = OrderedDict()
+        self.treeview = ttk.Treeview(master, height=50, show="tree", selectmode='browse')
+        self.treeview.tag_configure('tree.sub', font=('宋体', 12))
+        self.treeview.tag_configure('tree.root', font=('宋体', 12, 'bold'))
+        self.treeview.bind('<<TreeviewSelect>>', lambda k=None: self.command())
+        [self._add_subtree(root) for root in treelist]
+        self.treeview.pack(fill='both')
+        # 可选绑定滑块
+        # vbar = tk.Scrollbar(self.master, orient=tk.VERTICAL, command=self.treeview.yview)
+        # self.treeview.configure(yscrollcommand=vbar.set)
+        # vbar.pack(side='left', fill='y')
 
     def _add_subtree(self, root, id=''):
         if '__ThisIsPageWidgets__' in root:
@@ -272,8 +279,9 @@ class MyTreeView(object):
         image = root['Image']
         pages = root['Page']
         subtree = root['SubTree']
+        img = ViewUtil.get_image(image)
         if pages == 'NA':
-            tag, values = 'tree.root', ""
+            sub_id = self.treeview.insert(id, 'end', text=text, image=img, tags=('tree.root', 'simple'), values="")
         else:
             widgets = pages['Widgets']
             shell = pages['Shell']
@@ -281,30 +289,22 @@ class MyTreeView(object):
             buttons = 'True' if "OperateButtons" in attrs else 'False'
             window = 'True' if "ResultWindow" in attrs else 'False'
             tag, values = 'tree.sub', [text, widgets, shell, buttons, window]
-        image = ViewUtil.get_image(image)
-        sub_id = self.treeview.insert(id, 'end', text=text, image=image, tags=(tag, 'simple'), values=values)
+            sub_id = self.treeview.insert(id, 'end', text=text, image=img, tags=(tag, 'simple'), values=values)
+            # toolbar成员，则加入id列表中
+            if "ToolBarMember" in attrs:
+                self.toolbar_id[image] = (sub_id, text)
         self.sub_id.append(sub_id)
         if isinstance(subtree, list) and len(subtree) != 0:
             [self._add_subtree(sub, sub_id) for sub in subtree]
-
-    def init_frame(self):
-        self.treeview = ttk.Treeview(self.master, height=50, show="tree", selectmode='browse')
-        self.treeview.tag_configure('tree.sub', font=('宋体', 12))
-        self.treeview.tag_configure('tree.root', font=('宋体', 12, 'bold'))
-        self.treeview.bind('<<TreeviewSelect>>', self.command)
-        [self._add_subtree(root) for root in self.treelist]
-        self.treeview.pack(fill='both')
-        # 可选绑定滑块
-        # vbar = tk.Scrollbar(self.master, orient=tk.VERTICAL, command=self.treeview.yview)
-        # self.treeview.configure(yscrollcommand=vbar.set)
-        # vbar.pack(side='left', fill='y')
 
     def expand_trees(self):
         # 展开所有子树
         [self.treeview.item(id, open=True) for id in self.sub_id]
 
-    def command(self, event=None):
-        args_tuple = self.treeview.item(self.treeview.selection()[-1], "values")
+    def command(self, key=None):
+        # 点击treeview按钮和toolbar按钮均可进入页面，根据image key获取id
+        id = self.toolbar_id[key][0] if key else self.treeview.selection()[-1]
+        args_tuple = self.treeview.item(id, "values")
         if len(args_tuple) == 0:
             return
         text, widgets, shell, buttons, window = args_tuple
@@ -316,6 +316,13 @@ class MyTreeView(object):
             ToolTips.message_tips(e)
         else:
             self.callback(back_tuple)
+
+    def get_toolbar_keys(self):
+        out = []
+        for key, tup in self.toolbar_id.items():
+            id, text = tup
+            out.append((key, text))
+        return out
 
 
 class InfoWindow(object):

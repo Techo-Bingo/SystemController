@@ -193,8 +193,8 @@ class GuiMain(GuiBase):
         self.oper_fm = None
         self.help_fm = None
         self.pager = None
+        self.toolbar_master = toolbar
         self.init_menubar(menubar)
-        self.init_toolbar(toolbar)
 
     def init_menubar(self, menubar):
         filemenu = tk.Menu(menubar, tearoff=0)
@@ -214,18 +214,11 @@ class GuiMain(GuiBase):
         helpmenu.add_command(label=" 说明 ", command=lambda x='MENU_HELP': self.press_callback(x))
         helpmenu.add_command(label=" 关于 ", command=lambda x='MENU_ABOUT': self.press_callback(x))
 
-    def init_toolbar(self, toolbar):
-        images = [('TB_EXPAND', "展开目录树"),
-                  ('TB_LAST_ONE', "上一页面"),
-                  ('TB_NEXT_ONE', "下一页面"),
-                  ('TB_RUN_CMD', "运行命令"),
-                  ('TB_DOWNLOAD', "快速下载"),
-                  ('TB_UPLOAD', "快速上传"),
-                  ('TB_SCREEN_CUT', "截取屏幕"),
-                  ('TB_SETTING', "设置"),
-                  ('TB_HELP', "帮助信息"),
-                  ('TB_INFO', "关于软件")]
-        MyToolBar(toolbar, images, self.press_callback)
+    def init_toolbar(self):
+        start = [('TB_EXPAND', "展开目录树"), ('TB_LAST_ONE', "上一页面"), ('TB_NEXT_ONE', "下一页面")]
+        end = [('TB_SCREEN_CUT', "截取屏幕"), ('TB_SETTING', "设置"), ('TB_HELP', "帮助信息"), ('TB_INFO', "关于软件")]
+        toolbar_list = start + self.treeview.get_toolbar_keys() + end
+        MyToolBar(self.toolbar_master, toolbar_list, self.press_callback)
 
     def init_frame(self):
         paned_win_h = ttk.Panedwindow(self.master,
@@ -268,6 +261,7 @@ class GuiMain(GuiBase):
     def pack_subframe(self):
         try:
             self.treeview = MyTreeView(self.tree_window, ViewUtil.get_treeview_data(), self.switch_page)
+            self.init_toolbar()
         except Exception as e:
             WinMsg.error("界面数据异常： %s" % str(e))
             Logger.error(traceback.format_exc())
@@ -312,16 +306,18 @@ class GuiMain(GuiBase):
         elif msg == 'hide_help':
             self.show_help_window(False)
 
-    def press_callback(self, text):
-        print(text)
-        if text == 'TB_EXPAND':
+    def press_callback(self, key):
+        print(key)
+        if key == 'TB_EXPAND':
             self.treeview.expand_trees()
-        elif text == 'TB_HELP':
+        elif key == 'TB_HELP':
             self.show_help_window(False) if self.help_window else self.show_help_window(True)
-        elif text == 'TB_INFO':
+        elif key == 'TB_INFO':
             TopAbout.show()
-        elif text == 'TB_SCREEN_CUT':
+        elif key == 'TB_SCREEN_CUT':
             MyScreenshot(self.master)
-        else:
+        elif key in ["TB_LAST_ONE", "TB_NEXT_ONE", "TB_SETTING"]:
             WinMsg.info("敬请期待 !")
+        else:
+            self.treeview.command(key)
 
