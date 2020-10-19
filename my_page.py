@@ -261,9 +261,10 @@ class PageCtrl(object):
         self.current_page = None
         # Bonder('__PageCtrl__').bond(Global.EVT_CLOSE_GUI, PlotMaker.close)
 
-    def default(self, master):
-        _master = tk.Frame(master)
-        _master.pack()
+    def default(self, master, width, height):
+        _master = tk.Frame(master, width=width, height=height)
+        _master.pack(fill='both')
+        _master.pack_propagate(0)
         self.current_page = _master
         my_fm = MyFrame(_master, 900, 600, True, "简 单 向 导", True).master()
         fm = tk.Frame(my_fm)
