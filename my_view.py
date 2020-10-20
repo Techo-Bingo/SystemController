@@ -215,8 +215,13 @@ class GuiMain(GuiBase):
         helpmenu.add_command(label=" 关于 ", command=lambda x='MENU_ABOUT': self.press_callback(x))
 
     def init_toolbar(self):
-        start = [('TB_EXPAND', "展开目录树"), ('TB_LAST_ONE', "上一页面"), ('TB_NEXT_ONE', "下一页面")]
-        end = [('TB_SCREEN_CUT', "截取屏幕"), ('TB_SETTING', "设置"), ('TB_HELP', "帮助信息"), ('TB_INFO', "关于软件")]
+        start = [('TB_EXPAND', "展开目录树"), 
+                 ('TB_LAST_ONE', "上一页面"),
+                 ('TB_NEXT_ONE', "下一页面")]
+        end = [('TB_SCREEN_CUT', "截取屏幕"),
+               ('TB_SETTING', "设置"),
+               ('TB_HELP', "帮助信息"), 
+               ('TB_INFO', "关于软件")]
         toolbar_list = start + self.treeview.get_toolbar_keys() + end
         MyToolBar(self.toolbar_master, toolbar_list, self.press_callback)
 
