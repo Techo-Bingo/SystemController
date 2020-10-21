@@ -2,6 +2,7 @@
 import tkinter as tk
 from tkinter import ttk, scrolledtext, filedialog
 import my_global as Global
+from collections import defaultdict
 from my_common import Common
 from my_base import Pager
 from my_handler import PageHandler
@@ -27,11 +28,19 @@ class PageClass(Pager):
         self.progress = {}
         # 各控件实例和控件事件
         self.instance = []
+        self.cache_flag = PageHandler.server_cache_key
+        self.cache_result = {}
 
     def pack_frame(self):
+        self.init_cache()
         self.pack_widgets()
         if self.buttons:
             self.progress = CreateIPBar(self.frame, self.width, self.height/4, self.ip_list, self.button_callback)
+
+    def init_cache(self):
+        for key in self.cache_flag:
+            for ip in self.ip_list:
+                self.cache_result[ip] = PageHandler.get_server_cache(ip, key)
 
     def pack_widgets(self):
         def get_widget_params():
@@ -41,8 +50,9 @@ class PageClass(Pager):
             if 'ShowEnterResult' in widget_attrs:
                 result_widget.append((widget_name, instance))
             can_null = True if 'CanBeNull' in widget_attrs else False
-            execute = True if 'ShowExecResult' in widget_attrs else False
-            return can_null, execute
+            # 目前不支持把结果布局到控件
+            # execute = True if 'ShowExecResult' in widget_attrs else False
+            return can_null, False  # execute
         def enter_callback(ip, out_print):
             for key, inst in result_widget:
                 if key == 'Label':
@@ -82,7 +92,8 @@ class PageClass(Pager):
             if widget_name not in ["Label", "Notebook"]:
                 self.instance.append(((widget_name, instance), attrs, widget_actions))
         ''' 2. 执行界面ENTER脚本 '''
-        PageHandler(self.ip_list, self.shell, True, False).execute_enter(enter_callback)
+        if result_widget:
+            PageHandler(self.ip_list, self.shell, True, False).execute_enter(enter_callback)
 
     def create_widget(self, master, widget_type, widget_values, widget_size):
         def widget_label():
@@ -100,6 +111,22 @@ class PageClass(Pager):
             combobox.current(0)
             combobox.pack(side='left', padx=10, pady=2)
             return 'Combobox', combobox
+        def widget_multicombobox():
+            column, multicombobox = 0, []
+            for ip in self.ip_list:
+                turned_values = []
+                for key in widget_values:
+                    if key in self.cache_flag:
+                        turned_values += PageHandler.get_server_cache(ip, key)
+                    else:
+                        turned_values.append(key)
+                tk.Label(master, text=ip).grid(row=0, column=column)
+                combobox = ttk.Combobox(master, width=width, values=turned_values, state='readonly')
+                combobox.current(0)
+                combobox.grid(row=1, column=column, padx=10)
+                column += 1
+                multicombobox.append((ip, combobox))
+            return 'MultiCombobox', multicombobox
         def widget_checkbox():
             max_column, index, row, column, vars = 2, 0, 0, 0, []
             for opt in widget_values:
@@ -163,66 +190,72 @@ class PageClass(Pager):
                 instance[ip] = text
             return 'Notebook', instance
         width, height = widget_size
+        # 服务器信息内部变量只能与组合控件一起使用
+        for cache_key in self.cache_flag:
+            if cache_key in widget_values and not widget_type.startswith('Multi'):
+                raise Exception("{}只能与Multi类型控件使用".format(cache_key))
         return eval("widget_{}".format(widget_type.lower()))()
 
     def start_execute(self, ips, handler):
         def get_widget_input():
-            if widget == 'Combobox':
-                out = str(instance.current())
-            elif widget == 'Checkbox':
-                choose = [str(v.get()) for v in instance]
+            if widget == 'Combobox':  # 默认选择了第一个
+                [shell_params[ip].append(str(instance.current())) for ip in ips]
+            elif widget == 'MultiCombobox':  # 默认选择第一个，但可能是”“
+                for ip, inst in instance:
+                    _v = inst.get()
+                    if not _v and not can_be_null:
+                        return False
+                    shell_params[ip].append(_v)
+            elif widget == 'Checkbox':   # 默认无勾选
+                choose = [str(_v.get()) for _v in instance]
                 # 未选择任意一项
-                if len(set(choose)) == 1 and choose[0] == '0':
-                    out = '@'.join(choose) if can_be_null else None
-                else:
-                    out = '@'.join(choose)
-            elif widget == 'Entry':
-                out = instance.get()
+                if not can_be_null and len(set(choose)) == 1 and choose[0] == '0':
+                    return False
+                [shell_params[ip].append('@'.join(choose)) for ip in ips]
+            elif widget == 'Entry':  # 默认为空
+                for ip in ips:
+                    _v = instance.get()
+                    if not _v and not can_be_null:
+                        return False
+                    shell_params[ip].append(_v)
             elif widget == 'Text':
-                input = instance.get('1.0', 'end').strip()
-                if not input:
-                    out = input
-                else:
-                    out = '{0}\\__{1}_{2}__.txt'.format(Global.G_TEMP_DIR, widget, index)
-                    Common.write_to_file(out, input)
-            else:
-                out = None
-            if not out and not can_be_null:
-                # ToolTips.widget_tips(instance)
-                WinMsg.warn("第{0}个必要控件{1}输入为空 !".format(index, widget))
-                return None
-            return out
+                _v = instance.get('1.0', 'end').strip()
+                if not _v and not can_be_null:
+                    return False
+                f = '{0}\\__{1}_{2}__.txt'.format(Global.G_TEMP_DIR, widget, index)
+                Common.write_to_file(f, _v)
+                [shell_params[ip].append(f) for ip in ips]
+            return True
         def parser_widget_actions():
-            name = param
             for act in actions:
                 if act == 'UploadFile':
-                    uploads.append(param)
-                    name = Common.basename(param)
+                    for ip in ips:
+                        # 本地的文件路径传给上传列表，同时修改脚本参数为文件名
+                        _local_f = shell_params[ip][-1]
+                        prev_uploads[ip].append(_local_f)
+                        shell_params[ip][-1] = Common.basename(_local_f)
                 else:
                     WinMsg.error("Not support WidgetAction: {}".format(act))
                     continue
-            return name
         ''' 1. 校验控件输入并组装脚本参数 '''
-        shell_params, index, uploads = "", 0, []
+        shell_params, prev_uploads, index = defaultdict(list), defaultdict(list), 0
         for item in self.instance:
             widget, instance = item[0]
             can_be_null, show_result = item[1]
             actions = item[2]
             index += 1
             # 1.1 获取控件输入信息
-            param = get_widget_input()
-            if not param:
-                return
+            if not get_widget_input():
+                WinMsg.warn("第{0}个必要控件{1}输入为空 !".format(index, widget))
+                return None
             # 1.2 解析actions
-            param = parser_widget_actions()
-            # 1.3 组装脚本参数
-            shell_params = "{0} '{1}'".format(shell_params, param)
+            parser_widget_actions()
         ''' 2. 开启Top窗体显示执行结果 '''
         if self.window:
             TopNotebook.close()
             TopNotebook.show(ips)
         ''' 3. 处理控件动作事件并执行脚本 '''
-        handler.execute_start(self.result_callback, shell_params, uploads)
+        handler.execute_start(self.result_callback, shell_params, prev_uploads)
 
     def stop_execute(self, handler):
         handler.execute_stop(self.result_callback)
@@ -235,6 +268,10 @@ class PageClass(Pager):
         self.progress[ip].update(progress, color)
         if not out_print:
             return
+        ''' 
+        结果回显：Window或者Tips,
+        目前不支持把结果布局到控件 
+        '''
         if self.window:
             TopNotebook.insert(ip, out_print)
         else:
@@ -256,13 +293,14 @@ class PageClass(Pager):
 class PageCtrl(object):
     """ 页面切换控制类 """
 
-    def __init__(self):
+    def __init__(self, master):
+        self.master = master
         self.current_text = None
         self.current_page = None
         # Bonder('__PageCtrl__').bond(Global.EVT_CLOSE_GUI, PlotMaker.close)
 
-    def default(self, master, width, height):
-        _master = tk.Frame(master, width=width, height=height)
+    def default(self, width, height):
+        _master = tk.Frame(self.master, width=width, height=height)
         _master.pack(fill='both')
         _master.pack_propagate(0)
         self.current_page = _master
@@ -295,7 +333,7 @@ class PageCtrl(object):
         if len(set(widget_types)) != 1:
             raise Exception("<Self>自定义控件界面不能使用<Template>模板控件")
         width, height = Caller.call(Global.EVT_PAGE_INTERFACE, 'PAGE_SIZE')
-        pager_params = {'master': Caller.call(Global.EVT_PAGE_INTERFACE, 'PAGE_MASTER'),
+        pager_params = {'master': self.master,
                         'width': width,
                         'height': height,
                         'ip_list': ViewUtil.get_ssh_ip_list(),
