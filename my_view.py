@@ -215,12 +215,12 @@ class GuiMain(GuiBase):
         helpmenu.add_command(label=" 关于 ", command=lambda x='MENU_ABOUT': self.press_callback(x))
 
     def init_toolbar(self):
-        start = [('TB_EXPAND', "展开目录树"), 
+        start = [('TB_EXPAND', "展开目录树"),
                  ('TB_LAST_ONE', "上一页面"),
                  ('TB_NEXT_ONE', "下一页面")]
         end = [('TB_SCREEN_CUT', "截取屏幕"),
                ('TB_SETTING', "设置"),
-               ('TB_HELP', "帮助信息"), 
+               ('TB_HELP', "帮助信息"),
                ('TB_INFO', "关于软件")]
         toolbar_list = start + self.treeview.get_toolbar_keys() + end
         MyToolBar(self.toolbar_master, toolbar_list, self.press_callback)
@@ -274,8 +274,8 @@ class GuiMain(GuiBase):
         # 定义page页接口事件回调函数
         Define.define(Global.EVT_PAGE_INTERFACE, self.page_interface)
         # 初始化page
-        self.pager = PageCtrl()
-        self.pager.default(self.oper_fm, Global.G_MAIN_OPER_WIDTH, Global.G_MAIN_OPER_HEIGHT)
+        self.pager = PageCtrl(self.oper_fm)
+        self.pager.default(Global.G_MAIN_OPER_WIDTH, Global.G_MAIN_OPER_HEIGHT)
         # 初始化信息提示栏
         InfoWindow(self.info_fm)
 
@@ -302,9 +302,7 @@ class GuiMain(GuiBase):
             return
 
     def page_interface(self, msg):
-        if msg == 'PAGE_MASTER':
-            return self.oper_fm
-        elif msg == 'PAGE_SIZE':
+        if msg == 'PAGE_SIZE':
             return Global.G_MAIN_OPER_WIDTH, Global.G_MAIN_OPER_HEIGHT
         elif msg == 'show_help':
             self.show_help_window(True)
@@ -315,13 +313,15 @@ class GuiMain(GuiBase):
         print(key)
         if key == 'TB_EXPAND':
             self.treeview.expand_trees()
-        elif key == 'TB_HELP':
+        elif key in ['TB_HELP', "MENU_HELP"]:
             self.show_help_window(False) if self.help_window else self.show_help_window(True)
-        elif key == 'TB_INFO':
+        elif key in ['TB_INFO', "MENU_ABOUT"]:
             TopAbout.show()
         elif key == 'TB_SCREEN_CUT':
             MyScreenshot(self.master)
-        elif key in ["TB_LAST_ONE", "TB_NEXT_ONE", "TB_SETTING"]:
+        elif key == 'MENU_EXIT':
+            ViewUtil.close_root()
+        elif key in ["TB_LAST_ONE", "TB_NEXT_ONE", "TB_SETTING", "MENU_OPEN", "MENU_IMPORT", "MENU_EXPORT", "MENU_OPTION", ]:
             WinMsg.info("敬请期待 !")
         else:
             self.treeview.command(key)
