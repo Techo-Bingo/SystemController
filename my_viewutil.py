@@ -74,6 +74,10 @@ class ViewUtil:
         ViewModel.cache('SCREEN_SIZE_LIST', type='ADD', data=root_gui.maxsize())
 
     @classmethod
+    def close_root(cls):
+        cls._root.close()
+
+    @classmethod
     def calculate_size(cls):
         gui = cls._root
         gui.resizable(True, True)
