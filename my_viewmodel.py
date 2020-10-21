@@ -16,7 +16,8 @@ class ViewModel:
                  "SUBLOGIN_INDEX_LIST": "sublogin_index_list",
                  "GET_INFOWIN_EVT_FLAG": "get_infowin_flag",
                  "SET_INFOWIN_EVT_FLAG": "set_infowin_flag",
-                 "TREE_VIEW_DATA_LIST": "treeview_data_list"}
+                 "TREE_VIEW_DATA_LIST": "treeview_data_list",
+                 "SERVER_CACHE_DICT": "server_cache_dict"}
 
     @classmethod
     def init(cls, settingmap):
