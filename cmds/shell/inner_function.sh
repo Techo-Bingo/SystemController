@@ -72,6 +72,16 @@ function kill_shell()
     report_err "100" "Interrupted"
 }
 
+function cache_server_info()
+{
+    local interface=$(ip addr |grep -w "UP"|grep -vw "DOWN"|grep -vw "LOOPBACK"|awk '{print $2}'|sed 's/://g')
+    local ip_list=$(ip addr |grep "${interface}"|grep -vw mtu|grep -vw "lo$"|awk '{print $2}'|grep -o -E "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}")
+    echo "${g_split_flag}"
+    echo "__NETCARD__:$(echo ${interface}|tr '\n' ' ')"
+    echo "__IP__:$(echo ${ip_list}|tr '\n' ' ')"
+    echo "${g_split_flag}"
+}
+
 $*
 exit $?
 
