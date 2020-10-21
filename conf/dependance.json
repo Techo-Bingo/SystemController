@@ -19,6 +19,7 @@
         "TV_FAST_LOG": ".\\image\\treeview_fast_log.png",
         "TV_BINLOG": ".\\image\\treeview_binlog.png",
         "TV_ROLLBACK": ".\\image\\treeview_rollback.png",
+        "TV_INSTALL": ".\\image\\treeview_install.png",
         "TV_CRONTAB": ".\\image\\treeview_timezone.png",
         "TV_PROC_STATE": ".\\image\\treeview_proc_state.png",
         "TV_SYS_STATE": ".\\image\\treeview_system_state.png",
@@ -68,16 +69,6 @@
                     "SubTree": []
                 },
                 {
-                    "Text": "版本强制回滚",
-                    "Image": "TV_ROLLBACK",
-                    "Page": {
-                        "Widgets": "RollbackVersionWidgets",
-                        "Shell": "rollback_version.sh",
-                        "Attrs": ["OperateButtons", "ResultWindow"]
-                    },
-                    "SubTree": []
-                },
-                {
                     "Text": "定时任务管理",
                     "Image": "TV_CRONTAB",
                     "Page": {
@@ -94,6 +85,26 @@
                         "Widgets": "TimezonePageWidgets",
                         "Shell": "timezone_operate.sh",
                         "Attrs": []
+                    },
+                    "SubTree": []
+                },
+                {
+                    "Text": "版本强制回滚",
+                    "Image": "TV_ROLLBACK",
+                    "Page": {
+                        "Widgets": "RollbackVersionWidgets",
+                        "Shell": "rollback_version.sh",
+                        "Attrs": ["OperateButtons", "ResultWindow"]
+                    },
+                    "SubTree": []
+                },
+                {
+                    "Text": "版本安装",
+                    "Image": "TV_INSTALL",
+                    "Page": {
+                        "Widgets": "InstallVersionWidgets",
+                        "Shell": "install_version.sh",
+                        "Attrs": ["OperateButtons", "ResultWindow"]
                     },
                     "SubTree": []
                 }
@@ -243,6 +254,56 @@
                     "WidgetActions": []
                 }
             ],
+            "InstallVersionWidgets": [
+                {
+                    "WidgetType": "Button",
+                    "WidgetTips": ["本地软件包文件"],
+                    "WidgetValues": ["ChooseFile", "*"],
+                    "WidgetParams": {"Size": [900, 35, 10, 1]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": ["UploadFile"]
+                },
+                {
+                    "WidgetType": "Combobox",
+                    "WidgetTips": ["安装语言"],
+                    "WidgetValues": ["中文", "英文"],
+                    "WidgetParams": {"Size": [900, 30, 20, 1]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": []
+                },
+                {
+                    "WidgetType": "Combobox",
+                    "WidgetTips": ["安装场景"],
+                    "WidgetValues": ["无线专网(PWI)", "指挥中心(ICP)"],
+                    "WidgetParams": {"Size": [900, 30, 20, 1]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": []
+                },
+                {
+                    "WidgetType": "Combobox",
+                    "WidgetTips": ["协议版本"],
+                    "WidgetValues": ["B-Trunc R2", "3GPP"],
+                    "WidgetParams": {"Size": [900, 30, 20, 1]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": []
+                },
+                {
+                    "WidgetType": "MultiCombobox",
+                    "WidgetTips": ["MDC IP"],
+                    "WidgetValues": ["__IP__"],
+                    "WidgetParams": {"Size": [900, 50, 20, 1]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": []
+                },
+                {
+                    "WidgetType": "MultiCombobox",
+                    "WidgetTips": ["UDC IP"],
+                    "WidgetValues": ["", "__IP__"],
+                    "WidgetParams": {"Size": [900, 50, 20, 1]},
+                    "WidgetAttrs": ["CanBeNull"],
+                    "WidgetActions": []
+                }
+            ],
             "TimezonePageWidgets": [
                 {
                     "WidgetType": "Self",
@@ -258,7 +319,7 @@
                     "WidgetType": "Label",
                     "WidgetTips": ["定时任务列表"],
                     "WidgetValues": [],
-                    "WidgetParams": {"Size": [900, 300, 900, 300]},
+                    "WidgetParams": {"Size": [900, 500, 900, 500]},
                     "WidgetAttrs": ["ShowEnterResult"],
                     "WidgetActions": []
                 }
@@ -276,7 +337,7 @@
             "MemoryStatePageWidgets": [
                 {
                     "WidgetType": "Label",
-                    "WidgetTips": [],
+                    "WidgetTips": ["数据可视化开发中，敬请期待"],
                     "WidgetValues": [],
                     "WidgetParams": {"Size": [900, 300, 600, 300]},
                     "WidgetAttrs": [],
@@ -286,7 +347,7 @@
             "CpuStatePageWidgets": [
                 {
                     "WidgetType": "Label",
-                    "WidgetTips": [],
+                    "WidgetTips": ["数据可视化开发中，敬请期待"],
                     "WidgetValues": [],
                     "WidgetParams": {"Size": [900, 300, 600, 300]},
                     "WidgetAttrs": [],
@@ -296,7 +357,7 @@
             "IOStatePageWidgets": [
                 {
                     "WidgetType": "Label",
-                    "WidgetTips": [],
+                    "WidgetTips": ["数据可视化开发中，敬请期待"],
                     "WidgetValues": [],
                     "WidgetParams": {"Size": [900, 300, 600, 300]},
                     "WidgetAttrs": [],
@@ -306,7 +367,7 @@
             "DiskStatePageWidgets": [
                 {
                     "WidgetType": "Label",
-                    "WidgetTips": [],
+                    "WidgetTips": ["数据可视化开发中，敬请期待"],
                     "WidgetValues": [],
                     "WidgetParams": {"Size": [900, 300, 600, 300]},
                     "WidgetAttrs": [],
