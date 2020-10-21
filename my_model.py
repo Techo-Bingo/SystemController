@@ -40,6 +40,7 @@ class Cache(Singleton):
         self._logon_ssh = {}
         self._conf_image = {}
         self._treeview_data = []
+        self._server_cache = {}
 
     @property
     def screen_size_list(self):
@@ -67,3 +68,6 @@ class Cache(Singleton):
     def treeview_data_list(self):
         return self._treeview_data
 
+    @property
+    def server_cache_dict(self):
+        return self._server_cache
