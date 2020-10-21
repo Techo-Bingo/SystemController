@@ -75,7 +75,7 @@ G_TIG_FG_COLOR = {'DEFAULT': 'Snow',
                   'LOGING': 'DarkGrey',
                   'FAILED': 'OrangeRed'}
 # 支持的模板控件
-G_SUPPORTED_WIDGETS = ['Label', 'Checkbox', 'Combobox', 'Entry', 'Text', 'Button', 'Notebook']
+G_SUPPORTED_WIDGETS = ['Label', 'Checkbox', 'Combobox', 'Entry', 'Text', 'Button', 'Notebook', 'MultiCombobox']
 # 运行环境相关定义
 G_LOG_DIR = '.\\log'
 G_CONF_DIR = '.\\conf'
