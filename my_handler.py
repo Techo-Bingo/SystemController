@@ -161,11 +161,11 @@ class LoginHandler:
                 send_ips.append(_ip)
                 return True
             return False
-
         while True:
-            Common.sleep(5)
             new_ip_ssh_instance = {}
             for ip, ssh in cls._logon_ssh_inst('QUE', None).items():
+                # 获取服务器信息
+                PageHandler.cache_server_info(ip)
                 ret = SSHUtil.exec_ret(ssh, 'echo')[0]
                 if not ret:
                     continue
@@ -184,6 +184,7 @@ class LoginHandler:
             # 刷新ssh实例
             for ip, ssh in new_ip_ssh_instance.items():
                 cls._logon_ssh_inst('ADD', {ip: ssh})
+            Common.sleep(5)
 
     @classmethod
     def prepare_env(cls):
@@ -199,18 +200,14 @@ class LoginHandler:
             if not cls._check_inputs(seq, ip_passwd_tuple):
                 return False
             _input_info[seq] = ip_passwd_tuple
-
         # 登录校验，开启进度条
         Utils.top_progress_start('登录中')
-
         for seq, ip_passwd_tuple in _input_info.items():
             if not cls._login_server(seq, ip_passwd_tuple):
                 return False
             cls._cache_passwds[ip_passwd_tuple[0]] = ip_passwd_tuple[1:]
-
         # 清理用不到的数据，节省内存
         ViewModel.cache('SUBLOGIN_INDEX_LIST', type='DEL')
-
         # 关闭进度条并开始后台上传文件
         cls.prepare_env()
         Utils.top_progress_stop()
@@ -220,6 +217,8 @@ class LoginHandler:
 
 class PageHandler(object):
     """ 页面事件处理类 """
+    server_cache_key = ['__IP__', '__NETCARD__']
+    inner_caller = "sh {0}/inner_function.sh".format(Global.G_SERVER_DIR)
 
     def __init__(self, ip_list, shell, in_root, in_back):
         self.ip_list = ip_list
@@ -227,7 +226,6 @@ class PageHandler(object):
         self.in_root = in_root
         self.in_back = in_back
         self.task = shell.split('.')[0].upper()
-        self.inner_caller = "sh {0}/inner_function.sh".format(Global.G_SERVER_DIR)
 
     @classmethod
     def _mutex(cls, ip, task, lock=True):
@@ -333,17 +331,23 @@ class PageHandler(object):
         callback(ip, out_print)
 
     def _exec_start_impl(self, ip, uploads, params, callback):
+        def combine_params():
+            out = ""
+            for p in params:
+                out += " '%s'" % p
+            return out
         # 上传文件
         if not self._mutex(ip, self.task):
             self.tell_info(ip, 0, 'Repeat, please wait...', level='WARN')
             return
         ssh = self._get_ssh(ip)
-        callback(ip, 1, True, "")
+        callback(ip, 1, True, "文件上传中，请稍候...")
         if not self._upload_file(ssh, ip, uploads):
             callback(ip, 5, False, "")
             self._mutex(ip, self.task, False)
             return
         # 执行脚本
+        params = combine_params()
         self.tell_info(ip, 10, 'Starting execute...')
         self._exec_shell(ssh, params)
         self._check_result(ssh, ip, callback)
@@ -353,10 +357,12 @@ class PageHandler(object):
     def execute_enter(self, callback):
         for ip in self.ip_list:
             Common.create_thread(func=self._exec_enter_impl, args=(ip, callback))
+            Logger.info("execute_enter {} for {}".format(self.task, ip))
 
     def execute_start(self, callback, params, uploads):
         for ip in self.ip_list:
-            Common.create_thread(func=self._exec_start_impl, args=(ip, uploads, params, callback))
+            Common.create_thread(func=self._exec_start_impl, args=(ip, uploads[ip], params[ip], callback))
+            Logger.info("execute_start {} for {}, params:{}, uploads:{}".format(self.task, ip, params[ip], uploads[ip]))
 
     def execute_stop(self, callback):
         for ip in self.ip_list:
@@ -364,5 +370,34 @@ class PageHandler(object):
             self._mutex(ip, self.task, False)
             self.tell_info(ip, 0, "kill success")
             callback(ip, 0, True, "")
+            Logger.info("execute_stop {} for {}".format(self.task, ip))
 
+    # 获取服务器基本信息(网卡、IP等)
+    @classmethod
+    def cache_server_info(cls, ip):
+        Common.create_thread(func=cls._cache_impl, args=(ip,))
 
+    @classmethod
+    def get_server_cache(cls, ip, which):
+        try:
+            return ViewModel.cache('SERVER_CACHE_DICT', 'QUE')[ip][which]
+        except:
+            return []
+
+    @classmethod
+    def _cache_impl(cls, ip):
+        print_cmd = "{0} cache_server_info".format(cls.inner_caller)
+        out_print = cls._execute_out(cls._get_ssh(ip), print_cmd)
+        ips, cards = [], []
+        for line in out_print.split('\n'):
+            try:
+                if line.startswith('__NETCARD__:'):
+                    cards = line.split('__NETCARD__:')[1].strip().split()
+            except:
+                cards = []
+            try:
+                if line.startswith('__IP__:'):
+                    ips = line.split('__IP__:')[1].strip().split()
+            except:
+                ips = []
+        ViewModel.cache('SERVER_CACHE_DICT', 'ADD', {ip: {'__NETCARD__': cards, '__IP__': ips}})
