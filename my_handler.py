@@ -150,6 +150,8 @@ class LoginHandler:
                     break
         [cls._logon_ssh_inst('SUB', ip) for ip in _ip_del_list]
         Common.remove(zip_file)
+        # 启动数据更新定时器
+        RefreshTimer.start_timer()
         # ssh保活
         cls._keep_ssh_alive()
 
@@ -162,10 +164,9 @@ class LoginHandler:
                 return True
             return False
         while True:
+            Common.sleep(5)
             new_ip_ssh_instance = {}
             for ip, ssh in cls._logon_ssh_inst('QUE', None).items():
-                # 获取服务器信息
-                PageHandler.cache_server_info(ip)
                 ret = SSHUtil.exec_ret(ssh, 'echo')[0]
                 if not ret:
                     continue
@@ -184,7 +185,6 @@ class LoginHandler:
             # 刷新ssh实例
             for ip, ssh in new_ip_ssh_instance.items():
                 cls._logon_ssh_inst('ADD', {ip: ssh})
-            Common.sleep(5)
 
     @classmethod
     def prepare_env(cls):
@@ -215,9 +215,62 @@ class LoginHandler:
         return True
 
 
+class RefreshTimer:
+
+    @classmethod
+    def refresh_cache_impl(cls, interval, interface):
+        while True:
+            try:
+                for ip, ssh in ViewModel.cache('LOGON_SSH_DICT', type='QUE').items():
+                    PageHandler.cache_server_info(ip, ssh, interface)
+            except Exception as e:
+                Logger.error("RefreshTimer refresh_cache_impl {}".format(str(e)))
+            Common.sleep(interval)
+
+    @classmethod
+    def refresh_file_impl(cls, interval, filelist):
+        while True:
+            try:
+                for ip, ssh in ViewModel.cache('LOGON_SSH_DICT', type='QUE').items():
+                    local_download = "{}\\{}".format(Global.G_DOWNLOAD_DIR, ip)
+                    data_dir = "{}\\DATA".format(local_download)
+                    Common.mkdir(local_download)
+                    Common.mkdir(data_dir)
+                    cmd = ''
+                    for file in filelist:
+                        cmd = "{0}\ncp -f {1} {2}".format(cmd, file, Global.G_SERVER_DOWNLOAD)
+                    cmd = '''mkdir -p {0};
+                    {1};
+                    cd {0} && zip refresh_file.zip *
+                    '''.format(Global.G_SERVER_DOWNLOAD, cmd)
+                    SSHUtil.exec_ret(ssh, cmd)
+                    SSHUtil.download_file(ssh, "{}/refresh_file.zip".format(
+                        Global.G_SERVER_DOWNLOAD), '{}\\refresh_file.zip'.format(local_download))
+                    Common.unzip_file('{}\\refresh_file.zip'.format(local_download), data_dir)
+                    #PageHandler.cache_server_info(ip, ssh, interface)
+            except Exception as e:
+                Logger.error("RefreshTimer refresh_file_impl {}".format(str(e)))
+            Common.sleep(interval)
+
+    @classmethod
+    def start_timer(cls):
+        try:
+            data = ViewModel.cache('REFRESH_TIMER_DICT', type='QUE')
+            refresh_cache, refresh_file = data['RefreshCache'], data['RefreshFile']
+            interval_c = int(refresh_cache['Interval'])
+            interface = refresh_cache['Interface']
+            interval_f = int(refresh_file['Interval'])
+            filelist = refresh_file['FileList']
+        except Exception as e:
+            Logger.error("RefreshTimer Exception for parser Timer data: {}".format(str(e)))
+            return
+        Common.create_thread(func=cls.refresh_cache_impl, args=(interval_c, interface))
+        Common.create_thread(func=cls.refresh_file_impl, args=(interval_f, filelist))
+
+
 class PageHandler(object):
     """ 页面事件处理类 """
-    server_cache_key = ['__IP__', '__NETCARD__']
+    server_cache_key = []
     inner_caller = "sh {0}/inner_function.sh".format(Global.G_SERVER_DIR)
 
     def __init__(self, ip_list, shell, in_root, in_back):
@@ -283,10 +336,10 @@ class PageHandler(object):
                 out_print = self._execute_out(ssh, print_cmd)
                 if status == 'FAILED':
                     raise ReportError(info)
+                callback(ip, progress, True, out_print)
                 if last == progress:
                     continue
                 last = progress
-                callback(ip, progress, True, out_print)
                 self.tell_info(ip, progress, info)
                 if progress == 100:
                     if not self._download_file(ssh, ip, info):
@@ -315,7 +368,7 @@ class PageHandler(object):
 
     def _upload_file(self, ssh, ip, uploads):
         for local in uploads:
-            remote = "{0}/{1}".format(Global.G_UPLOAD_DIR, Common.basename(local))
+            remote = "{0}/{1}".format(Global.G_SERVER_UPLOAD, Common.basename(local))
             self.tell_info(ip, 1, 'Uploading {}'.format(local))
             ret, _ = SSHUtil.upload_file(ssh, local, remote)
             if not ret:
@@ -372,11 +425,6 @@ class PageHandler(object):
             callback(ip, 0, True, "")
             Logger.info("execute_stop {} for {}".format(self.task, ip))
 
-    # 获取服务器基本信息(网卡、IP等)
-    @classmethod
-    def cache_server_info(cls, ip):
-        Common.create_thread(func=cls._cache_impl, args=(ip,))
-
     @classmethod
     def get_server_cache(cls, ip, which):
         try:
@@ -385,19 +433,24 @@ class PageHandler(object):
             return []
 
     @classmethod
-    def _cache_impl(cls, ip):
-        print_cmd = "{0} cache_server_info".format(cls.inner_caller)
-        out_print = cls._execute_out(cls._get_ssh(ip), print_cmd)
-        ips, cards = [], []
-        for line in out_print.split('\n'):
-            try:
-                if line.startswith('__NETCARD__:'):
-                    cards = line.split('__NETCARD__:')[1].strip().split()
-            except:
-                cards = []
-            try:
-                if line.startswith('__IP__:'):
-                    ips = line.split('__IP__:')[1].strip().split()
-            except:
-                ips = []
-        ViewModel.cache('SERVER_CACHE_DICT', 'ADD', {ip: {'__NETCARD__': cards, '__IP__': ips}})
+    def cache_server_info(cls, ip, ssh, interface):
+        for shell in interface:
+            print_cmd = "{}/{}".format(Global.G_SERVER_DIR, shell)
+            out_print = cls._execute_out(ssh, print_cmd)
+            split_str = '____BINGO_CACHE____'
+            for line in out_print.split('\n'):
+                try:
+                    key, value = line.split(split_str)
+                    key = key.strip()
+                    value = value.strip().split()
+                except Exception as e:
+                    Logger.error("cache_server_info {}".format(str(e)))
+                    continue
+                cls.server_cache_key.append(key)
+                Logger.debug("modify cache: {}: {}".format(ip, {key: value}))
+                all_data = ViewModel.cache('SERVER_CACHE_DICT', 'QUE')
+                ip_data = all_data[ip] if ip in all_data else {}
+                ip_data.update({key: value})
+                ViewModel.cache('SERVER_CACHE_DICT', 'ADD', {ip: ip_data})
+        Logger.debug("query cache: {}".format(ViewModel.cache('SERVER_CACHE_DICT', 'QUE')))
+
