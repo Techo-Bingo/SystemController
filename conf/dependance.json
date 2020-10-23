@@ -30,7 +30,6 @@
         "TV_RUN_CMD": ".\\image\\treeview_run_cmd.png",
         "TV_DOWNLOAD": ".\\image\\treeview_download.png",
         "TV_UPLOAD": ".\\image\\treeview_upload.png",
-        "TV_NEWPAGE": ".\\image\\treeview_newpage.png",
         "TV_PROC_RES": ".\\image\\treeview_proc_res.png"
     },
 
