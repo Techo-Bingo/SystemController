@@ -85,7 +85,8 @@ G_TEMP_DIR = '.\\cmds\\temp'
 G_PID_FILE = '.\\cmds\\temp\\tool.pid'
 G_DOWNLOAD_DIR = '.\\download'
 G_SERVER_DIR = '/home/Bingo'
-G_UPLOAD_DIR = ''
+G_SERVER_UPLOAD = ''
+G_SERVER_DOWNLOAD = ''
 # 日志回滚大小
 G_LOG_SIZE = 10485760
 G_LOG_PATH = '\\'.join([G_LOG_DIR, 'tool.log'])
@@ -122,7 +123,8 @@ def reload():
     global G_TITLE
     global G_WELCOME_INFO
     global G_ABOUT_INFO
-    global G_UPLOAD_DIR
+    global G_SERVER_UPLOAD
+    global G_SERVER_DOWNLOAD
     G_TITLE = '%s V%s' % (G_TOOL_NAMED, G_VERSION)
     G_WELCOME_INFO= ' ' * 70 + '【 欢迎使用%s 】' % G_TOOL_NAMED
     G_ABOUT_INFO = '''%s%s
@@ -136,7 +138,8 @@ def reload():
      版本：      %s
      作者：      %s
      联系方式：linux_bingo@163.com''' % (' '*30, G_TOOL_NAMED, G_VERSION, __author__)
-    G_UPLOAD_DIR = '%s/UPLOAD' % G_SERVER_DIR
+    G_SERVER_UPLOAD = '%s/UPLOAD' % G_SERVER_DIR
+    G_SERVER_DOWNLOAD = '%s/DOWNLOAD' % G_SERVER_DIR
 
 
 
