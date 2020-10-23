@@ -126,10 +126,12 @@ class Init:
             # ViewModel初始化
             if not ViewModel.init(_setting_data['Setting']):
                 raise FileError("Settings init failed !")
+            # 数据更新定时器
+            ViewModel.cache('REFRESH_TIMER_DICT', 'ADD', _setting_data['Timer'])
             # 图片数据
             cls._image_init(_depend_data['Images'])
             # TreeView数据
-            ViewModel.cache('TREE_VIEW_DATA_LIST', type='ADD', data=_depend_data['Tree'])
+            ViewModel.cache('TREE_VIEW_DATA_LIST', 'ADD', _depend_data['Tree'])
         except Exception as e:
             Logger.error(e)
             Utils.windows_error(e)
