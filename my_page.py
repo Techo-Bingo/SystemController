@@ -8,19 +8,62 @@ from my_base import Pager
 from my_handler import PageHandler
 from my_viewutil import ViewUtil, WinMsg, ToolTips
 from my_timezone import TimezonePage
-from my_module import ProgressBar, MyFrame, TopNotebook, CreateIPBar
+from my_module import MyFrame, TopNotebook, CreateIPBar  #, ProgressBar
 from my_bond import Caller, Bonder
 # import numpy
-# import matplotlib.pyplot as plot
+import pandas as pd
+import matplotlib.pyplot as plt
+
+
+class PlotMaker:
+
+    @classmethod
+    def start(cls, params):
+        try:
+            plt.ion()  # 开启interactive mode
+            plt.close('all')
+            # 根据机器数量协同
+            color = ['blue', 'red', 'green', 'purple']
+            l = len(params)
+            if l == 1:
+                axes = plt.subplots(figsize=(12, 6), nrows=1, ncols=1, sharey=True, sharex=True)[1]
+                ax_list = [axes]
+            elif 1 < l <= 2:
+                axes = plt.subplots(figsize=(12, 6), nrows=2, ncols=1, sharey=True, sharex=True)[1]
+                ax_list = [axes[1], axes[0]]
+            else:
+                axes = plt.subplots(figsize=(12, 6), nrows=2, ncols=2, sharey=True, sharex=True)[1]
+                ax_list = [axes[1, 0], axes[0, 0], axes[1, 1], axes[0, 1]]
+            index = 0
+            for ip, res_list in params.items():
+                # proc, res, period = res_list
+                proc, res = res_list
+                file = ".\\download\\{}\\DATA\\{}_info.csv".format(ip, proc)
+                data = pd.read_csv(file, usecols=['Date', res], parse_dates=True, index_col=0)
+
+                data.plot(ax=ax_list[index], title="{} - {}".format(ip, proc), color=color[index], grid=True)
+                index += 1
+            plt.rcParams['font.sans-serif'] = [u'SimHei']
+            plt.rcParams['axes.unicode_minus'] = False
+            plt.subplots_adjust(wspace=0.02, hspace=0.2)  # 调整子图间距
+            # plt.savefig('aa.png', dpi=200)
+            plt.show()
+        except Exception as e:
+            WinMsg.error(str(e))
+
+    @classmethod
+    def close(cls, msg=None):
+        plt.close('all')
 
 
 class PageClass(Pager):
-    def __init__(self, master, width, height, ip_list, shell, buttons, window, widgets):
+    def __init__(self, master, width, height, ip_list, shell, ploter, buttons, window, widgets):
         self.master = master
         self.width = width
         self.height = height
         self.shell = shell
         self.ip_list = ip_list
+        self.ploter = ploter
         self.buttons = buttons
         self.window = window
         self.widgets = widgets
@@ -30,6 +73,8 @@ class PageClass(Pager):
         self.instance = []
         self.cache_flag = PageHandler.server_cache_key
         self.cache_result = {}
+        # 保存一些键值数据
+        self.key_value = {}
 
     def pack_frame(self):
         self.init_cache()
@@ -41,6 +86,7 @@ class PageClass(Pager):
         for key in self.cache_flag:
             for ip in self.ip_list:
                 self.cache_result[ip] = PageHandler.get_server_cache(ip, key)
+        self.key_value['last'] = 0
 
     def pack_widgets(self):
         def get_widget_params():
@@ -122,7 +168,8 @@ class PageClass(Pager):
                         turned_values.append(key)
                 tk.Label(master, text=ip).grid(row=0, column=column)
                 combobox = ttk.Combobox(master, width=width, values=turned_values, state='readonly')
-                combobox.current(0)
+                if turned_values:
+                    combobox.current(0)
                 combobox.grid(row=1, column=column, padx=10)
                 column += 1
                 multicombobox.append((ip, combobox))
@@ -202,6 +249,8 @@ class PageClass(Pager):
                 [shell_params[ip].append(str(instance.current())) for ip in ips]
             elif widget == 'MultiCombobox':  # 默认选择第一个，但可能是”“
                 for ip, inst in instance:
+                    if ip not in ips:
+                        continue
                     _v = inst.get()
                     if not _v and not can_be_null:
                         return False
@@ -250,31 +299,37 @@ class PageClass(Pager):
                 return None
             # 1.2 解析actions
             parser_widget_actions()
-        ''' 2. 开启Top窗体显示执行结果 '''
-        if self.window:
-            TopNotebook.close()
-            TopNotebook.show(ips)
-        ''' 3. 处理控件动作事件并执行脚本 '''
-        handler.execute_start(self.result_callback, shell_params, prev_uploads)
+        if self.ploter:
+            PlotMaker.start(shell_params)
+        else:
+            ''' 2. 开启Top窗体显示执行结果 '''
+            if self.window:
+                TopNotebook.close()
+                TopNotebook.show(ips)
+            ''' 3. 处理控件动作事件并执行脚本 '''
+            handler.execute_start(self.result_callback, shell_params, prev_uploads)
 
     def stop_execute(self, handler):
         handler.execute_stop(self.result_callback)
 
     def result_callback(self, ip, progress, success, out_print):
-        color = False if success else 'Red'
         if not self.alive():
             return
         # 更新进度条
-        self.progress[ip].update(progress, color)
-        if not out_print:
-            return
+        self.progress[ip].update(progress, False if success else 'Red')
         ''' 
         结果回显：Window或者Tips,
         目前不支持把结果布局到控件 
         '''
+        if not out_print:
+            return
         if self.window:
             TopNotebook.insert(ip, out_print)
         else:
+            # 1% 为上传提示，不显示在Tips
+            # 进度与上次一致时也不显示在Tips
+            if progress == 1 or self.key_value['last'] == progress:
+                return
             ToolTips.message_tips(out_print)
 
     def button_callback(self, oper, ips, opts):
@@ -297,7 +352,7 @@ class PageCtrl(object):
         self.master = master
         self.current_text = None
         self.current_page = None
-        # Bonder('__PageCtrl__').bond(Global.EVT_CLOSE_GUI, PlotMaker.close)
+        Bonder('__PageCtrl__').bond(Global.EVT_CLOSE_GUI, PlotMaker.close)
 
     def default(self, width, height):
         _master = tk.Frame(self.master, width=width, height=height)
@@ -315,7 +370,7 @@ class PageCtrl(object):
                 self.current_page.destroy()
             except:
                 pass
-        text, widgets, shell, buttons, window = args_tuple
+        text, widgets, shell, ploter, buttons, window = args_tuple
         if self.current_text == text:
             return
         self.current_text = text
@@ -338,6 +393,7 @@ class PageCtrl(object):
                         'height': height,
                         'ip_list': ViewUtil.get_ssh_ip_list(),
                         'shell': shell,
+                        'ploter': ploter,
                         'buttons': buttons,
                         'window': window,
                         'widgets': widgets}
