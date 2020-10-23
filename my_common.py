@@ -110,4 +110,12 @@ class Common:
             arcname = tar[len(dirname):]
             zf.write(tar, arcname)
         zf.close()
+    
+    @classmethod
+    def unzip_file(cls, file_path, path):
+        if not zipfile.is_zipfile(file_path):
+            return False
+        with zipfile.ZipFile(file_path, 'r') as zip:
+            zip.extractall(path)
+        return True
 
