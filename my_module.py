@@ -286,9 +286,10 @@ class MyTreeView(object):
             widgets = pages['Widgets']
             shell = pages['Shell']
             attrs = pages['Attrs']
+            ploter = 'True' if "PlotWindow" in attrs else 'False'
             buttons = 'True' if "OperateButtons" in attrs else 'False'
             window = 'True' if "ResultWindow" in attrs else 'False'
-            tag, values = 'tree.sub', [text, widgets, shell, buttons, window]
+            tag, values = 'tree.sub', [text, widgets, shell, ploter, buttons, window]
             sub_id = self.treeview.insert(id, 'end', text=text, image=img, tags=(tag, 'simple'), values=values)
             # toolbar成员，则加入id列表中
             if "ToolBarMember" in attrs:
@@ -307,11 +308,12 @@ class MyTreeView(object):
         args_tuple = self.treeview.item(id, "values")
         if len(args_tuple) == 0:
             return
-        text, widgets, shell, buttons, window = args_tuple
+        text, widgets, shell, ploter, buttons, window = args_tuple
+        ploter = True if ploter == 'True' else False
         buttons = True if buttons == 'True' else False
         window = True if window == 'True' else False
         try:
-            back_tuple = (text, self.widgets[widgets], shell, buttons, window)
+            back_tuple = (text, self.widgets[widgets], shell, ploter, buttons, window)
         except Exception as e:
             ToolTips.message_tips(e)
         else:
@@ -652,7 +654,7 @@ def CreateIPBar(master, width, height, ip_list, callback):
             opts.append(int(v.get()))
         callback(oper, ips, opts)
     fm = tk.Frame(master, width=width)
-    fm.pack(fill='x', padx=10)
+    fm.pack(fill='x', padx=10,)
     opr_fm = MyFrame(fm, width, height, True, "服务器选择").master()
     ips_fm = tk.LabelFrame(opr_fm, width=width / 5 * 3, height=height)
     ips_fm.pack(fill='both', side='left', padx=10, pady=5)
