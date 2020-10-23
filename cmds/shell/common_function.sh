@@ -4,6 +4,7 @@ g_error="__error__"
 g_call="__call__"
 g_progress="__progress__"
 g_split_flag="____BINGO_FILTER____"
+g_cache_split="____BINGO_CACHE____"
 
 
 function _report()
