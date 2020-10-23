@@ -38,9 +38,8 @@ class PlotMaker:
             for ip, res_list in params.items():
                 # proc, res, period = res_list
                 proc, res = res_list
-                file = ".\\download\\{}\\DATA\\{}_info.csv".format(ip, proc)
+                file = "{}\\{}\\DATA\\{}_info.csv".format(Global.G_DOWNLOAD_DIR, ip, proc)
                 data = pd.read_csv(file, usecols=['Date', res], parse_dates=True, index_col=0)
-
                 data.plot(ax=ax_list[index], title="{} - {}".format(ip, proc), color=color[index], grid=True)
                 index += 1
             plt.rcParams['font.sans-serif'] = [u'SimHei']
