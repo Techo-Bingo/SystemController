@@ -5,6 +5,7 @@ OP_TYPE=$1
 
 function get_cron_list()
 {
+	echo "Cron status: $(service cron status|awk -F: '{print $2}')"
 	crontab -l
 }
 
