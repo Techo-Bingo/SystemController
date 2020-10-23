@@ -41,6 +41,7 @@ class Cache(Singleton):
         self._conf_image = {}
         self._treeview_data = []
         self._server_cache = {}
+        self._refresh_data = {}
 
     @property
     def screen_size_list(self):
@@ -71,3 +72,8 @@ class Cache(Singleton):
     @property
     def server_cache_dict(self):
         return self._server_cache
+
+    @property
+    def refresh_timer_dict(self):
+        return self._refresh_data
+
