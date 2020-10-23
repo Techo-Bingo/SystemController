@@ -29,7 +29,9 @@
         "TV_DISK_STATE": ".\\image\\treeview_disk_state.png",
         "TV_RUN_CMD": ".\\image\\treeview_run_cmd.png",
         "TV_DOWNLOAD": ".\\image\\treeview_download.png",
-        "TV_UPLOAD": ".\\image\\treeview_upload.png"
+        "TV_UPLOAD": ".\\image\\treeview_upload.png",
+        "TV_NEWPAGE": ".\\image\\treeview_newpage.png",
+        "TV_PROC_RES": ".\\image\\treeview_proc_res.png"
     },
 
     "Tree": [
@@ -122,6 +124,16 @@
                         "Widgets": "ProcessStatePageWidgets",
                         "Shell": "get_process_state.sh",
                         "Attrs": []
+                    },
+                    "SubTree": []
+                },
+                {
+                    "Text": "进程资源状态",
+                    "Image": "TV_PROC_RES",
+                    "Page": {
+                        "Widgets": "ProcessResPageWidgets",
+                        "Shell": "NA",
+                        "Attrs": ["OperateButtons", "PlotWindow"]
                     },
                     "SubTree": []
                 },
@@ -331,6 +343,24 @@
                     "WidgetValues": [],
                     "WidgetParams": {"Size": [900, 500, 900, 500]},
                     "WidgetAttrs": ["ShowEnterResult"],
+                    "WidgetActions": []
+                }
+            ],
+            "ProcessResPageWidgets": [
+                {
+                    "WidgetType": "MultiCombobox",
+                    "WidgetTips": ["进程名称"],
+                    "WidgetValues": ["__UBP_PROC__"],
+                    "WidgetParams": {"Size": [900, 100, 20, 1]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": []
+                },
+                {
+                    "WidgetType": "MultiCombobox",
+                    "WidgetTips": ["资源项"],
+                    "WidgetValues": ["VmRSS", "VmSize", "VmSwap", "VmPeak", "Threads", "Handles", "CPU", "PSR"],
+                    "WidgetParams": {"Size": [900, 100, 20, 1]},
+                    "WidgetAttrs": [],
                     "WidgetActions": []
                 }
             ],
