@@ -132,7 +132,7 @@
                     "Page": {
                         "Widgets": "ProcessResPageWidgets",
                         "Shell": "NA",
-                        "Attrs": ["OperateButtons", "PlotWindow"]
+                        "Attrs": ["OperateButtons", "ManualPlot"]
                     },
                     "SubTree": []
                 },
@@ -146,8 +146,8 @@
                             "Image": "TV_MEM_STATE",
                             "Page": {
                                 "Widgets": "MemoryStatePageWidgets",
-                                "Shell": "get_system_memory_state.sh",
-                                "Attrs": []
+                                "Shell": "",
+                                "Attrs": ["AutoPlot"]
                             },
                             "SubTree": []
                         },
@@ -157,7 +157,7 @@
                             "Page": {
                                 "Widgets": "CpuStatePageWidgets",
                                 "Shell": "get_system_cpu_state.sh",
-                                "Attrs": []
+                                "Attrs": ["AutoPlot"]
                             },
                             "SubTree": []
                         },
@@ -349,7 +349,7 @@
                 {
                     "WidgetType": "MultiCombobox",
                     "WidgetTips": ["进程名称"],
-                    "WidgetValues": ["__UBP_PROC__"],
+                    "WidgetValues": ["__RESOURCE__"],
                     "WidgetParams": {"Size": [900, 100, 20, 1]},
                     "WidgetAttrs": [],
                     "WidgetActions": []
@@ -357,7 +357,7 @@
                 {
                     "WidgetType": "MultiCombobox",
                     "WidgetTips": ["资源项"],
-                    "WidgetValues": ["VmRSS", "VmSize", "VmSwap", "VmPeak", "Threads", "Handles", "CPU", "PSR"],
+                    "WidgetValues": ["MemTotal", "MemFree", "MemAvailable", "Cached", "SwapTotal", "SwapFree", "SwapCached"],
                     "WidgetParams": {"Size": [900, 100, 20, 1]},
                     "WidgetAttrs": [],
                     "WidgetActions": []
@@ -365,20 +365,20 @@
             ],
             "MemoryStatePageWidgets": [
                 {
-                    "WidgetType": "Label",
-                    "WidgetTips": ["数据可视化开发中，敬请期待"],
-                    "WidgetValues": [],
-                    "WidgetParams": {"Size": [900, 300, 600, 300]},
+                    "WidgetType": "PlotNotebook",
+                    "WidgetTips": [],
+                    "WidgetValues": ["__memory__.csv"],
+                    "WidgetParams": {"Size": [900, 500, 900, 500]},
                     "WidgetAttrs": [],
                     "WidgetActions": []
                 }
             ],
             "CpuStatePageWidgets": [
                 {
-                    "WidgetType": "Label",
-                    "WidgetTips": ["数据可视化开发中，敬请期待"],
-                    "WidgetValues": [],
-                    "WidgetParams": {"Size": [900, 300, 600, 300]},
+                    "WidgetType": "PlotNotebook",
+                    "WidgetTips": [],
+                    "WidgetValues": ["__cpu_usage__.csv"],
+                    "WidgetParams": {"Size": [900, 500, 900, 500]},
                     "WidgetAttrs": [],
                     "WidgetActions": []
                 }

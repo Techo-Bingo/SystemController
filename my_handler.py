@@ -228,26 +228,33 @@ class RefreshTimer:
             Common.sleep(interval)
 
     @classmethod
-    def refresh_file_impl(cls, interval, filelist):
+    def refresh_file_impl(cls, interval, interface):
+        first = {}
         while True:
             try:
                 for ip, ssh in ViewModel.cache('LOGON_SSH_DICT', type='QUE').items():
                     local_download = "{}\\{}".format(Global.G_DOWNLOAD_DIR, ip)
-                    data_dir = "{}\\DATA".format(local_download)
+                    data_dir = "{}\\__FILE_DATA__".format(local_download)
                     Common.mkdir(local_download)
                     Common.mkdir(data_dir)
+                    # 初始运行时先把之前已经运行的进程杀死，每次都用最新代码跑
+                    if ip not in first:
+                        [SSHUtil.exec_ret(ssh, "killall {}".format(inter), True) for inter in interface]
+                        first[ip] = True
+                    # 再跑脚本
                     cmd = ''
-                    for file in filelist:
-                        cmd = "{0}\ncp -f {1} {2}".format(cmd, file, Global.G_SERVER_DOWNLOAD)
-                    cmd = '''mkdir -p {0};
-                    {1};
-                    cd {0} && zip refresh_file.zip *
-                    '''.format(Global.G_SERVER_DOWNLOAD, cmd)
-                    SSHUtil.exec_ret(ssh, cmd)
-                    SSHUtil.download_file(ssh, "{}/refresh_file.zip".format(
-                        Global.G_SERVER_DOWNLOAD), '{}\\refresh_file.zip'.format(local_download))
+                    for inter in interface:
+                        cmd = "{0}\n{1}/{2}".format(cmd, Global.G_SERVER_DIR, inter)
+                        SSHUtil.exec_ret(ssh, cmd, True)
+                    # 再压缩DOWNLOAD目录
+                    cmd = 'cd {0} && zip refresh_file.zip *'.format(Global.G_SERVER_DOWNLOAD)
+                    SSHUtil.exec_ret(ssh, cmd, True)
+                    # 然后下载文件
+                    SSHUtil.download_file(ssh,
+                                          "{}/refresh_file.zip".format(Global.G_SERVER_DOWNLOAD),
+                                          '{}\\refresh_file.zip'.format(local_download))
+                    # 最后解压
                     Common.unzip_file('{}\\refresh_file.zip'.format(local_download), data_dir)
-                    #PageHandler.cache_server_info(ip, ssh, interface)
             except Exception as e:
                 Logger.error("RefreshTimer refresh_file_impl {}".format(str(e)))
             Common.sleep(interval)
@@ -258,14 +265,14 @@ class RefreshTimer:
             data = ViewModel.cache('REFRESH_TIMER_DICT', type='QUE')
             refresh_cache, refresh_file = data['RefreshCache'], data['RefreshFile']
             interval_c = int(refresh_cache['Interval'])
-            interface = refresh_cache['Interface']
+            interface_c = refresh_cache['Interface']
             interval_f = int(refresh_file['Interval'])
-            filelist = refresh_file['FileList']
+            interface_f = refresh_file['Interface']
         except Exception as e:
             Logger.error("RefreshTimer Exception for parser Timer data: {}".format(str(e)))
             return
-        Common.create_thread(func=cls.refresh_cache_impl, args=(interval_c, interface))
-        Common.create_thread(func=cls.refresh_file_impl, args=(interval_f, filelist))
+        Common.create_thread(func=cls.refresh_cache_impl, args=(interval_c, interface_c))
+        Common.create_thread(func=cls.refresh_file_impl, args=(interval_f, interface_f))
 
 
 class PageHandler(object):

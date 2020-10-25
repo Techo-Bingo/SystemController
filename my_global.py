@@ -75,7 +75,15 @@ G_TIG_FG_COLOR = {'DEFAULT': 'Snow',
                   'LOGING': 'DarkGrey',
                   'FAILED': 'OrangeRed'}
 # 支持的模板控件
-G_SUPPORTED_WIDGETS = ['Label', 'Checkbox', 'Combobox', 'Entry', 'Text', 'Button', 'Notebook', 'MultiCombobox']
+G_SUPPORTED_WIDGETS = ['Label',
+                       'Checkbox',
+                       'Combobox',
+                       'Entry',
+                       'Text',
+                       'Button',
+                       'Notebook',
+                       'MultiCombobox',
+                       "PlotNotebook"]
 # 运行环境相关定义
 G_LOG_DIR = '.\\log'
 G_CONF_DIR = '.\\conf'
@@ -138,8 +146,8 @@ def reload():
      版本：      %s
      作者：      %s
      联系方式：linux_bingo@163.com''' % (' '*30, G_TOOL_NAMED, G_VERSION, __author__)
-    G_SERVER_UPLOAD = '%s/UPLOAD' % G_SERVER_DIR
-    G_SERVER_DOWNLOAD = '%s/DOWNLOAD' % G_SERVER_DIR
+    G_SERVER_UPLOAD = '%s/__UPLOAD__' % G_SERVER_DIR
+    G_SERVER_DOWNLOAD = '%s/__DOWNLOAD__' % G_SERVER_DIR
 
 
 

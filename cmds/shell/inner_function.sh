@@ -1,7 +1,7 @@
 #!/bin/bash
 cd $(dirname $0)
 export g_home_dir=$(pwd)
-export g_upload_dir=${g_home_dir}/UPLOAD
+export g_upload_dir=${g_home_dir}/__UPLOAD__
 source ./common_function.sh
 
 

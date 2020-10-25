@@ -12,14 +12,18 @@ from my_module import MyFrame, TopNotebook, CreateIPBar  #, ProgressBar
 from my_bond import Caller, Bonder
 # import numpy
 import pandas as pd
+import matplotlib
 import matplotlib.pyplot as plt
 
 
 class PlotMaker:
 
+    plot_param = None
+
     @classmethod
-    def start(cls, params):
+    def manual(cls, params):
         try:
+            matplotlib.use('TkAgg')
             plt.ion()  # 开启interactive mode
             plt.close('all')
             # 根据机器数量协同
@@ -38,9 +42,9 @@ class PlotMaker:
             for ip, res_list in params.items():
                 # proc, res, period = res_list
                 proc, res = res_list
-                file = "{}\\{}\\DATA\\{}_info.csv".format(Global.G_DOWNLOAD_DIR, ip, proc)
+                file = "{}\\{}\\__FILE_DATA__\\{}.csv".format(Global.G_DOWNLOAD_DIR, ip, proc)
                 data = pd.read_csv(file, usecols=['Date', res], parse_dates=True, index_col=0)
-                data.plot(ax=ax_list[index], title="{} - {}".format(ip, proc), color=color[index], grid=True)
+                data.plot(ax=ax_list[index], title="{}: {}".format(ip, proc), color=color[index], grid=True)
                 index += 1
             plt.rcParams['font.sans-serif'] = [u'SimHei']
             plt.rcParams['axes.unicode_minus'] = False
@@ -49,6 +53,34 @@ class PlotMaker:
             plt.show()
         except Exception as e:
             WinMsg.error(str(e))
+
+    @classmethod
+    def auto(cls, plot_param, detail=False):
+        cls.plot_param = plot_param
+        only_image = "TkAgg" if detail else "Agg"
+        matplotlib.use(only_image)
+        plt.rcParams['font.sans-serif'] = [u'SimHei']
+        plt.rcParams['axes.unicode_minus'] = False
+        instance, file_name, plot_size = plot_param
+        width, height = plot_size[0]/100, plot_size[1]/100 - 0.5
+        for ip, inst in instance.items():
+            file = "{}\\{}\\__FILE_DATA__\\{}".format(Global.G_DOWNLOAD_DIR, ip, file_name)
+            png = "{}\\{}_{}.png".format(Global.G_TEMP_DIR, ip, file_name.split('.')[0])
+            data = pd.read_csv(file, parse_dates=True, index_col=0)
+            data.plot(title="{}: {}".format(ip, file_name), grid=True, figsize=(width, height))
+            if not detail:
+                plt.savefig(png, dpi=100)
+                Caller.call(Global.EVT_ADD_IMAGE, ('AUTOPLOT_{}'.format(ip), png))
+                image=ViewUtil.get_image('AUTOPLOT_{}'.format(ip))
+                inst.image_create('0.0', image=image)
+            else:
+                plt.show()
+
+    @classmethod
+    def detail(cls):
+        if not cls.plot_param:
+            return
+        cls.auto(cls.plot_param, True)
 
     @classmethod
     def close(cls, msg=None):
@@ -70,8 +102,6 @@ class PageClass(Pager):
         self.progress = {}
         # 各控件实例和控件事件
         self.instance = []
-        self.cache_flag = PageHandler.server_cache_key
-        self.cache_result = {}
         # 保存一些键值数据
         self.key_value = {}
 
@@ -82,22 +112,28 @@ class PageClass(Pager):
             self.progress = CreateIPBar(self.frame, self.width, self.height/4, self.ip_list, self.button_callback)
 
     def init_cache(self):
-        for key in self.cache_flag:
-            for ip in self.ip_list:
-                self.cache_result[ip] = PageHandler.get_server_cache(ip, key)
         self.key_value['last'] = 0
 
     def pack_widgets(self):
+        def parser_widget():
+            w_type = widget['WidgetType']
+            w_tips = widget['WidgetTips']
+            w_values = widget['WidgetValues']
+            w_params = widget['WidgetParams']
+            w_attrs = widget['WidgetAttrs']
+            w_actions = widget['WidgetActions']
+            return w_type, w_tips, w_values, w_params, w_attrs, w_actions
         def get_widget_params():
             top_w, top_h, widget_w, widget_h = widget_params['Size']
             return (top_w, top_h), (widget_w, widget_h)
         def get_widget_attrs():
             if 'ShowEnterResult' in widget_attrs:
+                if widget_name not in readonly_widget:
+                    raise Exception("ShowEnterResult只能用于{}".format('&'.join(readonly_widget)))
                 result_widget.append((widget_name, instance))
             can_null = True if 'CanBeNull' in widget_attrs else False
-            # 目前不支持把结果布局到控件
-            # execute = True if 'ShowExecResult' in widget_attrs else False
-            return can_null, False  # execute
+            # 预留一个位置
+            return can_null, False
         def enter_callback(ip, out_print):
             for key, inst in result_widget:
                 if key == 'Label':
@@ -110,35 +146,38 @@ class PageClass(Pager):
                     text.see('end')
                     text['stat'] = 'disabled'
         ''' 1. 控件解析和布局 '''
-        # edt_fm = tk.LabelFrame(self.frame, width=self.width)
         edt_fm = tk.Frame(self.frame, width=self.width)
         edt_fm.pack(fill='x', padx=10, pady=10)
-        result_widget = []
+        result_widget, plot_widget, readonly_widget = [], [], ["Label", "Notebook"]
         for widget in self.widgets:
-            widget_type = widget['WidgetType']
-            widget_tips = widget['WidgetTips']
-            widget_values = widget['WidgetValues']
-            widget_params = widget['WidgetParams']
-            widget_attrs = widget['WidgetAttrs']
-            widget_actions = widget['WidgetActions']
+            # 解析控件数据
+            widget_type, widget_tips, widget_values, widget_params, widget_attrs, widget_actions = parser_widget()
             # 获取控件参数
             top_size, widget_size = get_widget_params()
             # 布局控件
-            master_fm = MyFrame(master=edt_fm,
-                                width=top_size[0],
-                                height=top_size[1],
-                                head=True if widget_tips else False,
-                                title='\n'.join(widget_tips)).master()
-            widget_name, instance = self.create_widget(master_fm, widget_type, widget_values, widget_size)
+            widget_name, instance = self.create_widget(MyFrame(master=edt_fm,
+                                                               width=top_size[0],
+                                                               height=top_size[1],
+                                                               head=True if widget_tips else False,
+                                                               title='\n'.join(widget_tips)).master(),
+                                                       widget_type,
+                                                       widget_values,
+                                                       widget_size)
             # 获取控件属性
             attrs = (get_widget_attrs())
-            # 添加控件实例，用于后续点击按钮后处理
-            # Label和Notebook目前只读，用于提示和显示界面Enter的结果
-            if widget_name not in ["Label", "Notebook"]:
+            # 添加控件实例，用于后续点击按钮后处理，只读控件不用传入后续流程获取输入
+            if widget_name == "PlotNotebook":
+                plot_widget.append((instance, widget_values[0], widget_size))
+            elif widget_name not in readonly_widget:
                 self.instance.append(((widget_name, instance), attrs, widget_actions))
         ''' 2. 执行界面ENTER脚本 '''
         if result_widget:
             PageHandler(self.ip_list, self.shell, True, False).execute_enter(enter_callback)
+        ''' 3. 自动触发型可视化界面 '''
+        if self.ploter == 'AutoPlot':
+            if len(plot_widget) != 1:
+                raise Exception("AutoPlot型界面只能部署一个PlotNotebook控件")
+            PlotMaker.auto(plot_widget[-1])
 
     def create_widget(self, master, widget_type, widget_values, widget_size):
         def widget_label():
@@ -161,7 +200,7 @@ class PageClass(Pager):
             for ip in self.ip_list:
                 turned_values = []
                 for key in widget_values:
-                    if key in self.cache_flag:
+                    if key in PageHandler.server_cache_key:
                         turned_values += PageHandler.get_server_cache(ip, key)
                     else:
                         turned_values.append(key)
@@ -235,9 +274,23 @@ class PageClass(Pager):
                 notebook.add(fm, text=ip)
                 instance[ip] = text
             return 'Notebook', instance
+        def widget_plotnotebook():
+            notebook = ttk.Notebook(master, width=width, height=height)
+            notebook.pack()
+            ttk.Button(self.frame, text="查看详情", width=25, command=PlotMaker.detail).pack()
+            instance = {}
+            for ip in self.ip_list:
+                fm = tk.Frame(notebook)
+                fm.pack()
+                text = scrolledtext.ScrolledText(fm, width=120, height=60)
+                text.pack(fill='both')
+                text['stat'] = 'disabled'
+                notebook.add(fm, text=ip)
+                instance[ip] = text
+            return 'PlotNotebook', instance
         width, height = widget_size
         # 服务器信息内部变量只能与组合控件一起使用
-        for cache_key in self.cache_flag:
+        for cache_key in PageHandler.server_cache_key:
             if cache_key in widget_values and not widget_type.startswith('Multi'):
                 raise Exception("{}只能与Multi类型控件使用".format(cache_key))
         return eval("widget_{}".format(widget_type.lower()))()
@@ -298,15 +351,15 @@ class PageClass(Pager):
                 return None
             # 1.2 解析actions
             parser_widget_actions()
-        if self.ploter:
-            PlotMaker.start(shell_params)
-        else:
+        if self.ploter == '':     # 任务型事件
             ''' 2. 开启Top窗体显示执行结果 '''
             if self.window:
                 TopNotebook.close()
                 TopNotebook.show(ips)
             ''' 3. 处理控件动作事件并执行脚本 '''
             handler.execute_start(self.result_callback, shell_params, prev_uploads)
+        elif self.ploter == 'ManualPlot':   # 手动触发型可视化界面
+            PlotMaker.manual(shell_params)
 
     def stop_execute(self, handler):
         handler.execute_stop(self.result_callback)

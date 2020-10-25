@@ -271,6 +271,17 @@ class MyTreeView(object):
         # self.treeview.configure(yscrollcommand=vbar.set)
         # vbar.pack(side='left', fill='y')
 
+    def parser_ploter(self, text, attrs):
+        if "AutoPlot" in attrs:
+            if "ManualPlot" in attrs or "OperateButtons" in attrs:
+                raise Exception("{}: AutoPlot不能与ManualPlot或OperateButtons同时存在".format(text))
+        if "AutoPlot" in attrs:
+            return "AutoPlot"
+        elif "ManualPlot" in attrs:
+            return "ManualPlot"
+        else:
+            return ""
+
     def _add_subtree(self, root, id=''):
         if '__ThisIsPageWidgets__' in root:
             self.widgets = root
@@ -286,7 +297,7 @@ class MyTreeView(object):
             widgets = pages['Widgets']
             shell = pages['Shell']
             attrs = pages['Attrs']
-            ploter = 'True' if "PlotWindow" in attrs else 'False'
+            ploter = self.parser_ploter(text, attrs)
             buttons = 'True' if "OperateButtons" in attrs else 'False'
             window = 'True' if "ResultWindow" in attrs else 'False'
             tag, values = 'tree.sub', [text, widgets, shell, ploter, buttons, window]
@@ -309,7 +320,6 @@ class MyTreeView(object):
         if len(args_tuple) == 0:
             return
         text, widgets, shell, ploter, buttons, window = args_tuple
-        ploter = True if ploter == 'True' else False
         buttons = True if buttons == 'True' else False
         window = True if window == 'True' else False
         try:
