@@ -247,7 +247,7 @@ class RefreshTimer:
                         cmd = "{0}\n{1}/{2}".format(cmd, Global.G_SERVER_DIR, inter)
                         SSHUtil.exec_ret(ssh, cmd, True)
                     # 再压缩DOWNLOAD目录
-                    cmd = 'cd {0} && zip refresh_file.zip *'.format(Global.G_SERVER_DOWNLOAD)
+                    cmd = 'cd {0} && zip refresh_file.zip *;chmod 777 *.zip'.format(Global.G_SERVER_DOWNLOAD)
                     SSHUtil.exec_ret(ssh, cmd, True)
                     # 然后下载文件
                     SSHUtil.download_file(ssh,
@@ -394,6 +394,7 @@ class PageHandler(object):
         def combine_params():
             out = ""
             for p in params:
+                p = '__None__' if p == '' else p
                 out += " '%s'" % p
             return out
         # 上传文件
