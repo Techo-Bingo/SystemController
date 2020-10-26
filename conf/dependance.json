@@ -156,7 +156,7 @@
                             "Image": "TV_CPU_STATE",
                             "Page": {
                                 "Widgets": "CpuStatePageWidgets",
-                                "Shell": "get_system_cpu_state.sh",
+                                "Shell": "",
                                 "Attrs": ["AutoPlot"]
                             },
                             "SubTree": []
@@ -166,8 +166,8 @@
                             "Image": "TV_IO_STATE",
                             "Page": {
                                 "Widgets": "IOStatePageWidgets",
-                                "Shell": "get_system_io_state.sh",
-                                "Attrs": []
+                                "Shell": "",
+                                "Attrs": ["AutoPlot"]
                             },
                             "SubTree": []
                         },
@@ -176,8 +176,8 @@
                             "Image": "TV_DISK_STATE",
                             "Page": {
                                 "Widgets": "DiskStatePageWidgets",
-                                "Shell": "get_system_disk_state,sh",
-                                "Attrs": []
+                                "Shell": "",
+                                "Attrs": ["AutoPlot"]
                             },
                             "SubTree": []
                         }
