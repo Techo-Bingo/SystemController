@@ -30,7 +30,10 @@
         "TV_RUN_CMD": ".\\image\\treeview_run_cmd.png",
         "TV_DOWNLOAD": ".\\image\\treeview_download.png",
         "TV_UPLOAD": ".\\image\\treeview_upload.png",
-        "TV_PROC_RES": ".\\image\\treeview_proc_res.png"
+        "TV_PROC_RES": ".\\image\\treeview_proc_res.png",
+        "TV_EXPORT_DB": ".\\image\\treeview_export_db.png",
+        "TV_RUN_SQL": ".\\image\\treeview_run_sql.png",
+        "TV_TCPDUMP": ".\\image\\treeview_tcpdump.png"
     },
 
     "Tree": [
@@ -60,11 +63,31 @@
                     "SubTree": []
                 },
                 {
+                    "Text": "数据库数据导出",
+                    "Image": "TV_EXPORT_DB",
+                    "Page": {
+                        "Widgets": "FastExportDBPageWidgets",
+                        "Shell": "export_mysql_data.sh",
+                        "Attrs": ["OperateButtons"]
+                    },
+                    "SubTree": []
+                },
+                {
                     "Text": "MySQL Binlog采集",
                     "Image": "TV_BINLOG",
                     "Page": {
                         "Widgets": "MysqlBinlogPageWidgets",
                         "Shell": "collect_binlog.sh",
+                        "Attrs": ["OperateButtons"]
+                    },
+                    "SubTree": []
+                },
+                {
+                    "Text": "tcpdump网络抓包",
+                    "Image": "TV_TCPDUMP",
+                    "Page": {
+                        "Widgets": "TcpdumpPageWidgets",
+                        "Shell": "collect_tcpdump.sh",
                         "Attrs": ["OperateButtons"]
                     },
                     "SubTree": []
@@ -90,21 +113,21 @@
                     "SubTree": []
                 },
                 {
-                    "Text": "版本强制回滚",
-                    "Image": "TV_ROLLBACK",
-                    "Page": {
-                        "Widgets": "RollbackVersionWidgets",
-                        "Shell": "rollback_version.sh",
-                        "Attrs": ["OperateButtons", "ResultWindow"]
-                    },
-                    "SubTree": []
-                },
-                {
                     "Text": "版本安装",
                     "Image": "TV_INSTALL",
                     "Page": {
                         "Widgets": "InstallVersionWidgets",
                         "Shell": "install_version.sh",
+                        "Attrs": ["OperateButtons", "ResultWindow"]
+                    },
+                    "SubTree": []
+                },
+                {
+                    "Text": "版本强制回滚",
+                    "Image": "TV_ROLLBACK",
+                    "Page": {
+                        "Widgets": "RollbackVersionWidgets",
+                        "Shell": "rollback_version.sh",
                         "Attrs": ["OperateButtons", "ResultWindow"]
                     },
                     "SubTree": []
@@ -170,16 +193,6 @@
                                 "Attrs": ["AutoPlot"]
                             },
                             "SubTree": []
-                        },
-                        {
-                            "Text": "磁盘状态",
-                            "Image": "TV_DISK_STATE",
-                            "Page": {
-                                "Widgets": "DiskStatePageWidgets",
-                                "Shell": "",
-                                "Attrs": ["AutoPlot"]
-                            },
-                            "SubTree": []
                         }
                     ]
                 }
@@ -219,6 +232,16 @@
                         "Attrs": ["ToolBarMember", "OperateButtons", "ResultWindow"]
                     },
                     "SubTree": []
+                },
+                {
+                    "Text": "运行SQL",
+                    "Image": "TV_RUN_SQL",
+                    "Page": {
+                        "Widgets": "FastSQLPageWidgets",
+                        "Shell": "fast_sql.sh",
+                        "Attrs": ["ToolBarMember", "OperateButtons", "ResultWindow"]
+                    },
+                    "SubTree": []
                 }
             ]
         },
@@ -245,6 +268,24 @@
                     "WidgetActions": []
                 }
             ],
+            "FastExportDBPageWidgets": [
+                {
+                    "WidgetType": "Entry",
+                    "WidgetTips": ["MySQL库名"],
+                    "WidgetValues": [],
+                    "WidgetParams": {"Size": [600, 40, 40, 1]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": []
+                },
+                {
+                    "WidgetType": "Entry",
+                    "WidgetTips": ["MySQL表名 (输入为空时，将导出整个库)"],
+                    "WidgetValues": [],
+                    "WidgetParams": {"Size": [600, 40, 40, 1]},
+                    "WidgetAttrs": ["CanBeNull"],
+                    "WidgetActions": []
+                }
+            ],
             "MysqlBinlogPageWidgets": [
                 {
                     "WidgetType": "Combobox",
@@ -252,6 +293,64 @@
                     "WidgetValues": ["一天", "三天", "一周"],
                     "WidgetParams": {"Size": [600, 100, 20, 1]},
                     "WidgetAttrs": [],
+                    "WidgetActions": []
+                }
+            ],
+            "TcpdumpPageWidgets": [
+                {
+                    "WidgetType": "Label",
+                    "WidgetTips": ["提示"],
+                    "WidgetValues": ["以下选项都是可选项，不填则该项参数值为空; 为避免包过大，请严格过滤"],
+                    "WidgetParams": {"Size": [900, 30, 600, 30]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": []
+                },
+                {
+                    "WidgetType": "MultiCombobox",
+                    "WidgetTips": ["网卡 (-i)"],
+                    "WidgetValues": ["", "__NETCARD__"],
+                    "WidgetParams": {"Size": [900, 50, 20, 1]},
+                    "WidgetAttrs": ["CanBeNull"],
+                    "WidgetActions": []
+                },
+                {
+                    "WidgetType": "Combobox",
+                    "WidgetTips": ["协议 (tcp|udp)"],
+                    "WidgetValues": ["", "TCP", "UDP"],
+                    "WidgetParams": {"Size": [900, 30, 20, 1]},
+                    "WidgetAttrs": ["CanBeNull"],
+                    "WidgetActions": []
+                },
+                {
+                    "WidgetType": "Entry",
+                    "WidgetTips": ["主机 (host)"],
+                    "WidgetValues": [],
+                    "WidgetParams": {"Size": [900, 30, 50, 1]},
+                    "WidgetAttrs": ["CanBeNull"],
+                    "WidgetActions": []
+                },
+                {
+                    "WidgetType": "Entry",
+                    "WidgetTips": ["端口 (port)"],
+                    "WidgetValues": [],
+                    "WidgetParams": {"Size": [900, 30, 50, 1]},
+                    "WidgetAttrs": ["CanBeNull"],
+                    "WidgetActions": []
+                },
+                {
+                    "WidgetType": "Entry",
+                    "WidgetTips": ["抓取数据包个数 (-c) [必填参数]"],
+                    "WidgetValues": [],
+                    "WidgetParams": {"Size": [900, 30, 50, 1]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": []
+                },
+                {
+                    "WidgetType": "Entry",
+                    "WidgetTips": ["其他参数"],
+                    "WidgetValues": [],
+                    "WidgetParams": {"Size": [900, 30, 50, 1]},
+                    "WidgetAttrs": ["CanBeNull"],
                     "WidgetActions": []
                 }
             ],
@@ -393,20 +492,20 @@
                     "WidgetActions": []
                 }
             ],
-            "DiskStatePageWidgets": [
-                {
-                    "WidgetType": "Label",
-                    "WidgetTips": ["数据可视化开发中，敬请期待"],
-                    "WidgetValues": [],
-                    "WidgetParams": {"Size": [900, 300, 600, 300]},
-                    "WidgetAttrs": [],
-                    "WidgetActions": []
-                }
-            ],
             "FastCommandPageWidgets": [
                 {
                     "WidgetType": "Text",
                     "WidgetTips": ["命令输入框"],
+                    "WidgetValues": [],
+                    "WidgetParams": {"Size": [900, 300, 110, 20]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": ["UploadFile"]
+                }
+            ],
+            "FastSQLPageWidgets": [
+                {
+                    "WidgetType": "Text",
+                    "WidgetTips": ["SQL输入框"],
                     "WidgetValues": [],
                     "WidgetParams": {"Size": [900, 300, 110, 20]},
                     "WidgetAttrs": [],
