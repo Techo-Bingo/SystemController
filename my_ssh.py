@@ -1,8 +1,8 @@
 # -*- coding: UTF-8 -*-
 
 import os
+import time
 import paramiko
-from time import sleep
 from my_base import SSHError
 
 
@@ -16,7 +16,6 @@ class SSH(object):
         self._root_pwd = rpwd
         self._port = 22
         self._ssh_client = None
-        self._ftp_client = None
 
     def execute(self, cmd, root=False):
         if root:
@@ -30,29 +29,24 @@ class SSH(object):
         except Exception as e:
             raise SSHError(e)
 
-    def upload(self, local_path, server_path):
+    def upload(self, local_path, server_path, callback=None):
         try:
-            self._sftp_open()
-            self._ftp_client.put(local_path, server_path)
-            self._sftp_close()
+            trans = paramiko.Transport(self._host_ip, self._port)
+            trans.connect(username=self._user_name, password=self._user_pwd)
+            # 可以解决大文件上传问题
+            with paramiko.SFTPClient.from_transport(trans) as ftp:
+                ftp.put(local_path, server_path, callback=callback)
         except Exception as e:
             raise SSHError(e)
 
-    def download(self, server_path, local_path):
+    def download(self, server_path, local_path, callback=None):
         try:
-            self._sftp_open()
-            self._ftp_client.get(server_path, local_path)
-            self._sftp_close()
+            trans = paramiko.Transport(self._host_ip, self._port)
+            trans.connect(username=self._user_name, password=self._user_pwd)
+            with paramiko.SFTPClient.from_transport(trans) as ftp:
+                ftp.get(server_path, local_path, callback=callback)
         except Exception as e:
             raise SSHError(e)
-
-    def _sftp_open(self):
-        if not self._ftp_client:
-            self._ftp_client = self._ssh_client.open_sftp()
-
-    def _sftp_close(self):
-        self._ftp_client.close()
-        self._ftp_client = None
 
     def close(self):
         self._ssh_client.close()
@@ -91,12 +85,12 @@ class SSHUtil:
 
     @classmethod
     def upload_file(cls, ssh_inst, local, remote):
+        def callback(current, total):
+            print("{} total:{}, uploaded: {}".format(time.time(), total, current))
         path = os.path.split(remote)[0]
         try:
             ssh_inst.execute('rm -f {1};mkdir -p {0};chmod 777 {0}'.format(path, remote), root=True)
-            # 此处等待一小段时间，否则后面upload会失败
-            sleep(0.2)
-            ssh_inst.upload(local, remote)
+            ssh_inst.upload(local, remote, callback)
         except SSHError as e:
             return False, e
         else:
