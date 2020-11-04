@@ -2,7 +2,8 @@
 cd $(dirname $0)
 # source ./common_function.sh
 
-LIMIT_LINES=530000
+# 129600 = 1min * 60 * 24 * 90 = 3个月
+LIMIT_LINES=129600
 DOWNLOAD_DIR="__DOWNLOAD__"
 STORE_DIR="/opt/Bingo"
 MEM_CSV="${STORE_DIR}/__memory__.csv"

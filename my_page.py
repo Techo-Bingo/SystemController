@@ -58,6 +58,7 @@ class PlotMaker:
     def auto(cls, plot_param, detail=False):
         cls.plot_param = plot_param
         only_image = "TkAgg" if detail else "Agg"
+        plt.close('all')
         matplotlib.use(only_image)
         plt.rcParams['font.sans-serif'] = [u'SimHei']
         plt.rcParams['axes.unicode_minus'] = False
