@@ -125,6 +125,7 @@ EVT_ADD_IMAGE = 'event_add_image'
 EVT_REFRESH_GUI = 'event_refresh_gui'
 EVT_PAGE_INTERFACE = 'event_page_interface'
 EVT_CLOSE_GUI = 'event_close_gui'
+EVT_UPLOAD_PROGRESS_UPDATE = 'event_upload_progress_update'
 
 
 def reload():

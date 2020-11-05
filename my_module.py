@@ -237,7 +237,7 @@ class ProgressBar(object):
             elif 90 <= percent <= 100:
                 color = 'Red3'
         self.canvas_bar.coords(self.canvas_shape, (0, 0, prog_len, self.height+2))
-        self.canvas_bar.itemconfig(self.canvas_text, text='%d%%' % percent)
+        self.canvas_bar.itemconfig(self.canvas_text, text='%.1f%%' % percent)
         self.canvas_bar.itemconfig(self.canvas_shape, fill=color, outline=color)
 
 
@@ -518,6 +518,46 @@ class TopProgress:
         cls.top = None
         cls.lab = None
         cls.progress = None
+
+
+class UploadProgress:
+    """ 进度条 """
+    showing = False
+    progress = {}
+
+    @classmethod
+    def show(cls, ip_list):
+        if cls.showing:
+            return
+        def close():
+            cls.showing = False
+            top.destroy()
+        cls.showing = True
+        top = tk.Toplevel()
+        top.title('上传中，请稍候...')
+        top.resizable(False, False)
+        # top.wm_attributes('-topmost', 1)
+        top.protocol("WM_DELETE_WINDOW", close)
+        ViewUtil.set_widget_size(top, 600, 120, True)
+        # fm = MyFrame(top, 600, 120, True, "", True).master()
+        row = 0
+        for ip in ip_list:
+            tk.Label(top, text="{}:".format(ip)).grid(row=row, column=0, padx=10, pady=2)
+            prog = ProgressBar(top, width=250, row=row, column=1)
+            text = tk.Label(top)
+            text.grid(row=row, column=2)
+            cls.progress[ip] = (prog, text)
+            row += 1
+        Define.define(Global.EVT_UPLOAD_PROGRESS_UPDATE, cls.update)
+
+    @classmethod
+    def update(cls, msg=None):
+        if not cls.showing:
+            return
+        ip, current, total, color = msg
+        progress, text = cls.progress[ip]
+        progress.update(current/total*100, color)
+        text['text'] = "  大小：%.1f/%.1fMB" % (current/1024/1024, total/1024/1024)
 
 
 class TopNotebook:

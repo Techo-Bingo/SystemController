@@ -84,9 +84,7 @@ class SSHUtil:
             return True, None
 
     @classmethod
-    def upload_file(cls, ssh_inst, local, remote):
-        def callback(current, total):
-            print("{} total:{}, uploaded: {}".format(time.time(), total, current))
+    def upload_file(cls, ssh_inst, local, remote, callback=None):
         path = os.path.split(remote)[0]
         try:
             ssh_inst.execute('rm -f {1};mkdir -p {0};chmod 777 {0}'.format(path, remote), root=True)

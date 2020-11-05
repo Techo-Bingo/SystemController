@@ -8,7 +8,7 @@ from my_base import Pager
 from my_handler import PageHandler
 from my_viewutil import ViewUtil, WinMsg, ToolTips
 from my_timezone import TimezonePage
-from my_module import MyFrame, TopNotebook, CreateIPBar  #, ProgressBar
+from my_module import MyFrame, TopNotebook, CreateIPBar, UploadProgress
 from my_bond import Caller, Bonder
 # import numpy
 import pandas as pd
@@ -329,6 +329,7 @@ class PageClass(Pager):
                 [shell_params[ip].append(f) for ip in ips]
             return True
         def parser_widget_actions():
+            showUpload = False
             for act in actions:
                 if act == 'UploadFile':
                     for ip in ips:
@@ -336,9 +337,14 @@ class PageClass(Pager):
                         _local_f = shell_params[ip][-1]
                         prev_uploads[ip].append(_local_f)
                         shell_params[ip][-1] = Common.basename(_local_f)
+                        # >10MB的文件上传才显示上传进度
+                        if not showUpload and Common.file_size(_local_f) > 10485760:
+                            showUpload = True
                 else:
                     WinMsg.error("Not support WidgetAction: {}".format(act))
                     continue
+            if showUpload:
+                UploadProgress.show(ips)
         ''' 1. 校验控件输入并组装脚本参数 '''
         shell_params, prev_uploads, index = defaultdict(list), defaultdict(list), 0
         for item in self.instance:

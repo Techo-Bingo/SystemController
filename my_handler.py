@@ -374,12 +374,29 @@ class PageHandler(object):
         return True
 
     def _upload_file(self, ssh, ip, uploads):
+        """
+        不直接在上传的callback中调用更新状态的Caller,因为会影响上传的速度，
+        callback中只更新内存，状态更新在另外一个线程中定时去调用
+        """
+        def callback(current, total):
+            size[0] = current
+            size[1] = total
+        def update_thread():
+            while True:
+                if is_done:
+                    return
+                Caller.call(Global.EVT_UPLOAD_PROGRESS_UPDATE, (ip, size[0], size[1], False))
+                Common.sleep(0.2)
+        size, is_done = [0, 1], False
         for local in uploads:
             remote = "{0}/{1}".format(Global.G_SERVER_UPLOAD, Common.basename(local))
+            Common.create_thread(func=update_thread, args=())
             self.tell_info(ip, 1, 'Uploading {}'.format(local))
-            ret, _ = SSHUtil.upload_file(ssh, local, remote)
+            ret, _ = SSHUtil.upload_file(ssh, local, remote, callback)
+            is_done = True
             if not ret:
                 self.tell_info(ip, 5, 'Upload {} failed !'.format(local), 'ERROR')
+                Caller.call(Global.EVT_UPLOAD_PROGRESS_UPDATE, (ip, size[0], size[1], 'Red'))
                 return False
         return True
 
