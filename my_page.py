@@ -44,7 +44,7 @@ class PlotMaker:
                 proc, res = res_list
                 file = "{}\\{}\\__FILE_DATA__\\{}.csv".format(Global.G_DOWNLOAD_DIR, ip, proc)
                 if not Common.is_file(file):
-                    raise Exception("{} 不存在\n如果是首次登录，请等待30秒再进此界面")
+                    raise Exception("{} 不存在\n如果是首次登录，请等待30秒再进此界面".format(file))
                 data = pd.read_csv(file, usecols=['Date', res], parse_dates=True, index_col=0)
                 data.plot(ax=ax_list[index], title="{}: {}".format(ip, proc), color=color[index], grid=True)
                 index += 1
@@ -68,6 +68,8 @@ class PlotMaker:
         width, height = plot_size[0]/100, plot_size[1]/100 - 0.5
         for ip, inst in instance.items():
             file = "{}\\{}\\__FILE_DATA__\\{}".format(Global.G_DOWNLOAD_DIR, ip, file_name)
+            if not Common.is_file(file):
+                raise Exception("{} 不存在\n如果是首次登录，请等待30秒再进此界面".format(file))
             png = "{}\\{}_{}.png".format(Global.G_TEMP_DIR, ip, file_name.split('.')[0])
             data = pd.read_csv(file, parse_dates=True, index_col=0)
             data.plot(title="{}: {}".format(ip, file_name), grid=True, figsize=(width, height))
