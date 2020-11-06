@@ -122,7 +122,7 @@ class LoginHandler:
         zip_file = "{0}\\{1}".format(Global.G_CMDS_DIR, zip_name)
         remote_path = "{0}/{1}".format(Global.G_SERVER_DIR, zip_name)
         Common.zip_dir(Global.G_SHELL_DIR, zip_file)
-        unzip_cmd = "cd {0}; unzip -o {1}; chmod 777 {0}/*; dos2unix {0}/*".format(Global.G_SERVER_DIR, zip_name)
+        unzip_cmd = "cd {0} && unzip -o {1} && chmod 777 {0}/*; dos2unix {0}/*.sh".format(Global.G_SERVER_DIR, zip_name)
         _ip_del_list = []
         for ip, ssh in cls._logon_ssh_inst('QUE', None).items():
             # 如果上次登录用户跟这次不一致，会导致后面解压失败; 这里每次登录都清空目录
