@@ -43,6 +43,8 @@ class PlotMaker:
                 # proc, res, period = res_list
                 proc, res = res_list
                 file = "{}\\{}\\__FILE_DATA__\\{}.csv".format(Global.G_DOWNLOAD_DIR, ip, proc)
+                if not Common.is_file(file):
+                    raise Exception("{} 不存在\n如果是首次登录，请等待30秒再进此界面")
                 data = pd.read_csv(file, usecols=['Date', res], parse_dates=True, index_col=0)
                 data.plot(ax=ax_list[index], title="{}: {}".format(ip, proc), color=color[index], grid=True)
                 index += 1
