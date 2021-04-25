@@ -20,6 +20,7 @@
         "TV_BINLOG": ".\\image\\treeview_binlog.png",
         "TV_ROLLBACK": ".\\image\\treeview_rollback.png",
         "TV_INSTALL": ".\\image\\treeview_install.png",
+        "TV_UPGRADE": ".\\image\\treeview_upgrade.png",
         "TV_CRONTAB": ".\\image\\treeview_timezone.png",
         "TV_PROC_STATE": ".\\image\\treeview_proc_state.png",
         "TV_SYS_STATE": ".\\image\\treeview_system_state.png",
@@ -122,7 +123,17 @@
                     "SubTree": []
                 },
                 {
-                    "Text": "版本强制回滚",
+                    "Text": "版本升级",
+                    "Image": "TV_UPGRADE",
+                    "Page": {
+                        "Widgets": "UpgradeVersionWidgets",
+                        "Shell": "upgrade_version.sh",
+                        "Attrs": ["OperateButtons", "ResultWindow"]
+                    },
+                    "SubTree": []
+                },
+                {
+                    "Text": "版本回退",
                     "Image": "TV_ROLLBACK",
                     "Page": {
                         "Widgets": "RollbackVersionWidgets",
@@ -357,16 +368,42 @@
                 {
                     "WidgetType": "Label",
                     "WidgetTips": ["警告"],
-                    "WidgetValues": ["eAPP版本将强制回滚至升级前的旧版本", "请谨慎操作！"],
+                    "WidgetValues": ["eAPP版本将强制回退至升级前的旧版本", "此回滚动作只适用于TTR5.x及以上版本", "请谨慎操作！"],
                     "WidgetParams": {"Size": [900, 100, 900, 100]},
                     "WidgetAttrs": [],
                     "WidgetActions": []
                 }
             ],
+            "UpgradeVersionWidgets": [
+                {
+                    "WidgetType": "Label",
+                    "WidgetTips": ["警告"],
+                    "WidgetValues": ["eAPP版本将升级至上传的目标版本", "此升级动作只适用于TTR5.x及以上版本", "请谨慎操作！"],
+                    "WidgetParams": {"Size": [900, 100, 900, 100]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": []
+                },
+                {
+                    "WidgetType": "Button",
+                    "WidgetTips": ["版本包文件路径"],
+                    "WidgetValues": ["ChooseFile", "*"],
+                    "WidgetParams": {"Size": [900, 35, 10, 1]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": ["UploadFile"]
+                },
+                {
+                    "WidgetType": "Button",
+                    "WidgetTips": ["升级包文件路径"],
+                    "WidgetValues": ["ChooseFile", "*"],
+                    "WidgetParams": {"Size": [900, 35, 10, 1]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": ["UploadFile"]
+                }
+            ],
             "InstallVersionWidgets": [
                 {
                     "WidgetType": "Button",
-                    "WidgetTips": ["本地软件包文件"],
+                    "WidgetTips": ["版本包文件路径"],
                     "WidgetValues": ["ChooseFile", "*"],
                     "WidgetParams": {"Size": [900, 35, 10, 1]},
                     "WidgetAttrs": [],
@@ -406,7 +443,7 @@
                 },
                 {
                     "WidgetType": "MultiCombobox",
-                    "WidgetTips": ["UDC IP"],
+                    "WidgetTips": ["UDC IP (为空时表示不安装UDC网元)"],
                     "WidgetValues": ["", "__IP__"],
                     "WidgetParams": {"Size": [900, 50, 20, 1]},
                     "WidgetAttrs": ["CanBeNull"],
@@ -425,7 +462,7 @@
             ],
             "CronPageWidgets": [
                 {
-                    "WidgetType": "Label",
+                    "WidgetType": "Notebook",
                     "WidgetTips": ["定时任务列表"],
                     "WidgetValues": [],
                     "WidgetParams": {"Size": [900, 500, 900, 500]},
@@ -444,6 +481,14 @@
                 }
             ],
             "ProcessResPageWidgets": [
+                {
+                    "WidgetType": "Label",
+                    "WidgetTips": ["说明"],
+                    "WidgetValues": ["选择对应的进程名称和资源项后", "点击执行按钮即可绘制对应的资源使用曲线图"],
+                    "WidgetParams": {"Size": [900, 60, 900, 60]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": []
+                },
                 {
                     "WidgetType": "MultiCombobox",
                     "WidgetTips": ["进程名称"],
@@ -483,10 +528,10 @@
             ],
             "IOStatePageWidgets": [
                 {
-                    "WidgetType": "Label",
-                    "WidgetTips": ["数据可视化开发中，敬请期待"],
-                    "WidgetValues": [],
-                    "WidgetParams": {"Size": [900, 300, 600, 300]},
+                    "WidgetType": "PlotNotebook",
+                    "WidgetTips": [],
+                    "WidgetValues": ["__io_util__.csv"],
+                    "WidgetParams": {"Size": [900, 500, 900, 500]},
                     "WidgetAttrs": [],
                     "WidgetActions": []
                 }
