@@ -8,6 +8,7 @@ DOWNLOAD_DIR="__DOWNLOAD__"
 STORE_DIR="/opt/Bingo"
 MEM_CSV="${STORE_DIR}/__memory__.csv"
 CPU_CSV="${STORE_DIR}/__cpu_usage__.csv"
+IO_CSV="${STORE_DIR}/__io_util__.csv"
 mkdir ${STORE_DIR} ${DOWNLOAD_DIR} 2>/dev/null
 
 function is_running()
@@ -55,9 +56,17 @@ function watch_cpu()
     echo "$(date +"%Y-%m-%d %H:%M"),${CPU_USAGE}" >> ${CPU_CSV}
 }
 
+# IO %util 计算公式： /proc/diskstats 第13列（io_ticks）的差值 / 时间差值 / 10
+# 暂时只统计sda硬盘IO情况
 function watch_io()
 {
-    return 0
+    local t_a=$(grep -w 'sda' /proc/diskstats |head -1 |awk '{print $13}')
+    sleep 3
+    local t_b=$(grep -w 'sda' /proc/diskstats |head -1 |awk '{print $13}')
+    local util=$(echo $((t_b - t_a)) 30 | awk '{printf "%.2f", $1/$2}')
+
+    [ -f "${IO_CSV}" ] || echo "Date,%util" >${IO_CSV}
+    echo "$(date +"%Y-%m-%d %H:%M"),${util}" >> ${IO_CSV}
 }
 
 function watch_disk()
