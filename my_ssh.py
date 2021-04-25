@@ -88,6 +88,7 @@ class SSHUtil:
         path = os.path.split(remote)[0]
         try:
             ssh_inst.execute('rm -f {1};mkdir -p {0};chmod 777 {0}'.format(path, remote), root=True)
+            time.sleep(0.2)
             ssh_inst.upload(local, remote, callback)
         except SSHError as e:
             return False, e
