@@ -347,6 +347,7 @@ class PageClass(Pager):
                 else:
                     WinMsg.error("Not support WidgetAction: {}".format(act))
                     continue
+            UploadProgress.init()
             if showUpload:
                 UploadProgress.show(ips)
         ''' 1. 校验控件输入并组装脚本参数 '''
