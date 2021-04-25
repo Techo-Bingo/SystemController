@@ -524,6 +524,11 @@ class UploadProgress:
     """ 进度条 """
     showing = False
     progress = {}
+    top = None
+
+    @classmethod
+    def init(cls):
+        Define.define(Global.EVT_UPLOAD_PROGRESS_UPDATE, cls.update)
 
     @classmethod
     def show(cls, ip_list):
@@ -531,28 +536,30 @@ class UploadProgress:
             return
         def close():
             cls.showing = False
-            top.destroy()
+            cls.top.destroy()
         cls.showing = True
-        top = tk.Toplevel()
-        top.title('上传中，请稍候...')
-        top.resizable(False, False)
-        # top.wm_attributes('-topmost', 1)
-        top.protocol("WM_DELETE_WINDOW", close)
-        ViewUtil.set_widget_size(top, 600, 120, True)
-        # fm = MyFrame(top, 600, 120, True, "", True).master()
+        cls.top = tk.Toplevel()
+        cls.top.title('上传中，请稍候...')
+        cls.top.resizable(False, False)
+        # cls.top.wm_attributes('-topmost', 1)
+        cls.top.protocol("WM_DELETE_WINDOW", close)
+        ViewUtil.set_widget_size(cls.top, 600, 120, True)
         row = 0
         for ip in ip_list:
-            tk.Label(top, text="{}:".format(ip)).grid(row=row, column=0, padx=10, pady=2)
-            prog = ProgressBar(top, width=250, row=row, column=1)
-            text = tk.Label(top)
+            tk.Label(cls.top, text="{}:".format(ip)).grid(row=row, column=0, padx=10, pady=2)
+            prog = ProgressBar(cls.top, width=250, row=row, column=1)
+            text = tk.Label(cls.top)
             text.grid(row=row, column=2)
             cls.progress[ip] = (prog, text)
             row += 1
-        Define.define(Global.EVT_UPLOAD_PROGRESS_UPDATE, cls.update)
 
     @classmethod
     def update(cls, msg=None):
         if not cls.showing:
+            return
+        if msg == 'close':
+            cls.top.destroy()
+            cls.showing = False
             return
         ip, current, total, color = msg
         progress, text = cls.progress[ip]
@@ -687,7 +694,7 @@ class MyScreenshot(object):
             pic.save(save_name)
             self.top.destroy()
             Common.remove(self.temp_png)
-            WinMsg.info("截屏成功: {0}".format(save_name))
+            WinMsg.info("截图成功: {0}\n截图保存在工具家目录（工具exe同级目录）下".format(save_name))
         self.canvas.bind('<ButtonRelease-1>', onLeftButtonUp)
         #让canvas充满窗口，并随窗口自动适应大小
         self.canvas.pack(fill='both', expand=1)
