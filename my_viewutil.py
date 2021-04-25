@@ -90,15 +90,24 @@ class ViewUtil:
         w, h = int(w), int(h)
         cls._X = 10 if int(x) < 0 else int(x) + 10
         cls._Y = 10 if int(y) < 0 else int(y) + 10
+        # print(w, h)
         Global.G_MAIN_WIN_WIDTH = w
         Global.G_MAIN_WIN_HEIGHT = h
         if w >= 1600:
             Global.G_MAIN_WIN_WIDTH = 1500
-        elif 1360 <= w < 1600:
+        elif 1500 <= w < 1600:
+            Global.G_MAIN_WIN_WIDTH = 1400
+        elif 1400 <= w < 1500:
+            Global.G_MAIN_WIN_WIDTH = 1300
+        elif 1300 <= w < 1400:
             Global.G_MAIN_WIN_WIDTH = 1200
         if h >= 1000:
-            Global.G_MAIN_WIN_HEIGHT = 900
-        elif 760 <= h < 1000:
+            Global.G_MAIN_WIN_HEIGHT = 950
+        elif 900 <= h < 1000:
+            Global.G_MAIN_WIN_HEIGHT = 850
+        elif 800 <= h < 900:
+            Global.G_MAIN_WIN_HEIGHT = 750
+        elif 750 <= h < 800:
             Global.G_MAIN_WIN_HEIGHT = 700
 
     @classmethod
