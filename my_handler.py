@@ -134,13 +134,13 @@ class LoginHandler:
                     if not ret:
                         raise ExecError("{0}: Upload package failed:{1}, retry:{2}".format(ip, err, retry))
                     # 解压文件, 成功返回0
-                    ret, err = SSHUtil.exec_ret(ssh, unzip_cmd)
+                    ret, err = SSHUtil.exec_ret(ssh, unzip_cmd, root=True)
                     if ret:
                         raise ExecError("{0} Decompression failed:{1}, retry:{2}".format(ip, err, retry))
                 except ExecError as e:
                     if retry == Global.G_RETRY_TIMES:
                         _ip_del_list.append(ip)
-                    Utils.tell_info(e, level='ERROR')
+                        Utils.tell_info(e, level='ERROR')
                     Logger.warn(e)
                     continue
                 else:
@@ -398,6 +398,7 @@ class PageHandler(object):
                 self.tell_info(ip, 5, 'Upload {} failed !'.format(local), 'ERROR')
                 Caller.call(Global.EVT_UPLOAD_PROGRESS_UPDATE, (ip, size[0], size[1], 'Red'))
                 return False
+            Caller.call(Global.EVT_UPLOAD_PROGRESS_UPDATE, (ip, size[1], size[1], False))
         return True
 
     def _exec_enter_impl(self, ip, callback):
@@ -419,11 +420,16 @@ class PageHandler(object):
             self.tell_info(ip, 0, 'Repeat, please wait...', level='WARN')
             return
         ssh = self._get_ssh(ip)
-        callback(ip, 1, True, "文件上传中，请稍候...")
+        callback(ip, 1, True, "处理中，请稍候...")
         if not self._upload_file(ssh, ip, uploads):
             callback(ip, 5, False, "")
             self._mutex(ip, self.task, False)
             return
+        # 自动关闭上传进度框   # 无需上传的此处会异常
+        try:
+            Caller.call(Global.EVT_UPLOAD_PROGRESS_UPDATE, 'close')
+        except:
+            pass
         # 执行脚本
         params = combine_params()
         self.tell_info(ip, 10, 'Starting execute...')
