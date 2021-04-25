@@ -20,6 +20,7 @@ class Settings(Singleton):
             Global.G_LOG_SIZE = setting_map['log_size']
             Global.G_SERVER_DIR = setting_map['server_home']
             Global.G_RETRY_TIMES = setting_map['retry_times']
+            Global.G_ABOUT_INFO = '\n'.join(setting_map['about_info'])
             _default = setting_map['passwords']
             Global.G_DEFAULT_PASSWORDS = [_default['username'],
                                           _default['userpassword'],
