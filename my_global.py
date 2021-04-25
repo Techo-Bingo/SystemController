@@ -2,7 +2,7 @@
 """
 全局定义
 """
-__author__ = 'libin WX382598 (Bingo)'
+__author__ = 'LiBin (Bingo)'
 G_LOGO = '''Welcome 
         
             ____  _                       
@@ -14,7 +14,7 @@ G_LOGO = '''Welcome
         
         '''
 # 版权信息
-G_COPYRIGHT_INFO = 'Copyright©2019 Bingo. All Rights Reserved.'
+G_COPYRIGHT_INFO = 'Copyright©2019-2021 Bingo. All Rights Reserved.'
 # 分隔符
 G_SPLIT_FLAG= '____BINGO_FILTER____'
 # 工具名称
@@ -131,24 +131,11 @@ EVT_UPLOAD_PROGRESS_UPDATE = 'event_upload_progress_update'
 def reload():
     global G_TITLE
     global G_WELCOME_INFO
-    global G_ABOUT_INFO
     global G_SERVER_UPLOAD
     global G_SERVER_DOWNLOAD
     G_TITLE = '%s V%s' % (G_TOOL_NAMED, G_VERSION)
     G_WELCOME_INFO= ' ' * 70 + '【 欢迎使用%s 】' % G_TOOL_NAMED
-    G_ABOUT_INFO = '''%s%s
-     功能：
-              对小批量服务器进行远程操作维护和状态巡检
-     特点：
-              1. 此工具可根据需求场景自定义界面和功能实现；
-              2. 控件模板化，通过配置文件增删界面及其功能；
-              3. 此工具稳定，快速，具有极强的扩展性；
-              
-     版本：      %s
-     作者：      %s
-     联系方式：linux_bingo@163.com''' % (' '*30, G_TOOL_NAMED, G_VERSION, __author__)
     G_SERVER_UPLOAD = '%s/__UPLOAD__' % G_SERVER_DIR
     G_SERVER_DOWNLOAD = '%s/__DOWNLOAD__' % G_SERVER_DIR
-
 
 
