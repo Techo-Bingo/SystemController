@@ -24,6 +24,29 @@ function report_err()
 	exit 1
 }
 
+function echo_info()
+{
+  echo "$(date +'%F %T'): $1"
+}
+
+function report_func()
+{
+  local ret=$1
+  local info=$2
+  local prog=$3
+  local print=$4
+  if [ $ret -eq 0 ]
+  then
+    [ -n "${print}" ] && echo_info "${info}    ......成功"
+    local _info="${info}    ......成功"
+    [ "${prog}" = '100' ] && local _info='NULL'
+    report_info "${prog}" "${_info}"
+  else
+    [ -n "${print}" ] && echo_info "${info}    ......失败"
+    report_err "${prog}" "${info}    ......失败"
+  fi
+}
+
 function compress()
 {
 	cd ${g_task_dir}
