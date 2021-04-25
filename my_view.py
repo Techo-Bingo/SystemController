@@ -286,6 +286,7 @@ class GuiMain(GuiBase):
             self.help_window.pack(side='left')
             self.help_window.pack_propagate(0)
             MyFrame(self.help_window, Global.G_MAIN_HELP_WIDTH, Global.G_MAIN_WIN_HEIGHT, True, "帮助界面", True).master()
+            WinMsg.info("开发中，敬请期待...")
         else:
             ViewUtil.set_widget_size(width=Global.G_MAIN_TREE_WIDTH + Global.G_MAIN_OPER_WIDTH,
                                      height=Global.G_MAIN_WIN_HEIGHT,
@@ -310,7 +311,7 @@ class GuiMain(GuiBase):
             self.show_help_window(False)
 
     def press_callback(self, key):
-        print(key)
+        # print(key)
         if key == 'TB_EXPAND':
             self.treeview.expand_trees()
         elif key in ['TB_HELP', "MENU_HELP"]:
