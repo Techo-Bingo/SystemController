@@ -122,11 +122,12 @@ class LoginHandler:
         zip_file = "{0}\\{1}".format(Global.G_CMDS_DIR, zip_name)
         remote_path = "{0}/{1}".format(Global.G_SERVER_DIR, zip_name)
         Common.zip_dir(Global.G_SHELL_DIR, zip_file)
-        unzip_cmd = "cd {0} && unzip -o {1} && chmod 777 {0}/*; dos2unix {0}/*.sh".format(Global.G_SERVER_DIR, zip_name)
+        prev_cmd = "rm -rf {0}/*; mkdir {0}; chmod 777 {0}".format(Global.G_SERVER_DIR)
+        unzip_cmd = "cd {0} && unzip -o {1} && chmod 777 {0}/*".format(Global.G_SERVER_DIR, zip_name)
         _ip_del_list = []
         for ip, ssh in cls._logon_ssh_inst('QUE', None).items():
             # 如果上次登录用户跟这次不一致，会导致后面解压失败; 这里每次登录都清空目录
-            SSHUtil.exec_ret(ssh, "rm -rf {0}/*; mkdir {0}; chmod 777 {0}".format(Global.G_SERVER_DIR), root=True)
+            SSHUtil.exec_ret(ssh, prev_cmd, root=True)
             for retry in range(1, Global.G_RETRY_TIMES + 1):
                 try:
                     # 上传文件
@@ -135,7 +136,7 @@ class LoginHandler:
                         raise ExecError("{0}: Upload package failed:{1}, retry:{2}".format(ip, err, retry))
                     # 解压文件, 成功返回0
                     ret, err = SSHUtil.exec_ret(ssh, unzip_cmd, root=True)
-                    if ret:
+                    if not ret:
                         raise ExecError("{0} Decompression failed:{1}, retry:{2}".format(ip, err, retry))
                 except ExecError as e:
                     if retry == Global.G_RETRY_TIMES:
@@ -157,31 +158,42 @@ class LoginHandler:
 
     @classmethod
     def _keep_ssh_alive(cls, args=None):
-        send_ips = []
-        def if_send(_ip):
-            if _ip not in send_ips:
-                send_ips.append(_ip)
-                return True
+        remote_file = "{0}/__SSH__/1".format(Global.G_SERVER_DIR)
+        remind_dict = {}
+        def remind(_ip, _sw=None):
+            if _sw == None:
+                return remind_dict[ip] if ip in remind_dict else False
+            remind_dict[ip] = _sw
+
+        def ssh_check(_ssh):
+            for t in range(1, Global.G_RETRY_TIMES + 1):
+                ret1 = SSHUtil.user_login(_ssh, user)[0]
+                ret2 = SSHUtil.user_login(_ssh, 'root')[0]
+                ret3 = SSHUtil.exec_ret(_ssh, 'echo')[0]
+                ret4 = SSHUtil.upload_file(_ssh, Global.G_PID_FILE, remote_file)[0]
+                if all([ret1, ret2, ret3, ret4]):
+                    return True
             return False
+
         while True:
             Common.sleep(5)
             new_ip_ssh_instance = {}
             for ip, ssh in cls._logon_ssh_inst('QUE', None).items():
-                ret = SSHUtil.exec_ret(ssh, 'echo')[0]
-                if not ret:
-                    continue
-                if if_send(ip):
-                    Logger.warn("(keepalive) ssh instance of {0} is invalid, rebuild now".format(ip))
-                    Utils.tell_info("{0} is disconnected, Re-login now".format(ip), level='WARN')
                 user, userpwd, rootpwd = cls._cache_passwds[ip]
+                if ssh_check(ssh):
+                    continue
+                Logger.warn("(keepalive) ssh instance of {0} is invalid, rebuild now".format(ip))
+                if not remind(ip):
+                    Utils.tell_info("{0} is disconnected, Re-login now".format(ip), level='WARN')
+                    remind(ip, True)
                 new_ssh = SSH(ip, user, userpwd, rootpwd)
-                ret1 = SSHUtil.user_login(new_ssh, user)[0]
-                ret2 = SSHUtil.user_login(new_ssh, 'root')[0]
-                if not ret1 or not ret2:
+                if not ssh_check(new_ssh):
                     continue
                 new_ip_ssh_instance[ip] = new_ssh
                 Logger.info("(keepalive) rebuild ssh instance of {0} success".format(ip))
-                Utils.tell_info("{0} Re-login success".format(ip))
+                if remind(ip):
+                    Utils.tell_info("{0} Re-login success".format(ip))
+                    remind(ip, False)
             # 刷新ssh实例
             for ip, ssh in new_ip_ssh_instance.items():
                 cls._logon_ssh_inst('ADD', {ip: ssh})
@@ -392,10 +404,10 @@ class PageHandler(object):
             remote = "{0}/{1}".format(Global.G_SERVER_UPLOAD, Common.basename(local))
             Common.create_thread(func=update_thread, args=())
             self.tell_info(ip, 1, 'Uploading {}'.format(local))
-            ret, _ = SSHUtil.upload_file(ssh, local, remote, callback)
+            ret, err = SSHUtil.upload_file(ssh, local, remote, callback)
             is_done = True
             if not ret:
-                self.tell_info(ip, 5, 'Upload {} failed !'.format(local), 'ERROR')
+                self.tell_info(ip, 5, 'Upload {0} failed: {1}'.format(local, err), 'ERROR')
                 Caller.call(Global.EVT_UPLOAD_PROGRESS_UPDATE, (ip, size[0], size[1], 'Red'))
                 return False
             Caller.call(Global.EVT_UPLOAD_PROGRESS_UPDATE, (ip, size[1], size[1], False))
