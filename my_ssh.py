@@ -70,26 +70,32 @@ class SSHUtil:
     def exec_ret(cls, ssh_inst, cmd, root=False):
         try:
             info = ssh_inst.execute(cmd, root)[1]
-            return info.channel.recv_exit_status(), None
+            ret = info.channel.recv_exit_status()
+            return False if ret else True, None
         except SSHError as e:
-            return -1, e
+            return False, e
 
     @classmethod
     def user_login(cls, ssh_inst, user_name):
         root = True if user_name == 'root' else False
         ret, err = cls.exec_ret(ssh_inst, 'whoami|grep %s' % user_name, root)
         if ret:
-            return False, err
-        else:
             return True, None
+        else:
+            return False, err
 
     @classmethod
     def upload_file(cls, ssh_inst, local, remote, callback=None):
+        # size = os.path.getsize(local)
         path = os.path.split(remote)[0]
+        prev_cmd = 'rm -f {0};mkdir -p {1};chmod 777 {1}'.format(remote, path)
+        # check_cmd= "test $(ls -l {0} | awk '{{print $5}}') -eq {1}".format(remote, size)
         try:
-            ssh_inst.execute('rm -f {1};mkdir -p {0};chmod 777 {0}'.format(path, remote), root=True)
+            ssh_inst.execute(prev_cmd, root=True)
             time.sleep(0.2)
             ssh_inst.upload(local, remote, callback)
+            #if not cls.exec_ret(ssh_inst, check_cmd)[0]:
+            #    return False, "uploaded size not equal"
         except SSHError as e:
             return False, e
         else:
