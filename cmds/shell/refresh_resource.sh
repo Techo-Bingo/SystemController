@@ -9,4 +9,6 @@ function main()
 	chmod 777 ${DOWNLOAD_DIR} ${DOWNLOAD_DIR}/*.csv
 }
 
-main &>/dev/null
+main
+exit 0
+
