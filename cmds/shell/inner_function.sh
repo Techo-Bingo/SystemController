@@ -27,7 +27,7 @@ function sync_call_shell()
     init_task ${task}
     dos2unix ${g_home_dir}/${shell}
     echo "$(whoami): sh ${g_home_dir}/${shell} ${params}" >${g_task_dir}/${g_call}
-    sh ${g_home_dir}/${shell} ${params} >${g_task_dir}/${g_print} 2>&1
+    sh ${g_home_dir}/${shell} ${params} >${g_task_dir}/${g_print} 2>${g_task_dir}/${g_error}
     return $?
 }
 
@@ -40,7 +40,7 @@ function async_call_shell()
     init_task ${task}
     dos2unix ${g_home_dir}/${shell}
     echo "$(whoami): sh ${g_home_dir}/${shell} ${params}" >${g_task_dir}/${g_call}
-    sh ${g_home_dir}/${shell} ${params} >${g_task_dir}/${g_print} 2>&1 &
+    sh ${g_home_dir}/${shell} ${params} >${g_task_dir}/${g_print} 2>${g_task_dir}/${g_error} &
     return $?
 }
 
