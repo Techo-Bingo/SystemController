@@ -32,4 +32,7 @@ function main()
     upload
 }
 
-main &>/dev/null
+main
+exit 0
+
+
