@@ -17,4 +17,6 @@ function main()
 	fi
 }
 
-main 
+main
+exit 0
+
