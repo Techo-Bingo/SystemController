@@ -42,5 +42,6 @@ function main()
   report_info "100" "${g_task_dir}/tcpdump.cap"
 }
 
-main 2>/dev/null
+main
+exit 0
 
