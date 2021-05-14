@@ -34,4 +34,6 @@ function main()
     download
 }
 
-main &>/dev/null
+main
+exit 0
+
