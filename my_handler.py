@@ -124,6 +124,14 @@ class LoginHandler:
         Common.zip_dir(Global.G_SHELL_DIR, zip_file)
         prev_cmd = "rm -rf {0}/*; mkdir {0}; chmod 777 {0}".format(Global.G_SERVER_DIR)
         unzip_cmd = "cd {0} && unzip -o {1} && chmod 777 {0}/*".format(Global.G_SERVER_DIR, zip_name)
+        dos2unix_cmd = '''
+        for file in {0}/*.sh
+        do
+            cp $file ${{file}}_tmp
+            cat ${{file}}_tmp | tr -d "\\r" >$file
+            rm ${{file}}_tmp &
+        done
+        '''.format(Global.G_SERVER_DIR)
         _ip_del_list = []
         for ip, ssh in cls._logon_ssh_inst('QUE', None).items():
             # 如果上次登录用户跟这次不一致，会导致后面解压失败; 这里每次登录都清空目录
@@ -144,11 +152,12 @@ class LoginHandler:
                         Utils.tell_info(e, level='ERROR')
                     Logger.warn(e)
                     continue
-                else:
-                    info = "{0} Environment prepare OK".format(ip)
-                    Logger.info(info)
-                    Utils.tell_info(info)
-                    break
+                # dos2unix
+                SSHUtil.exec_ret(ssh, dos2unix_cmd)
+                info = "{0} Environment prepare OK".format(ip)
+                Logger.info(info)
+                Utils.tell_info(info)
+                break
         [cls._logon_ssh_inst('SUB', ip) for ip in _ip_del_list]
         Common.remove(zip_file)
         # 启动数据更新定时器
