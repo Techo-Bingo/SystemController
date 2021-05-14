@@ -16,5 +16,6 @@ function main()
     report_info "100" "NULL"
 }
 
-main 
+main
+exit 0
 
