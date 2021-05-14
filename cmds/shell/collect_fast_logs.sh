@@ -42,6 +42,8 @@ function main()
 	compress_pack
 }
 
-main &>/dev/null
+main
+exit 0
+
 
 
