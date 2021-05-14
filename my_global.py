@@ -134,7 +134,7 @@ def reload():
     global G_SERVER_UPLOAD
     global G_SERVER_DOWNLOAD
     G_TITLE = '%s V%s' % (G_TOOL_NAMED, G_VERSION)
-    G_WELCOME_INFO= ' ' * 70 + '【 欢迎使用%s 】' % G_TOOL_NAMED
+    G_WELCOME_INFO= ' ' * 70 + '【 %s信息栏 】' % G_TOOL_NAMED
     G_SERVER_UPLOAD = '%s/__UPLOAD__' % G_SERVER_DIR
     G_SERVER_DOWNLOAD = '%s/__DOWNLOAD__' % G_SERVER_DIR
 
