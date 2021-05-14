@@ -180,7 +180,7 @@
                             "Page": {
                                 "Widgets": "MemoryStatePageWidgets",
                                 "Shell": "",
-                                "Attrs": ["AutoPlot"]
+                                "Attrs": ["ToolBarMember","AutoPlot"]
                             },
                             "SubTree": []
                         },
@@ -190,7 +190,7 @@
                             "Page": {
                                 "Widgets": "CpuStatePageWidgets",
                                 "Shell": "",
-                                "Attrs": ["AutoPlot"]
+                                "Attrs": ["ToolBarMember","AutoPlot"]
                             },
                             "SubTree": []
                         },
@@ -200,7 +200,7 @@
                             "Page": {
                                 "Widgets": "IOStatePageWidgets",
                                 "Shell": "",
-                                "Attrs": ["AutoPlot"]
+                                "Attrs": ["ToolBarMember","AutoPlot"]
                             },
                             "SubTree": []
                         }
