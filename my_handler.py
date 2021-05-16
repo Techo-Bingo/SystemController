@@ -309,6 +309,14 @@ class PageHandler(object):
         self.task = shell.split('.')[0].upper()
 
     @classmethod
+    def try_switch(cls):
+        ret, task = Common.exist_suffix_file(Global.G_TEMP_DIR, '.lock')
+        if ret:
+            Utils.windows_error("请等待任务 {} 执行结束或手动'取消'该任务后继续".format(task))
+            return False
+        return True
+
+    @classmethod
     def _mutex(cls, ip, task, lock=True):
         """ 防重入 """
         _lock_file = '{0}\\{1}-{2}.lock'.format(Global.G_TEMP_DIR, task, ip)

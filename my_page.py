@@ -93,8 +93,9 @@ class PlotMaker:
 
 
 class PageClass(Pager):
-    def __init__(self, master, width, height, ip_list, shell, ploter, buttons, window, widgets):
+    def __init__(self, master, title, width, height, ip_list, shell, ploter, buttons, window, widgets):
         self.master = master
+        self.title = title
         self.width = width
         self.height = height
         self.shell = shell
@@ -435,25 +436,37 @@ class PageCtrl(object):
                 self.current_page.destroy()
             except:
                 pass
+        def is_current():
+            if self.current_text == text:
+                return True
+            self.current_text = text
+            return False
+        def widget_type():
+            page_class, widget_types = 'PageClass', []
+            for one in widgets:
+                widget = one['WidgetType']
+                if widget == 'Self':
+                    widget_types.append(1)
+                    page_class = one['WidgetValues'][0]
+                elif widget in Global.G_SUPPORTED_WIDGETS:
+                    widget_types.append(0)
+                else:
+                    raise Exception("Not support widget of {}".format(widget))
+            if len(set(widget_types)) != 1:
+                raise Exception("<Self>自定义控件界面不能使用<Template>模板控件")
+            return page_class
+
         text, widgets, shell, ploter, buttons, window = args_tuple
-        if self.current_text == text:
+        print('----------{}'.format(text))
+        if is_current():
             return
-        self.current_text = text
+        if not PageHandler.try_switch():
+            return
         destroy_page()
-        class_name, widget_types = 'PageClass', []
-        for one in widgets:
-            widget = one['WidgetType']
-            if widget == 'Self':
-                widget_types.append(1)
-                class_name = one['WidgetValues'][0]
-            elif widget in Global.G_SUPPORTED_WIDGETS:
-                widget_types.append(0)
-            else:
-                raise Exception("Not support widget of {}".format(widget))
-        if len(set(widget_types)) != 1:
-            raise Exception("<Self>自定义控件界面不能使用<Template>模板控件")
+        class_name = widget_type()
         width, height = Caller.call(Global.EVT_PAGE_INTERFACE, 'PAGE_SIZE')
         pager_params = {'master': self.master,
+                        'title': text,
                         'width': width,
                         'height': height,
                         'ip_list': ViewUtil.get_ssh_ip_list(),

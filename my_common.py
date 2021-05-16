@@ -119,3 +119,10 @@ class Common:
             zip.extractall(path)
         return True
 
+    @classmethod
+    def exist_suffix_file(cls, dirname, suffix):
+        for file in os.listdir(dirname):
+            f_split = os.path.splitext(file)
+            if f_split[1] == suffix:
+                return True, f_split[0]
+        return False, None

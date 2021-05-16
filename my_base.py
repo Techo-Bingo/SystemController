@@ -66,6 +66,7 @@ class GuiBase(Singleton):
 class Pager(object):
     interface = None
     master = None
+    title = None
     width = None
     height = None
     frame = None
@@ -79,7 +80,7 @@ class Pager(object):
 
     def _init(self):
         self._showing = True
-        self.frame = tk.LabelFrame(self.master, width=self.width, height=self.height)
+        self.frame = tk.LabelFrame(self.master, text=self.title, width=self.width, height=self.height)
         self.frame.pack(fill='both')
         self.frame.pack_propagate(0)
 
