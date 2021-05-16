@@ -457,7 +457,6 @@ class PageCtrl(object):
             return page_class
 
         text, widgets, shell, ploter, buttons, window = args_tuple
-        print('----------{}'.format(text))
         if is_current():
             return
         if not PageHandler.try_switch():
