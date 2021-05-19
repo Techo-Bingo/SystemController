@@ -71,7 +71,10 @@ class SSHUtil:
         try:
             info = ssh_inst.execute(cmd, root)[1]
             ret = info.channel.recv_exit_status()
-            return False if ret else True, None
+            if ret:
+                return False, None
+            else:
+                return True, None
         except SSHError as e:
             return False, e
 
