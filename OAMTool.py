@@ -21,8 +21,7 @@ from my_util import Init
 
 def start():
     gui = Gui()
-
-    """ 环境核查并初始化 """
+    
     if not Init.init():
         return
 
