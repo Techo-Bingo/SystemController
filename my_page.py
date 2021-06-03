@@ -236,11 +236,10 @@ class PageClass(Pager):
                                ).grid(row=row, column=column)
             return 'Checkbox', vars
         def widget_entry():
-            var = tk.StringVar()
-            entry = ttk.Entry(master, width=width, textvariable=var)
+            entry = ttk.Entry(master, width=width)
             entry.pack(side='left', padx=10, pady=2)
             if widget_values:
-                var.set('\n'.join(widget_values).strip())
+                entry.insert(0, '\n'.join(widget_values).strip())
             return 'Entry', entry
         def widget_text():
             text = scrolledtext.ScrolledText(master,
