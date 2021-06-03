@@ -310,6 +310,7 @@ class PageHandler(object):
 
     @classmethod
     def try_switch(cls):
+        Common.mkdir(Global.G_TEMP_DIR)
         ret, task = Common.exist_suffix_file(Global.G_TEMP_DIR, '.lock')
         if ret:
             Utils.windows_error("请等待任务 {} 执行结束或手动'取消'该任务后继续".format(task))
