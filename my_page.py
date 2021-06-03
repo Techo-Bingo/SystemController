@@ -351,7 +351,6 @@ class PageClass(Pager):
             if showUpload:
                 UploadProgress.show(ips)
         ''' 1. 校验控件输入并组装脚本参数 '''
-        Common.mkdir(Global.G_TEMP_DIR)
         shell_params, prev_uploads, index = defaultdict(list), defaultdict(list), 0
         for item in self.instance:
             widget, instance = item[0]
