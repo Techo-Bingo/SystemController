@@ -397,7 +397,7 @@ class PageHandler(object):
         download_dir = "{0}\\{1}".format(Global.G_DOWNLOAD_DIR, ip)
         filename = "{0}\\{1}".format(download_dir, Common.basename(file))
         Common.mkdir(download_dir)
-        self.tell_info(ip, 100, 'Downloading {}'.format(filename))
+        self.tell_info(ip, 100, 'Downloading to {}'.format(filename))
         if not SSHUtil.download_file(ssh, remote=file, local=filename):
             return False
         self.tell_info(ip, 100, "Download success")
