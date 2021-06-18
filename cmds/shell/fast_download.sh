@@ -26,6 +26,7 @@ function download()
 		[ $? -ne 0 ] && report_err '95' "Compress ${pack_name} failed"
 	fi
 	
+	chmod 777 "${pack_name}"
 	report_info "100" "${g_task_dir}/${pack_name}"
 }
 
