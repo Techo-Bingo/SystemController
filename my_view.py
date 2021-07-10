@@ -124,22 +124,19 @@ class GuiLogin(GuiBase):
                      'width': Global.G_LGN_WIN_WIDTH,
                      'background': Global.G_DEFAULT_COLOR}
         self.head_win = tk.Frame(height=Global.G_LGN_HEAD_HEIGHT, **win_style)
-        self.head_win.pack(fill='both')
-        self.head_win.pack_propagate(0)
-        self.foot_win.pack(fill='both')
-        self.foot_win.pack_propagate(0)
-        # self.func_win = tk.Frame(height=Global.G_LGN_FUNC_HEIGHT, **win_style)
-        # self.func_win.pack(fill='both')
-        # self.func_win.pack_propagate(0)
-        sf = ScrollFrame(height=Global.G_LGN_FUNC_HEIGHT, **win_style)
-        sf.pack(fill='both')
-        sf.pack_propagate(0)
-        self.func_win = sf.body
+        func_sf = ScrollFrame(height=Global.G_LGN_FUNC_HEIGHT, **win_style)
+        self.func_win = func_sf.body
         self.foot_win = tk.Frame(height=Global.G_LGN_FOOT_HEIGHT, **win_style)
         self.login_fm = tk.LabelFrame(self.func_win,
                                       text=' 登录服务器 ',
                                       font=('楷体', 12),
                                       labelanchor='n')
+        self.head_win.pack(fill='both')
+        self.head_win.pack_propagate(0)
+        func_sf.pack(fill='both')
+        func_sf.pack_propagate(0)
+        self.foot_win.pack(fill='both')
+        self.foot_win.pack_propagate(0)
 
     def pack_frame(self):
         self.login_fm.pack(fill='both')
