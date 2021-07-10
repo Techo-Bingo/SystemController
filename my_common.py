@@ -1,130 +1,143 @@
 # -*- coding: UTF-8 -*-
+"""
+全局定义
+"""
+__author__ = 'LiBin (Bingo)'
+G_LOGO = '''Welcome 
+        
+            ____  _                       
+           / __ )(_)___  ____ _____ 
+          / __  / / __ \/ __ `/ __ \\
+         / /_/ / / / / / /_/ / /_/ /
+        /_____/_/_/ /_/\__, /\____/ 
+                      /____/        
+        
+        '''
+# 版权信息
+G_COPYRIGHT_INFO = 'Copyright©2019-2021 Bingo. All Rights Reserved.'
+# 分隔符
+G_SPLIT_FLAG= '____BINGO_FILTER____'
+# 工具名称
+G_TOOL_NAMED = ''
+# 工具版本
+G_VERSION = ''
+# 默认字体 
+G_FONT = '微软雅黑'
+# 登录/上传等失败重试次数
+G_RETRY_TIMES = 1
+# ssh 保活周期
+G_KEEPALIVE_INT = 10
+# 工具标题
+G_TITLE = ''
+# 关于信息
+G_ABOUT_INFO = ''
+# 欢迎信息
+G_WELCOME_INFO = ''
+# 默认密码
+G_DEFAULT_PASSWORDS = []
+# 控件默认颜色
+G_DEFAULT_COLOR = 'Snow'
+# 默认背景色
+G_DEFAULT_BG = 'Gray94'
+# 操作窗(pages)背景色
+G_MAIN_OPER_BG = 'Gray94' #''Snow'
+# 一键登录按钮的前景色
+G_LGN_BTN_FG_COLOR = 'Gray30'
+# 登录界面宽高
+G_LGN_WIN_WIDTH = 620
+G_LGN_WIN_HEIGHT = 500
+# 登陆界面图片栏高度
+G_LGN_HEAD_HEIGHT = 160
+# 登陆界面按钮栏高度
+G_LGN_FOOT_HEIGHT = 60
+# 登录界面登录窗高度
+G_LGN_FUNC_HEIGHT = G_LGN_WIN_HEIGHT - G_LGN_HEAD_HEIGHT - G_LGN_FOOT_HEIGHT
+# 登录界面批量登录个数限制
+G_LGN_COUNT_LIMIT = 10
+# 主界面宽高
+G_MAIN_WIN_WIDTH = 1500
+G_MAIN_WIN_HEIGHT = 900
+# 主界面操作窗(pages)高度
+G_MAIN_OPER_HEIGHT = 600
+# 主界面信息提示栏高度
+G_MAIN_INFO_HEIGHT = G_MAIN_WIN_HEIGHT - G_MAIN_OPER_HEIGHT
+# 主界面树形导航栏宽度
+G_MAIN_TREE_WIDTH = 250
+# 主界面操作窗(pages)宽度 (含右侧滑块宽度)
+G_MAIN_OPER_WIDTH = 950
+# 主界面外部扩展栏宽度
+G_MAIN_HELP_WIDTH = G_MAIN_WIN_WIDTH - G_MAIN_TREE_WIDTH - G_MAIN_OPER_WIDTH
+G_INFOWIN_LEVEL_COLOR = {'INFO': 'Blue',  # 'DarkGreen',
+                         'TIPS': 'Blue',
+                         'WARN': 'DarkOrange',
+                         'ERROR': 'Red'}
+# 登录结果提示的前景色
+G_TIG_FG_COLOR = {'DEFAULT': 'Snow',
+                  'SUCCESS': 'SeaGreen1',
+                  'LOGING': 'DarkGrey',
+                  'FAILED': 'OrangeRed'}
+# 支持的模板控件
+G_SUPPORTED_WIDGETS = ['Label',
+                       'Checkbox',
+                       'Combobox',
+                       'Entry',
+                       'Text',
+                       'Button',
+                       'Notebook',
+                       'MultiCombobox',
+                       "PlotNotebook"]
+# 运行环境相关定义
+G_REQUIRED_DIR = '.\\Required'
+G_DEPEND_FILE = '.\\Required\\dependance.json'
+G_SETTING_FILE = '.\\Required\\settings.json'
+G_RESOURCE_DIR = '.\\Required\\Resource'
+G_INTERFACE_DIR = '.\\Interface'
+G_SCRIPTS_DIR = '.\\Interface\\Scripts'
+G_RUN_DIR = '.\\Run'
+G_LOG_PATH = '.\\Run\\tool.log'
+G_PID_DIR = ''
+G_DOWNLOAD_DIR = '.\\Download'
+G_SERVER_DIR = '/home/Bingo'
+G_SERVER_UPLOAD = ''
+G_SERVER_DOWNLOAD = ''
+# 日志回滚大小
+G_LOG_SIZE = 10485760
+G_LOG_LEVEL = 'info'
 
-import os
-import re
-import time
-import shutil
-import zipfile
-import threading
-from json import loads
-from collections import OrderedDict
+# 事件相关定义
+G_EVT_NAME_SUBLOGIN = 'SubLogin_%s'
+G_EVT_NAME_GUI = 'Gui'
+G_EVT_NAME_INFOWIN = 'InfoWindow'
+EVT_LOGIN_GUI = 'event_login_gui'
+EVT_MAIN_GUI = 'event_main_gui'
+EVT_SEE_PSWD_ON = 'event_see_pswd_on'
+EVT_SEE_PSWD_OFF = 'event_see_pswd_off'
+EVT_GET_LOGIN_INPUT = 'event_get_login_input_%s'
+EVT_SUBLOGIN_ENTRY_TIG = 'event_sublogin_entry_tig_%s'
+EVT_CHG_LOGIN_TIG_COLOR = 'event_change_login_tig_color_%s'
+EVT_INSERT_INFOWIN_TEXT = 'event_insert_infowin_text'
+EVT_CALL_WIN_INFO = 'event_call_window_info'
+EVT_CALL_WIN_WARN = 'event_call_window_warn'
+EVT_CALL_WIN_ERROR = 'event_call_window_error'
+EVT_CALL_WIN_ASK = 'event_call_window_ask'
+EVT_TOP_PROG_START = 'event_toplevel_start'
+EVT_TOP_PROG_UPDATE = 'event_toplevel_update'
+EVT_TOP_PROG_DESTROY = 'event_toplevel_destroy'
+EVT_ADD_IMAGE = 'event_add_image'
+EVT_REFRESH_GUI = 'event_refresh_gui'
+EVT_PAGE_INTERFACE = 'event_page_interface'
+EVT_CLOSE_GUI = 'event_close_gui'
+EVT_UPLOAD_PROGRESS_UPDATE = 'event_upload_progress_update'
 
 
-class Singleton(object):
-    """ 使用__new__实现抽象单例 """
+def reload():
+    global G_TITLE
+    global G_WELCOME_INFO
+    global G_SERVER_UPLOAD
+    global G_SERVER_DOWNLOAD
+    G_TITLE = '%s V%s' % (G_TOOL_NAMED, G_VERSION)
+    G_WELCOME_INFO= ' ' * 70 + '【 %s信息栏 】' % G_TOOL_NAMED
+    G_SERVER_UPLOAD = '%s/__UPLOAD__' % G_SERVER_DIR
+    G_SERVER_DOWNLOAD = '%s/__DOWNLOAD__' % G_SERVER_DIR
 
-    def __new__(cls, *args, **kwargs):
-        if not hasattr(cls, '_instance'):
-            cls._instance = super(Singleton, cls).__new__(cls)
-        return cls._instance
 
-
-class JSONParser:
-    """ JSON解析器 """
-
-    @classmethod
-    def parser(cls, json_path):
-        with open(json_path, 'r', encoding='UTF-8') as f:
-            return loads(f.read(), object_pairs_hook=OrderedDict)
-
-class Common:
-    """ 第三方公共方法 """
-
-    @classmethod
-    def is_exists(cls, dir):
-        return os.path.exists(dir)
-
-    @classmethod
-    def is_file(cls, file_path):
-        return os.path.isfile(file_path)
-
-    @classmethod
-    def rm_dir(cls, path):
-        return shutil.rmtree(path)
-
-    @classmethod
-    def remove(cls, file_path):
-        return os.remove(file_path)
-
-    @classmethod
-    def mkdir(cls, dir):
-        try:
-            os.makedirs(dir)
-        except FileExistsError:
-            pass
-
-    @classmethod
-    def get_pid(cls):
-        return os.getpid()
-
-    @classmethod
-    def basename(cls, file_path):
-        return os.path.split(file_path)[1]
-
-    @classmethod
-    def file_size(cls, file_path):
-        if not cls.is_file(file_path):
-            return 0
-        return os.path.getsize(file_path)
-
-    @classmethod
-    def get_time(cls, format=True):
-        if format:
-            return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-        return time.strftime("%Y%m%d%H%M%S", time.localtime())
-
-    @classmethod
-    def write_to_file(cls, filename, info):
-        try:
-            with open(filename, 'w') as f:
-                f.write(info)
-                return True
-        except:
-            return False
-
-    @classmethod
-    def create_thread(cls, func, args=()):
-        th = threading.Thread(target=func, args=args)
-        th.setDaemon(True)
-        th.start()
-
-    @classmethod
-    def is_ip(cls, ip):
-        p = re.compile("^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}"
-                       "(25[0-5]|2[0-4]\d|[01]?\d\d?)$")
-        return p.match(ip)
-
-    @classmethod
-    def sleep(cls, sec):
-        time.sleep(sec)
-
-    @classmethod
-    def zip_dir(cls, dirname, zipname):
-        filelist = []
-        if os.path.isfile(dirname):
-            filelist.append(dirname)
-        else:
-            for root, dirs, files in os.walk(dirname):
-                for name in files:
-                    filelist.append(os.path.join(root, name))
-        zf = zipfile.ZipFile(zipname, "w", zipfile.zlib.DEFLATED)
-        for tar in filelist:
-            arcname = tar[len(dirname):]
-            zf.write(tar, arcname)
-        zf.close()
-    
-    @classmethod
-    def unzip_file(cls, file_path, path):
-        if not zipfile.is_zipfile(file_path):
-            return False
-        with zipfile.ZipFile(file_path, 'r') as zip:
-            zip.extractall(path)
-        return True
-
-    @classmethod
-    def exist_suffix_file(cls, dirname, suffix):
-        for file in os.listdir(dirname):
-            f_split = os.path.splitext(file)
-            if f_split[1] == suffix:
-                return True, f_split[0]
-        return False, None
