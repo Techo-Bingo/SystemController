@@ -8,7 +8,15 @@ import zipfile
 import threading
 from json import loads
 from collections import OrderedDict
-from my_base import JSONError
+
+
+class Singleton(object):
+    """ 使用__new__实现抽象单例 """
+
+    def __new__(cls, *args, **kwargs):
+        if not hasattr(cls, '_instance'):
+            cls._instance = super(Singleton, cls).__new__(cls)
+        return cls._instance
 
 
 class JSONParser:
@@ -16,12 +24,8 @@ class JSONParser:
 
     @classmethod
     def parser(cls, json_path):
-        try:
-            with open(json_path, 'r', encoding='UTF-8') as f:
-                return loads(f.read(), object_pairs_hook=OrderedDict)
-        except Exception as e:
-            raise JSONError(e)
-
+        with open(json_path, 'r', encoding='UTF-8') as f:
+            return loads(f.read(), object_pairs_hook=OrderedDict)
 
 class Common:
     """ 第三方公共方法 """
@@ -50,6 +54,10 @@ class Common:
             pass
 
     @classmethod
+    def get_pid(cls):
+        return os.getpid()
+
+    @classmethod
     def basename(cls, file_path):
         return os.path.split(file_path)[1]
 
@@ -64,8 +72,6 @@ class Common:
         if format:
             return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
         return time.strftime("%Y%m%d%H%M%S", time.localtime())
-        # ct = time.time()
-        # return '%s.%03d' % (time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), (ct - int(ct)) * 1000)
 
     @classmethod
     def write_to_file(cls, filename, info):
@@ -75,10 +81,6 @@ class Common:
                 return True
         except:
             return False
-
-    @classmethod
-    def record_pid(cls, pid_file):
-        cls.write_to_file(pid_file, str(os.getpid()))
 
     @classmethod
     def create_thread(cls, func, args=()):
