@@ -2,8 +2,10 @@
 import tkinter as tk
 from tkinter import ttk
 import my_global as Global
+from my_base import Pager
+from my_viewutil import ToolTips, WinMsg
+from my_module import ProgressBar, MyFrame, CreateIPBar
 from my_handler import PageHandler
-from my_module import Pager, MyFrame, CreateIPBar, InfoWindow, WidgetTip
 
 
 class TimezonePage(Pager):
@@ -57,7 +59,7 @@ class TimezonePage(Pager):
         def show_current_status():
             state_fm = tk.Frame(self.frame, width=self.width)
             state_fm.pack(fill='x', padx=10)
-            shw_fm = MyFrame(state_fm, self.width, 100, True, '当前状态').master()
+            shw_fm = MyFrame(state_fm, self.width, 100, '当前状态').master()
             handler = PageHandler(self.ip_list, self.shell, True, False)
             lab_dict = {}
             for ip in self.ip_list:
@@ -116,10 +118,10 @@ class TimezonePage(Pager):
     def button_callback(self, oper, ips, opts):
         not_set = self.exist_not_set_combox()
         if not_set:
-            WidgetTip.warn("请设置夏令时参数:%s" % not_set[0])
+            WinMsg.warn("请设置夏令时参数:%s" % not_set[0])
             return
         if not ips:
-            WidgetTip.warn("请勾选IP地址")
+            WinMsg.warn("请勾选IP地址")
             return
         in_root = True if opts[0] == 1 else False
         in_back = True if opts[1] == 1 else False
@@ -298,12 +300,12 @@ class TimezonePage(Pager):
                 return True
             month = int(self.opts_dict['SMONTH'])
             if month == 2 and int(value) > 28:
-                WidgetTip.error('开始月份为2月时，日期不能设置大于28号！')
+                WinMsg.error('开始月份为2月时，日期不能设置大于28号！')
                 self.reset_combox_list([[1, 1]])
                 self.pop_opts_dict('SDAY')
                 return False
             elif month in [4, 6, 9, 11] and int(value) > 30:
-                WidgetTip.error('开始月份为%s月时，日期不能设置大于30号！' % month)
+                WinMsg.error('开始月份为%s月时，日期不能设置大于30号！' % month)
                 self.reset_combox_list([[1, 1]])
                 self.pop_opts_dict('SDAY')
                 return False
@@ -314,12 +316,12 @@ class TimezonePage(Pager):
                 return True
             month = int(self.opts_dict['EMONTH'])
             if month == 2 and int(value) > 28:
-                WidgetTip.error('结束月份为2月时，日期不能设置大于28号！')
+                WinMsg.error('结束月份为2月时，日期不能设置大于28号！')
                 self.reset_combox_list([[1, 2]])
                 self.pop_opts_dict('EDAY')
                 return False
             elif month in [4,6,9,11] and int(value) > 30:
-                WidgetTip.error('结束月份为%s月时，日期不能设置大于30号！' % month)
+                WinMsg.error('结束月份为%s月时，日期不能设置大于30号！' % month)
                 self.reset_combox_list([[1, 2]])
                 self.pop_opts_dict('EDAY')
                 return False
@@ -328,12 +330,12 @@ class TimezonePage(Pager):
                 return True
             day = int(self.opts_dict['SDAY'])
             if int(value) == 2 and day > 28:
-                WidgetTip.error('开始月份为2月时，日期不能设置大于28号！')
+                WinMsg.error('开始月份为2月时，日期不能设置大于28号！')
                 self.reset_combox_list([[0, 1]])
                 self.pop_opts_dict('SMONTH')
                 return False
             elif int(value) in [4,6,9,11] and day > 30:
-                WidgetTip.error('开始月份为%s月时，日期不能设置大于30号！' % value)
+                WinMsg.error('开始月份为%s月时，日期不能设置大于30号！' % value)
                 self.reset_combox_list([[0, 1]])
                 self.pop_opts_dict('SMONTH')
                 return False
@@ -342,12 +344,12 @@ class TimezonePage(Pager):
                 return True
             day = int(self.opts_dict['EDAY'])
             if int(value) == 2 and day > 28:
-                WidgetTip.error('开始月份为2月时，日期不能设置大于28号！')
+                WinMsg.error('开始月份为2月时，日期不能设置大于28号！')
                 self.reset_combox_list([[0, 2]])
                 self.pop_opts_dict('EMONTH')
                 return False
             elif int(value) in [4, 6, 9, 11] and day > 30:
-                WidgetTip.error('开始月份为%s月时，日期不能设置大于30号！' % value)
+                WinMsg.error('开始月份为%s月时，日期不能设置大于30号！' % value)
                 self.reset_combox_list([[0, 2]])
                 self.pop_opts_dict('EMONTH')
                 return False
@@ -393,7 +395,7 @@ class TimezonePage(Pager):
         ''' 一些条件判断，比如2月不能设置大于28号；4,6,9,11月不能设置31号 '''
         if self.check_limit_dependence(optname, optval):
             self.opts_dict[optname] = optval
-        InfoWindow.insert(self.options_combine())
+        ToolTips.message_tips(self.options_combine())
 
     def display_diff_mode(self, key, val):
         """ 无夏令时 """

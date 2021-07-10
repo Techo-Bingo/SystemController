@@ -1,39 +1,39 @@
 {
     "Images": {
-        "ICO": "item.ico",
-        "GUIDE": "guide.jpg",
-        "ABOUT": "about.png",
-        "LGN_HEAD": "login_head.jpg",
-        "LGN_EYE": "login_eye.png",
-        "TB_EXPAND": "toolbar_expand.png",
-        "TB_LAST_ONE": "toolbar_last_one.png",
-        "TB_NEXT_ONE": "toolbar_next_one.png",
-        "TB_SCREEN_CUT": "toolbar_screen_cut.png",
-        "TB_SETTING": "toolbar_setting.png",
-        "TB_HELP": "toolbar_help.png",
-        "TB_INFO": "toolbar_info.png",
-        "TV_HOME": "treeview_home.png",
-        "TV_OAM": "treeview_oam.png",
-        "TV_OAM_SET": "treeview_oam_set.png",
-        "TV_STATE": "treeview_state.png",
-        "TV_FAST_LOG": "treeview_fast_log.png",
-        "TV_BINLOG": "treeview_binlog.png",
-        "TV_ROLLBACK": "treeview_rollback.png",
-        "TV_INSTALL": "treeview_install.png",
-        "TV_UPGRADE": "treeview_upgrade.png",
-        "TV_CRONTAB": "treeview_timezone.png",
-        "TV_PROC_STATE": "treeview_proc_state.png",
-        "TV_SYS_STATE": "treeview_system_state.png",
-        "TV_MEM_STATE": "treeview_mem_state.png",
-        "TV_CPU_STATE": "treeview_cpu_state.png",
-        "TV_IO_STATE": "treeview_io_state.png",
-        "TV_RUN_CMD": "treeview_run_cmd.png",
-        "TV_DOWNLOAD": "treeview_download.png",
-        "TV_UPLOAD": "treeview_upload.png",
-        "TV_PROC_RES": "treeview_proc_res.png",
-        "TV_EXPORT_DB": "treeview_export_db.png",
-        "TV_RUN_SQL": "treeview_run_sql.png",
-        "TV_TCPDUMP": "treeview_tcpdump.png"
+        "ICO": ".\\image\\item.ico",
+        "GUIDE": ".\\image\\guide.png",
+        "ABOUT": ".\\image\\about.png",
+        "LGN_HEAD": ".\\image\\login_head.jpg",
+        "LGN_EYE": ".\\image\\login_eye.png",
+        "TB_EXPAND": ".\\image\\toolbar_expand.png",
+        "TB_LAST_ONE": ".\\image\\toolbar_last_one.png",
+        "TB_NEXT_ONE": ".\\image\\toolbar_next_one.png",
+        "TB_SCREEN_CUT": ".\\image\\toolbar_screen_cut.png",
+        "TB_SETTING": ".\\image\\toolbar_setting.png",
+        "TB_HELP": ".\\image\\toolbar_help.png",
+        "TB_INFO": ".\\image\\toolbar_info.png",
+        "TV_HOME": ".\\image\\treeview_home.png",
+        "TV_OAM": ".\\image\\treeview_oam.png",
+        "TV_OAM_SET": ".\\image\\treeview_oam_set.png",
+        "TV_STATE": ".\\image\\treeview_state.png",
+        "TV_FAST_LOG": ".\\image\\treeview_fast_log.png",
+        "TV_BINLOG": ".\\image\\treeview_binlog.png",
+        "TV_ROLLBACK": ".\\image\\treeview_rollback.png",
+        "TV_INSTALL": ".\\image\\treeview_install.png",
+        "TV_UPGRADE": ".\\image\\treeview_upgrade.png",
+        "TV_CRONTAB": ".\\image\\treeview_timezone.png",
+        "TV_PROC_STATE": ".\\image\\treeview_proc_state.png",
+        "TV_SYS_STATE": ".\\image\\treeview_system_state.png",
+        "TV_MEM_STATE": ".\\image\\treeview_mem_state.png",
+        "TV_CPU_STATE": ".\\image\\treeview_cpu_state.png",
+        "TV_IO_STATE": ".\\image\\treeview_io_state.png",
+        "TV_RUN_CMD": ".\\image\\treeview_run_cmd.png",
+        "TV_DOWNLOAD": ".\\image\\treeview_download.png",
+        "TV_UPLOAD": ".\\image\\treeview_upload.png",
+        "TV_PROC_RES": ".\\image\\treeview_proc_res.png",
+        "TV_EXPORT_DB": ".\\image\\treeview_export_db.png",
+        "TV_RUN_SQL": ".\\image\\treeview_run_sql.png",
+        "TV_TCPDUMP": ".\\image\\treeview_tcpdump.png"
     },
 
     "Tree": [
@@ -48,7 +48,7 @@
             "SubTree": []
         },
         {
-            "Text": "数据采集",
+            "Text": "操作维护",
             "Image": "TV_OAM",
             "Page": "NA",
             "SubTree": [
@@ -63,7 +63,7 @@
                     "SubTree": []
                 },
                 {
-                    "Text": "MySQL表数据采集",
+                    "Text": "数据库数据导出",
                     "Image": "TV_EXPORT_DB",
                     "Page": {
                         "Widgets": "FastExportDBPageWidgets",
@@ -83,7 +83,7 @@
                     "SubTree": []
                 },
                 {
-                    "Text": "tcpdump网络数据采集",
+                    "Text": "tcpdump网络抓包",
                     "Image": "TV_TCPDUMP",
                     "Page": {
                         "Widgets": "TcpdumpPageWidgets",
@@ -91,86 +91,56 @@
                         "Attrs": ["OperateButtons"]
                     },
                     "SubTree": []
-                }
-            ]
-        },
-        {
-            "Text": "操作维护",
-            "Image": "TV_OAM",
-            "Page": "NA",
-            "SubTree": [
-                {
-                    "Text": "配置管理",
-                    "Image": "TV_OAM",
-                    "Page": "NA",
-                    "SubTree": [
-                        {
-                            "Text": "定时任务管理",
-                            "Image": "TV_CRONTAB",
-                            "Page": {
-                                "Widgets": "CronPageWidgets",
-                                "Shell": "crontab_management.sh",
-                                "Attrs": []
-                            },
-                            "SubTree": []
-                        },
-                        {
-                            "Text": "时区夏令时配置",
-                            "Image": "TV_OAM_SET",
-                            "Page": {
-                                "Widgets": "TimezonePageWidgets",
-                                "Shell": "timezone_operate.sh",
-                                "Attrs": []
-                            },
-                            "SubTree": []
-                        }
-                    ]
                 },
                 {
-                    "Text": "版本管理",
-                    "Image": "TV_OAM",
-                    "Page": "NA",
-                    "SubTree": [
-                        {
-                            "Text": "版本安装",
-                            "Image": "TV_INSTALL",
-                            "Page": {
-                                "Widgets": "InstallVersionWidgets",
-                                "Shell": "install_version.sh",
-                                "Attrs": [
-                                    "OperateButtons",
-                                    "ResultWindow"
-                                ]
-                            },
-                            "SubTree": []
-                        },
-                        {
-                            "Text": "版本升级",
-                            "Image": "TV_UPGRADE",
-                            "Page": {
-                                "Widgets": "UpgradeVersionWidgets",
-                                "Shell": "upgrade_version.sh",
-                                "Attrs": [
-                                    "OperateButtons",
-                                    "ResultWindow"
-                                ]
-                            },
-                            "SubTree": []
-                        },
-                        {
-                            "Text": "版本回退",
-                            "Image": "TV_ROLLBACK",
-                            "Page": {
-                                "Widgets": "RollbackVersionWidgets",
-                                "Shell": "rollback_version.sh",
-                                "Attrs": [
-                                    "OperateButtons",
-                                    "ResultWindow"
-                                ]
-                            },
-                            "SubTree": []
-                        }
-                    ]
+                    "Text": "定时任务管理",
+                    "Image": "TV_CRONTAB",
+                    "Page": {
+                        "Widgets": "CronPageWidgets",
+                        "Shell": "crontab_management.sh",
+                        "Attrs": []
+                    },
+                    "SubTree": []
+                },
+                {
+                    "Text": "时区夏令时配置",
+                    "Image": "TV_OAM_SET",
+                    "Page": {
+                        "Widgets": "TimezonePageWidgets",
+                        "Shell": "timezone_operate.sh",
+                        "Attrs": []
+                    },
+                    "SubTree": []
+                },
+                {
+                    "Text": "版本安装",
+                    "Image": "TV_INSTALL",
+                    "Page": {
+                        "Widgets": "InstallVersionWidgets",
+                        "Shell": "install_version.sh",
+                        "Attrs": ["OperateButtons", "ResultWindow"]
+                    },
+                    "SubTree": []
+                },
+                {
+                    "Text": "版本升级",
+                    "Image": "TV_UPGRADE",
+                    "Page": {
+                        "Widgets": "UpgradeVersionWidgets",
+                        "Shell": "upgrade_version.sh",
+                        "Attrs": ["OperateButtons", "ResultWindow"]
+                    },
+                    "SubTree": []
+                },
+                {
+                    "Text": "版本回退",
+                    "Image": "TV_ROLLBACK",
+                    "Page": {
+                        "Widgets": "RollbackVersionWidgets",
+                        "Shell": "rollback_version.sh",
+                        "Attrs": ["OperateButtons", "ResultWindow"]
+                    },
+                    "SubTree": []
                 }
             ]
         },
@@ -286,417 +256,358 @@
             ]
         },
         {
-            "Text": "自动化管理",
-            "Image": "TV_OAM_SET",
-            "Page": "NA",
-            "SubTree": [
+            "__ThisIsPageWidgets__": "NA",
+
+            "HomePageWidgets": [
                 {
-                    "Text": "主备容灾",
-                    "Image": "TV_OAM",
-                    "Page": "NA",
-                    "SubTree": [
-                        {
-                            "Text": "主备容灾配置",
-                            "Image": "TV_OAM_SET",
-                            "Page": {
-                                "Widgets": "AutoHAConfigWidgets",
-                                "Shell": "auto_ha_config.sh",
-                                "Attrs": [
-                                    "OperateButtons",
-                                    "ResultWindow"
-                                ]
-                            },
-                            "SubTree": []
-                        },
-                        {
-                            "Text": "主备容灾升级",
-                            "Image": "TV_UPGRADE",
-                            "Page": {
-                                "Widgets": "AutoHAUpgradeWidgets",
-                                "Shell": "auto_ha_upgrade.sh",
-                                "Attrs": [
-                                    "OperateButtons",
-                                    "ResultWindow"
-                                ]
-                            },
-                            "SubTree": []
-                        }
-                    ]
+                    "WidgetType": "Notebook",
+                    "WidgetTips": ["服务器信息"],
+                    "WidgetValues": [],
+                    "WidgetParams": {"Size": [900, 500, 900, 500]},
+                    "WidgetAttrs": ["ShowEnterResult"],
+                    "WidgetActions": []
+                }
+            ],
+            "FastLogPageWidgets": [
+                {
+                    "WidgetType": "Checkbox",
+                    "WidgetTips": ["日志类型"],
+                    "WidgetValues": ["日志类型A", "日志类型B", "日志类型C", "日志类型D"],
+                    "WidgetParams": {"Size": [600, 200, 40, 1]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": []
+                }
+            ],
+            "FastExportDBPageWidgets": [
+                {
+                    "WidgetType": "Entry",
+                    "WidgetTips": ["MySQL库名"],
+                    "WidgetValues": [],
+                    "WidgetParams": {"Size": [600, 40, 40, 1]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": []
+                },
+                {
+                    "WidgetType": "Entry",
+                    "WidgetTips": ["MySQL表名 (输入为空时，将导出整个库)"],
+                    "WidgetValues": [],
+                    "WidgetParams": {"Size": [600, 40, 40, 1]},
+                    "WidgetAttrs": ["CanBeNull"],
+                    "WidgetActions": []
+                }
+            ],
+            "MysqlBinlogPageWidgets": [
+                {
+                    "WidgetType": "Combobox",
+                    "WidgetTips": ["采集时长"],
+                    "WidgetValues": ["一天", "三天", "一周"],
+                    "WidgetParams": {"Size": [600, 100, 20, 1]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": []
+                }
+            ],
+            "TcpdumpPageWidgets": [
+                {
+                    "WidgetType": "Label",
+                    "WidgetTips": ["提示"],
+                    "WidgetValues": ["以下选项都是可选项，不填则该项参数值为空; 为避免包过大，请严格过滤"],
+                    "WidgetParams": {"Size": [900, 30, 600, 30]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": []
+                },
+                {
+                    "WidgetType": "MultiCombobox",
+                    "WidgetTips": ["网卡 (-i)"],
+                    "WidgetValues": ["", "__NETCARD__"],
+                    "WidgetParams": {"Size": [900, 50, 20, 1]},
+                    "WidgetAttrs": ["CanBeNull"],
+                    "WidgetActions": []
+                },
+                {
+                    "WidgetType": "Combobox",
+                    "WidgetTips": ["协议 (tcp|udp)"],
+                    "WidgetValues": ["", "TCP", "UDP"],
+                    "WidgetParams": {"Size": [900, 30, 20, 1]},
+                    "WidgetAttrs": ["CanBeNull"],
+                    "WidgetActions": []
+                },
+                {
+                    "WidgetType": "Entry",
+                    "WidgetTips": ["主机 (host)"],
+                    "WidgetValues": [],
+                    "WidgetParams": {"Size": [900, 30, 50, 1]},
+                    "WidgetAttrs": ["CanBeNull"],
+                    "WidgetActions": []
+                },
+                {
+                    "WidgetType": "Entry",
+                    "WidgetTips": ["端口 (port)"],
+                    "WidgetValues": [],
+                    "WidgetParams": {"Size": [900, 30, 50, 1]},
+                    "WidgetAttrs": ["CanBeNull"],
+                    "WidgetActions": []
+                },
+                {
+                    "WidgetType": "Entry",
+                    "WidgetTips": ["抓取数据包个数 (-c) [必填参数]"],
+                    "WidgetValues": [],
+                    "WidgetParams": {"Size": [900, 30, 50, 1]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": []
+                },
+                {
+                    "WidgetType": "Entry",
+                    "WidgetTips": ["其他参数"],
+                    "WidgetValues": [],
+                    "WidgetParams": {"Size": [900, 30, 50, 1]},
+                    "WidgetAttrs": ["CanBeNull"],
+                    "WidgetActions": []
+                }
+            ],
+            "RollbackVersionWidgets": [
+                {
+                    "WidgetType": "Label",
+                    "WidgetTips": ["警告"],
+                    "WidgetValues": ["eAPP版本将强制回退至升级前的旧版本", "此回滚动作只适用于TTR5.x及以上版本", "请谨慎操作！"],
+                    "WidgetParams": {"Size": [900, 100, 900, 100]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": []
+                }
+            ],
+            "UpgradeVersionWidgets": [
+                {
+                    "WidgetType": "Label",
+                    "WidgetTips": ["警告"],
+                    "WidgetValues": ["eAPP版本将升级至上传的目标版本", "此升级动作只适用于TTR5.x及以上版本", "请谨慎操作！"],
+                    "WidgetParams": {"Size": [900, 100, 900, 100]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": []
+                },
+                {
+                    "WidgetType": "Button",
+                    "WidgetTips": ["版本包文件路径"],
+                    "WidgetValues": ["ChooseFile", "*"],
+                    "WidgetParams": {"Size": [900, 35, 10, 1]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": ["UploadFile"]
+                },
+                {
+                    "WidgetType": "Button",
+                    "WidgetTips": ["升级包文件路径"],
+                    "WidgetValues": ["ChooseFile", "*"],
+                    "WidgetParams": {"Size": [900, 35, 10, 1]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": ["UploadFile"]
+                }
+            ],
+            "InstallVersionWidgets": [
+                {
+                    "WidgetType": "Button",
+                    "WidgetTips": ["版本包文件路径"],
+                    "WidgetValues": ["ChooseFile", "*"],
+                    "WidgetParams": {"Size": [900, 35, 10, 1]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": ["UploadFile"]
+                },
+                {
+                    "WidgetType": "Combobox",
+                    "WidgetTips": ["安装语言"],
+                    "WidgetValues": ["中文", "英文"],
+                    "WidgetParams": {"Size": [900, 30, 20, 1]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": []
+                },
+                {
+                    "WidgetType": "Combobox",
+                    "WidgetTips": ["安装场景"],
+                    "WidgetValues": ["无线专网(PWI)", "指挥中心(ICP)"],
+                    "WidgetParams": {"Size": [900, 30, 20, 1]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": []
+                },
+                {
+                    "WidgetType": "Combobox",
+                    "WidgetTips": ["协议版本"],
+                    "WidgetValues": ["B-Trunc R2", "3GPP"],
+                    "WidgetParams": {"Size": [900, 30, 20, 1]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": []
+                },
+                {
+                    "WidgetType": "MultiCombobox",
+                    "WidgetTips": ["MDC IP"],
+                    "WidgetValues": ["__IP__"],
+                    "WidgetParams": {"Size": [900, 50, 20, 1]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": []
+                },
+                {
+                    "WidgetType": "MultiCombobox",
+                    "WidgetTips": ["UDC IP (为空时表示不安装UDC网元)"],
+                    "WidgetValues": ["", "__IP__"],
+                    "WidgetParams": {"Size": [900, 50, 20, 1]},
+                    "WidgetAttrs": ["CanBeNull"],
+                    "WidgetActions": []
+                }
+            ],
+            "TimezonePageWidgets": [
+                {
+                    "WidgetType": "Self",
+                    "WidgetTips": [],
+                    "WidgetValues": ["TimezonePage"],
+                    "WidgetParams": {},
+                    "WidgetAttrs": [],
+                    "WidgetActions": []
+                }
+            ],
+            "CronPageWidgets": [
+                {
+                    "WidgetType": "Notebook",
+                    "WidgetTips": ["定时任务列表"],
+                    "WidgetValues": [],
+                    "WidgetParams": {"Size": [900, 500, 900, 500]},
+                    "WidgetAttrs": ["ShowEnterResult"],
+                    "WidgetActions": []
+                }
+            ],
+            "ProcessStatePageWidgets": [
+                {
+                    "WidgetType": "Notebook",
+                    "WidgetTips": ["UBP进程状态"],
+                    "WidgetValues": [],
+                    "WidgetParams": {"Size": [900, 500, 900, 500]},
+                    "WidgetAttrs": ["ShowEnterResult"],
+                    "WidgetActions": []
+                }
+            ],
+            "ProcessResPageWidgets": [
+                {
+                    "WidgetType": "Label",
+                    "WidgetTips": ["说明"],
+                    "WidgetValues": ["选择对应的进程名称和资源项后", "点击执行按钮即可绘制对应的资源使用曲线图"],
+                    "WidgetParams": {"Size": [900, 60, 900, 60]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": []
+                },
+                {
+                    "WidgetType": "MultiCombobox",
+                    "WidgetTips": ["进程名称"],
+                    "WidgetValues": ["__RESOURCE__"],
+                    "WidgetParams": {"Size": [900, 100, 20, 1]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": []
+                },
+                {
+                    "WidgetType": "MultiCombobox",
+                    "WidgetTips": ["资源项"],
+                    "WidgetValues": ["MemTotal", "MemFree", "MemAvailable", "Cached", "SwapTotal", "SwapFree", "SwapCached"],
+                    "WidgetParams": {"Size": [900, 100, 20, 1]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": []
+                }
+            ],
+            "MemoryStatePageWidgets": [
+                {
+                    "WidgetType": "PlotNotebook",
+                    "WidgetTips": [],
+                    "WidgetValues": ["__memory__.csv"],
+                    "WidgetParams": {"Size": [900, 500, 900, 500]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": []
+                }
+            ],
+            "CpuStatePageWidgets": [
+                {
+                    "WidgetType": "PlotNotebook",
+                    "WidgetTips": [],
+                    "WidgetValues": ["__cpu_usage__.csv"],
+                    "WidgetParams": {"Size": [900, 500, 900, 500]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": []
+                }
+            ],
+            "IOStatePageWidgets": [
+                {
+                    "WidgetType": "PlotNotebook",
+                    "WidgetTips": [],
+                    "WidgetValues": ["__io_util__.csv"],
+                    "WidgetParams": {"Size": [900, 500, 900, 500]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": []
+                }
+            ],
+            "FastCommandPageWidgets": [
+                {
+                    "WidgetType": "Text",
+                    "WidgetTips": ["命令输入框"],
+                    "WidgetValues": [],
+                    "WidgetParams": {"Size": [900, 300, 110, 20]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": ["UploadFile"]
+                }
+            ],
+            "FastSQLPageWidgets": [
+                {
+                    "WidgetType": "Text",
+                    "WidgetTips": ["SQL输入框"],
+                    "WidgetValues": [],
+                    "WidgetParams": {"Size": [900, 300, 110, 20]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": ["UploadFile"]
+                }
+            ],
+            "FastDownloadPageWidgets": [
+                {
+                    "WidgetType": "Label",
+                    "WidgetTips": ["提示"],
+                    "WidgetValues": ["路径为文件夹时将会打包下载（暂不支持正则表达式）"],
+                    "WidgetParams": {"Size": [600, 40, 400, 40]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": []
+                },
+                {
+                    "WidgetType": "Entry",
+                    "WidgetTips": ["服务器文件(夹)路径"],
+                    "WidgetValues": [],
+                    "WidgetParams": {"Size": [600, 30, 70, 1]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": []
+                }
+            ],
+            "FastUploadPageWidgets": [
+                {
+                    "WidgetType": "Button",
+                    "WidgetTips": ["选择本地文件"],
+                    "WidgetValues": ["ChooseFile", "*"],
+                    "WidgetParams": {"Size": [600, 40, 10, 1]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": ["UploadFile"]
+                },
+                {
+                    "WidgetType": "Entry",
+                    "WidgetTips": ["服务器目录"],
+                    "WidgetValues": [],
+                    "WidgetParams": {"Size": [600, 30, 70, 1]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": []
+                },
+                {
+                    "WidgetType": "Entry",
+                    "WidgetTips": ["设置权限"],
+                    "WidgetValues": ["0640"],
+                    "WidgetParams": {"Size": [600, 30, 20, 1]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": []
+                },
+                {
+                    "WidgetType": "Entry",
+                    "WidgetTips": ["设置属主/组"],
+                    "WidgetValues": ["root:root"],
+                    "WidgetParams": {"Size": [600, 30, 20, 1]},
+                    "WidgetAttrs": [],
+                    "WidgetActions": []
                 }
             ]
         }
-    ],
-
-    "Widgets": {
-        "HomePageWidgets": [
-            {
-                "WidgetType": "Notebook",
-                "WidgetTips": ["服务器信息"],
-                "WidgetValues": [],
-                "WidgetParams": {"Size": [900, 500, 900, 500]},
-                "WidgetAttrs": ["ShowEnterResult"],
-                "WidgetActions": []
-            }
-        ],
-        "FastLogPageWidgets": [
-            {
-                "WidgetType": "Checkbox",
-                "WidgetTips": ["日志类型"],
-                "WidgetValues": ["ISP日志", "MDC日志", "UDC日志", "MRS日志", "SDS/SSC日志", "SYSTEM日志"],
-                "WidgetParams": {"Size": [600, 200, 40, 1]},
-                "WidgetAttrs": [],
-                "WidgetActions": []
-            }
-        ],
-        "FastExportDBPageWidgets": [
-            {
-                "WidgetType": "Entry",
-                "WidgetTips": ["MySQL库名"],
-                "WidgetValues": [],
-                "WidgetParams": {"Size": [600, 40, 40, 1]},
-                "WidgetAttrs": [],
-                "WidgetActions": []
-            },
-            {
-                "WidgetType": "Entry",
-                "WidgetTips": ["MySQL表名 (输入为空时，将导出整个库)"],
-                "WidgetValues": [],
-                "WidgetParams": {"Size": [600, 40, 40, 1]},
-                "WidgetAttrs": ["CanBeNull"],
-                "WidgetActions": []
-            }
-        ],
-        "MysqlBinlogPageWidgets": [
-            {
-                "WidgetType": "Combobox",
-                "WidgetTips": ["采集时长"],
-                "WidgetValues": ["一天", "三天", "一周"],
-                "WidgetParams": {"Size": [600, 100, 20, 1]},
-                "WidgetAttrs": [],
-                "WidgetActions": []
-            }
-        ],
-        "TcpdumpPageWidgets": [
-            {
-                "WidgetType": "Label",
-                "WidgetTips": ["提示"],
-                "WidgetValues": ["以下选项都是可选项，不填则该项参数值为空; 为避免包过大，请严格过滤"],
-                "WidgetParams": {"Size": [900, 30, 600, 30]},
-                "WidgetAttrs": [],
-                "WidgetActions": []
-            },
-            {
-                "WidgetType": "MultiCombobox",
-                "WidgetTips": ["网卡 (-i)"],
-                "WidgetValues": ["", "__NETCARD__"],
-                "WidgetParams": {"Size": [900, 50, 20, 1]},
-                "WidgetAttrs": ["CanBeNull"],
-                "WidgetActions": []
-            },
-            {
-                "WidgetType": "Combobox",
-                "WidgetTips": ["协议 (tcp|udp)"],
-                "WidgetValues": ["", "TCP", "UDP"],
-                "WidgetParams": {"Size": [900, 30, 20, 1]},
-                "WidgetAttrs": ["CanBeNull"],
-                "WidgetActions": []
-            },
-            {
-                "WidgetType": "Entry",
-                "WidgetTips": ["主机 (host)"],
-                "WidgetValues": [],
-                "WidgetParams": {"Size": [900, 30, 50, 1]},
-                "WidgetAttrs": ["CanBeNull"],
-                "WidgetActions": []
-            },
-            {
-                "WidgetType": "Entry",
-                "WidgetTips": ["端口 (port)"],
-                "WidgetValues": [],
-                "WidgetParams": {"Size": [900, 30, 50, 1]},
-                "WidgetAttrs": ["CanBeNull"],
-                "WidgetActions": []
-            },
-            {
-                "WidgetType": "Entry",
-                "WidgetTips": ["抓取数据包个数 (-c) [必填参数]"],
-                "WidgetValues": [],
-                "WidgetParams": {"Size": [900, 30, 50, 1]},
-                "WidgetAttrs": [],
-                "WidgetActions": []
-            },
-            {
-                "WidgetType": "Entry",
-                "WidgetTips": ["其他参数"],
-                "WidgetValues": [],
-                "WidgetParams": {"Size": [900, 30, 50, 1]},
-                "WidgetAttrs": ["CanBeNull"],
-                "WidgetActions": []
-            }
-        ],
-        "RollbackVersionWidgets": [
-            {
-                "WidgetType": "Label",
-                "WidgetTips": ["警告"],
-                "WidgetValues": ["eAPP版本将强制回退至升级前的旧版本", "此回滚动作只适用于TTR5.x及以上版本", "请谨慎操作！"],
-                "WidgetParams": {"Size": [900, 100, 900, 100]},
-                "WidgetAttrs": [],
-                "WidgetActions": []
-            }
-        ],
-        "UpgradeVersionWidgets": [
-            {
-                "WidgetType": "Label",
-                "WidgetTips": ["警告"],
-                "WidgetValues": ["eAPP版本将升级至上传的目标版本", "此升级动作只适用于TTR5.x及以上版本", "请谨慎操作！"],
-                "WidgetParams": {"Size": [900, 100, 900, 100]},
-                "WidgetAttrs": [],
-                "WidgetActions": []
-            },
-            {
-                "WidgetType": "Button",
-                "WidgetTips": ["版本包文件路径"],
-                "WidgetValues": ["ChooseFile", "*"],
-                "WidgetParams": {"Size": [900, 35, 10, 1]},
-                "WidgetAttrs": [],
-                "WidgetActions": ["UploadFile"]
-            },
-            {
-                "WidgetType": "Button",
-                "WidgetTips": ["升级包文件路径"],
-                "WidgetValues": ["ChooseFile", "*"],
-                "WidgetParams": {"Size": [900, 35, 10, 1]},
-                "WidgetAttrs": [],
-                "WidgetActions": ["UploadFile"]
-            }
-        ],
-        "InstallVersionWidgets": [
-            {
-                "WidgetType": "Button",
-                "WidgetTips": ["版本包文件路径"],
-                "WidgetValues": ["ChooseFile", "*"],
-                "WidgetParams": {"Size": [900, 35, 10, 1]},
-                "WidgetAttrs": [],
-                "WidgetActions": ["UploadFile"]
-            },
-            {
-                "WidgetType": "Combobox",
-                "WidgetTips": ["安装语言"],
-                "WidgetValues": ["中文", "英文"],
-                "WidgetParams": {"Size": [900, 30, 20, 1]},
-                "WidgetAttrs": [],
-                "WidgetActions": []
-            },
-            {
-                "WidgetType": "Combobox",
-                "WidgetTips": ["安装场景"],
-                "WidgetValues": ["无线专网(PWI)", "指挥中心(ICP)"],
-                "WidgetParams": {"Size": [900, 30, 20, 1]},
-                "WidgetAttrs": [],
-                "WidgetActions": []
-            },
-            {
-                "WidgetType": "Combobox",
-                "WidgetTips": ["协议版本"],
-                "WidgetValues": ["B-Trunc R2", "3GPP"],
-                "WidgetParams": {"Size": [900, 30, 20, 1]},
-                "WidgetAttrs": [],
-                "WidgetActions": []
-            },
-            {
-                "WidgetType": "MultiCombobox",
-                "WidgetTips": ["MDC IP"],
-                "WidgetValues": ["__IP__"],
-                "WidgetParams": {"Size": [900, 50, 20, 1]},
-                "WidgetAttrs": [],
-                "WidgetActions": []
-            },
-            {
-                "WidgetType": "MultiCombobox",
-                "WidgetTips": ["UDC IP (为空时表示不安装UDC网元)"],
-                "WidgetValues": ["", "__IP__"],
-                "WidgetParams": {"Size": [900, 50, 20, 1]},
-                "WidgetAttrs": ["CanBeNull"],
-                "WidgetActions": []
-            }
-        ],
-        "TimezonePageWidgets": [
-            {
-                "WidgetType": "Self",
-                "WidgetTips": [],
-                "WidgetValues": ["TimezonePage"],
-                "WidgetParams": {},
-                "WidgetAttrs": [],
-                "WidgetActions": []
-            }
-        ],
-        "CronPageWidgets": [
-            {
-                "WidgetType": "Notebook",
-                "WidgetTips": ["定时任务列表"],
-                "WidgetValues": [],
-                "WidgetParams": {"Size": [900, 500, 900, 500]},
-                "WidgetAttrs": ["ShowEnterResult"],
-                "WidgetActions": []
-            }
-        ],
-        "ProcessStatePageWidgets": [
-            {
-                "WidgetType": "Notebook",
-                "WidgetTips": ["UBP进程状态"],
-                "WidgetValues": [],
-                "WidgetParams": {"Size": [900, 500, 900, 500]},
-                "WidgetAttrs": ["ShowEnterResult"],
-                "WidgetActions": []
-            }
-        ],
-        "ProcessResPageWidgets": [
-            {
-                "WidgetType": "Label",
-                "WidgetTips": ["说明"],
-                "WidgetValues": ["选择对应的进程名称和资源项后", "点击执行按钮即可绘制对应的资源使用曲线图"],
-                "WidgetParams": {"Size": [900, 60, 900, 60]},
-                "WidgetAttrs": [],
-                "WidgetActions": []
-            },
-            {
-                "WidgetType": "MultiCombobox",
-                "WidgetTips": ["进程名称"],
-                "WidgetValues": ["__UBP_PROC__"],
-                "WidgetParams": {"Size": [900, 100, 20, 1]},
-                "WidgetAttrs": [],
-                "WidgetActions": []
-            },
-            {
-                "WidgetType": "MultiCombobox",
-                "WidgetTips": ["资源项"],
-                "WidgetValues": ["VmRSS", "VmSize", "VmSwap", "VmPeak", "Threads", "Handles", "CPU", "PSR"],
-                "WidgetParams": {"Size": [900, 100, 20, 1]},
-                "WidgetAttrs": [],
-                "WidgetActions": []
-            }
-        ],
-        "MemoryStatePageWidgets": [
-            {
-                "WidgetType": "PlotNotebook",
-                "WidgetTips": [],
-                "WidgetValues": ["__memory__.csv"],
-                "WidgetParams": {"Size": [900, 500, 900, 500]},
-                "WidgetAttrs": [],
-                "WidgetActions": []
-            }
-        ],
-        "CpuStatePageWidgets": [
-            {
-                "WidgetType": "PlotNotebook",
-                "WidgetTips": [],
-                "WidgetValues": ["__cpu_usage__.csv"],
-                "WidgetParams": {"Size": [900, 500, 900, 500]},
-                "WidgetAttrs": [],
-                "WidgetActions": []
-            }
-        ],
-        "IOStatePageWidgets": [
-            {
-                "WidgetType": "PlotNotebook",
-                "WidgetTips": [],
-                "WidgetValues": ["__io_util__.csv"],
-                "WidgetParams": {"Size": [900, 500, 900, 500]},
-                "WidgetAttrs": [],
-                "WidgetActions": []
-            }
-        ],
-        "FastCommandPageWidgets": [
-            {
-                "WidgetType": "Text",
-                "WidgetTips": ["命令输入框"],
-                "WidgetValues": [],
-                "WidgetParams": {"Size": [900, 300, 110, 20]},
-                "WidgetAttrs": [],
-                "WidgetActions": ["UploadFile"]
-            }
-        ],
-        "FastSQLPageWidgets": [
-            {
-                "WidgetType": "Text",
-                "WidgetTips": ["SQL输入框"],
-                "WidgetValues": [],
-                "WidgetParams": {"Size": [900, 300, 110, 20]},
-                "WidgetAttrs": [],
-                "WidgetActions": ["UploadFile"]
-            }
-        ],
-        "FastDownloadPageWidgets": [
-            {
-                "WidgetType": "Label",
-                "WidgetTips": ["提示"],
-                "WidgetValues": ["路径为文件夹时将会打包下载（暂不支持正则表达式）"],
-                "WidgetParams": {"Size": [600, 40, 400, 40]},
-                "WidgetAttrs": [],
-                "WidgetActions": []
-            },
-            {
-                "WidgetType": "Entry",
-                "WidgetTips": ["服务器文件(夹)路径"],
-                "WidgetValues": [],
-                "WidgetParams": {"Size": [600, 30, 70, 1]},
-                "WidgetAttrs": [],
-                "WidgetActions": []
-            }
-        ],
-        "FastUploadPageWidgets": [
-            {
-                "WidgetType": "Button",
-                "WidgetTips": ["选择本地文件"],
-                "WidgetValues": ["ChooseFile", "*"],
-                "WidgetParams": {"Size": [600, 40, 10, 1]},
-                "WidgetAttrs": [],
-                "WidgetActions": ["UploadFile"]
-            },
-            {
-                "WidgetType": "Entry",
-                "WidgetTips": ["服务器目录"],
-                "WidgetValues": [],
-                "WidgetParams": {"Size": [600, 30, 70, 1]},
-                "WidgetAttrs": [],
-                "WidgetActions": []
-            },
-            {
-                "WidgetType": "Entry",
-                "WidgetTips": ["设置权限"],
-                "WidgetValues": ["0750"],
-                "WidgetParams": {"Size": [600, 30, 20, 1]},
-                "WidgetAttrs": [],
-                "WidgetActions": []
-            },
-            {
-                "WidgetType": "Entry",
-                "WidgetTips": ["设置属主/组"],
-                "WidgetValues": ["ubp:ubpsysm"],
-                "WidgetParams": {"Size": [600, 30, 20, 1]},
-                "WidgetAttrs": [],
-                "WidgetActions": []
-            }
-        ],
-        "AutoHAConfigWidgets": [
-            {
-                "WidgetType": "Label",
-                "WidgetTips": ["提示"],
-                "WidgetValues": ["自动化进行主备容灾配置, 轻松一键搞定!"],
-                "WidgetParams": {"Size": [600, 40, 400, 40]},
-                "WidgetAttrs": [],
-                "WidgetActions": []
-            }
-        ],
-        "AutoHAUpgradeWidgets": [
-            {
-                "WidgetType": "Label",
-                "WidgetTips": ["提示"],
-                "WidgetValues": ["自动化进行主备容灾升级, 轻松一键搞定!"],
-                "WidgetParams": {"Size": [600, 40, 400, 40]},
-                "WidgetAttrs": [],
-                "WidgetActions": []
-            }
-        ]
-    }
+    ]
 }

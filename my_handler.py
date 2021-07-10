@@ -9,6 +9,7 @@ from my_bond import Caller
 from my_util import Utils
 from my_common import Common
 from my_ssh import SSH, SSHUtil
+from my_base import InputError, ExecError, ReportError
 
 
 class LoginHandler:
@@ -38,31 +39,31 @@ class LoginHandler:
     def _check_ip_passwd_vaild(cls, ip):
         cls._widget = 'ip'
         if not ip:
-            raise Exception("请输入服务器IP地址")
+            raise InputError("请输入服务器IP地址")
         if not Common.is_ip(ip):
-            raise Exception("请输入正确的IP地址")
+            raise InputError("请输入正确的IP地址")
         if ip in cls._ip_list:
-            raise Exception("%s 输入重复" % ip)
+            raise InputError("%s 输入重复" % ip)
         cls._ip_list.append(ip)
 
     @classmethod
     def _check_user_and_password(cls, ip_tuple):
         if not ip_tuple[1]:
             cls._widget = 'user'
-            raise Exception("请输入用户名")
+            raise InputError("请输入用户名")
         if not ip_tuple[2]:
             cls._widget = 'userpwd'
-            raise Exception("请输入用户密码")
+            raise InputError("请输入用户密码")
         if not ip_tuple[3]:
             cls._widget = 'rootpwd'
-            raise Exception("请输入root密码")
+            raise InputError("请输入root密码")
 
     @classmethod
     def _check_inputs(cls, seq, ip_passwd_tuple):
         try:
             cls._check_ip_passwd_vaild(ip_passwd_tuple[0])
             cls._check_user_and_password(ip_passwd_tuple)
-        except Exception as e:
+        except InputError as e:
             # 登录子模块状态提示器显示红色(失败)
             cls._sublogin_status_tig(seq, 'FAILED')
             # 对应输入框控件闪烁提示
@@ -84,12 +85,12 @@ class LoginHandler:
                 ret, err = SSHUtil.user_login(ssh, user)
                 if not ret:
                     cls._widget = 'userpwd'
-                    raise Exception("%s %s登录失败!\n详细:%s 重试:%s" % (ip, user, err, retry))
+                    raise ExecError("%s %s登录失败!\n详细:%s 重试:%s" % (ip, user, err, retry))
                 ret, err = SSHUtil.user_login(ssh, 'root')
                 if not ret:
                     cls._widget = 'rootpwd'
-                    raise Exception("%s root登录失败!\n详细:%s 重试:%s" % (ip, err, retry))
-            except Exception as e:
+                    raise ExecError("%s root登录失败!\n详细:%s 重试:%s" % (ip, err, retry))
+            except ExecError as e:
                 Logger.warn(e)
                 if retry == Global.G_RETRY_TIMES:
                     # 删除IP对应的ssh实例
@@ -118,9 +119,9 @@ class LoginHandler:
     def _upload_package(cls, args=None):
         # 先压缩脚本再上传
         zip_name = "package.zip"
-        zip_file = "{0}\\{1}".format(Global.G_INTERFACE_DIR, zip_name)
+        zip_file = "{0}\\{1}".format(Global.G_CMDS_DIR, zip_name)
         remote_path = "{0}/{1}".format(Global.G_SERVER_DIR, zip_name)
-        Common.zip_dir(Global.G_SCRIPTS_DIR, zip_file)
+        Common.zip_dir(Global.G_SHELL_DIR, zip_file)
         prev_cmd = "rm -rf {0}/*; mkdir {0}; chmod 777 {0}".format(Global.G_SERVER_DIR)
         unzip_cmd = "cd {0} && unzip -o {1} && chmod 777 {0}/*".format(Global.G_SERVER_DIR, zip_name)
         dos2unix_cmd = '''
@@ -140,12 +141,12 @@ class LoginHandler:
                     # 上传文件
                     ret, err = SSHUtil.upload_file(ssh, zip_file, remote_path)
                     if not ret:
-                        raise Exception("{0}: Upload package failed:{1}, retry:{2}".format(ip, err, retry))
+                        raise ExecError("{0}: Upload package failed:{1}, retry:{2}".format(ip, err, retry))
                     # 解压文件, 成功返回0
                     ret, err = SSHUtil.exec_ret(ssh, unzip_cmd, root=True)
                     if not ret:
-                        raise Exception("{0} Decompression failed:{1}, retry:{2}".format(ip, err, retry))
-                except Exception as e:
+                        raise ExecError("{0} Decompression failed:{1}, retry:{2}".format(ip, err, retry))
+                except ExecError as e:
                     if retry == Global.G_RETRY_TIMES:
                         _ip_del_list.append(ip)
                         Utils.tell_info(e, level='ERROR')
@@ -178,13 +179,13 @@ class LoginHandler:
                 ret1 = SSHUtil.user_login(_ssh, user)[0]
                 ret2 = SSHUtil.user_login(_ssh, 'root')[0]
                 ret3 = SSHUtil.exec_ret(_ssh, 'echo')[0]
-                ret4 = SSHUtil.upload_file(_ssh, Global.G_SETTING_FILE, remote_file)[0]
+                ret4 = SSHUtil.upload_file(_ssh, Global.G_PID_FILE, remote_file)[0]
                 if all([ret1, ret2, ret3, ret4]):
                     return True
             return False
 
         while True:
-            Common.sleep(Global.G_KEEPALIVE_INT)
+            Common.sleep(5)
             new_ip_ssh_instance = {}
             for ip, ssh in cls._logon_ssh_inst('QUE', None).items():
                 user, userpwd, rootpwd = cls._cache_passwds[ip]
@@ -309,8 +310,8 @@ class PageHandler(object):
 
     @classmethod
     def try_switch(cls):
-        Common.mkdir(Global.G_PID_DIR)
-        ret, task = Common.exist_suffix_file(Global.G_PID_DIR, '.lock')
+        Common.mkdir(Global.G_TEMP_DIR)
+        ret, task = Common.exist_suffix_file(Global.G_TEMP_DIR, '.lock')
         if ret:
             Utils.windows_error("请等待任务 {} 执行结束或手动'取消'该任务后继续".format(task))
             return False
@@ -319,7 +320,7 @@ class PageHandler(object):
     @classmethod
     def _mutex(cls, ip, task, lock=True):
         """ 防重入 """
-        _lock_file = '{0}\\{1}-{2}.lock'.format(Global.G_PID_DIR, task, ip)
+        _lock_file = '{0}\\{1}-{2}.lock'.format(Global.G_TEMP_DIR, task, ip)
         # 释放锁
         if not lock:
             try:
@@ -371,7 +372,7 @@ class PageHandler(object):
                 progress = int(progress)
                 out_print = self._execute_out(ssh, print_cmd)
                 if status == 'FAILED':
-                    raise Exception(info)
+                    raise ReportError(info)
                 callback(ip, progress, True, out_print)
                 if last == progress:
                     continue
@@ -379,7 +380,7 @@ class PageHandler(object):
                 self.tell_info(ip, progress, info)
                 if progress == 100:
                     if not self._download_file(ssh, ip, info):
-                        raise Exception("Download {0} failed !".format(info))
+                        raise ReportError("Download {0} failed !".format(info))
                     break
             except Exception as e:
                 retry += 1
