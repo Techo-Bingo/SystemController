@@ -8,13 +8,45 @@ import tkinter as tk
 from tkinter import ttk
 import my_global as Global
 from my_logger import Logger
-from my_base import GuiBase
-from my_common import Common
+from my_common import Common, Singleton
 from my_page import PageCtrl
 from my_handler import LoginHandler
-from my_viewutil import WinMsg, ViewUtil
+from my_viewutil import ViewUtil
 from my_bond import Packer, Define, Caller
-from my_module import SubLogin, InfoWindow, TopProgress, MyButton, MyTreeView, MyToolBar, TopAbout, MyScreenshot, MyFrame
+from my_module import (SubLogin,
+                       InfoWindow,
+                       TopProgress,
+                       MyButton,
+                       MyTreeView,
+                       MyToolBar,
+                       TopAbout,
+                       MyScreenshot,
+                       MyFrame,
+                       WidgetTip,
+                       ScrollFrame
+                       )
+
+
+class GuiBase(Singleton):
+    """ 子窗体的基类 """
+    master = None
+
+    def init_viewmodel(self):
+        pass
+
+    def init_frame(self):
+        pass
+
+    def pack_frame(self):
+        pass
+
+    def destroy(self):
+        self.master.destroy()
+
+    def show(self):
+        self.init_viewmodel()
+        self.init_frame()
+        self.pack_frame()
 
 
 class Gui(tk.Tk):
@@ -27,10 +59,10 @@ class Gui(tk.Tk):
         Define.define(Global.EVT_LOGIN_GUI, self.Login)
         Define.define(Global.EVT_MAIN_GUI, self.Main)
         Define.define(Global.EVT_REFRESH_GUI, self.refresh)
-        Define.define(Global.EVT_CALL_WIN_INFO, WinMsg.info)
-        Define.define(Global.EVT_CALL_WIN_WARN, WinMsg.warn)
-        Define.define(Global.EVT_CALL_WIN_ERROR, WinMsg.error)
-        Define.define(Global.EVT_CALL_WIN_ASK, WinMsg.ask)
+        Define.define(Global.EVT_CALL_WIN_INFO, WidgetTip.info)
+        Define.define(Global.EVT_CALL_WIN_WARN, WidgetTip.warn)
+        Define.define(Global.EVT_CALL_WIN_ERROR, WidgetTip.error)
+        Define.define(Global.EVT_CALL_WIN_ASK, WidgetTip.ask)
         Define.define(Global.EVT_TOP_PROG_START, TopProgress.start)
         Define.define(Global.EVT_TOP_PROG_UPDATE, TopProgress.update)
         Define.define(Global.EVT_TOP_PROG_DESTROY, TopProgress.destroy)
@@ -47,10 +79,10 @@ class Gui(tk.Tk):
         self.update()
 
     def close(self):
-        if self._in_main_gui and not WinMsg.ask("请确认是否退出？"):
+        if self._in_main_gui and not WidgetTip.ask("请确认是否退出？"):
             return
         self.destroy()
-        Common.rm_dir(Global.G_TEMP_DIR)
+        Common.rm_dir(Global.G_PID_DIR)
         Packer.call(Global.EVT_CLOSE_GUI)
 
     def Login(self, msg=None):
@@ -92,7 +124,17 @@ class GuiLogin(GuiBase):
                      'width': Global.G_LGN_WIN_WIDTH,
                      'background': Global.G_DEFAULT_COLOR}
         self.head_win = tk.Frame(height=Global.G_LGN_HEAD_HEIGHT, **win_style)
-        self.func_win = tk.Frame(height=Global.G_LGN_FUNC_HEIGHT, **win_style)
+        self.head_win.pack(fill='both')
+        self.head_win.pack_propagate(0)
+        self.foot_win.pack(fill='both')
+        self.foot_win.pack_propagate(0)
+        # self.func_win = tk.Frame(height=Global.G_LGN_FUNC_HEIGHT, **win_style)
+        # self.func_win.pack(fill='both')
+        # self.func_win.pack_propagate(0)
+        sf = ScrollFrame(height=Global.G_LGN_FUNC_HEIGHT, **win_style)
+        sf.pack(fill='both')
+        sf.pack_propagate(0)
+        self.func_win = sf.body
         self.foot_win = tk.Frame(height=Global.G_LGN_FOOT_HEIGHT, **win_style)
         self.login_fm = tk.LabelFrame(self.func_win,
                                       text=' 登录服务器 ',
@@ -100,14 +142,7 @@ class GuiLogin(GuiBase):
                                       labelanchor='n')
 
     def pack_frame(self):
-        self.head_win.pack(fill='both')
-        self.func_win.pack(fill='both')
         self.login_fm.pack(fill='both')
-        self.foot_win.pack(fill='both')
-        '''固定Frame的长和宽，不会随其中的控件多少改变'''
-        self.head_win.pack_propagate(0)
-        self.func_win.pack_propagate(0)
-        self.foot_win.pack_propagate(0)
         ViewUtil.set_widget_size(width=Global.G_LGN_WIN_WIDTH, height=Global.G_LGN_WIN_HEIGHT)
         self.pack_subframe()
 
@@ -157,14 +192,14 @@ class GuiLogin(GuiBase):
         """ 增加登录子版块 """
         result, index = ViewUtil.add_sublogin()
         if not result:
-            WinMsg.info('最多支持%s个登录' % index)
+            WidgetTip.info('最多支持%s个登录' % index)
             return
         # 通过获取当前的index值布局SubLogin
         SubLogin(self.login_fm, index)
 
     def _background_login(self, args=None):
         if LoginHandler.try_login():
-            WinMsg.info('登录成功')
+            WidgetTip.info('登录成功')
             self.close()
             # 切换到主界面
             Caller.call(Global.EVT_MAIN_GUI)
@@ -176,7 +211,7 @@ class GuiLogin(GuiBase):
         Common.create_thread(func=self._background_login)
 
     def show_options(self):
-        WinMsg.warn('敬请期待')
+        WidgetTip.warn('敬请期待')
 
     def close(self):
         self.destroy()
@@ -265,10 +300,11 @@ class GuiMain(GuiBase):
 
     def pack_subframe(self):
         try:
-            self.treeview = MyTreeView(self.tree_window, ViewUtil.get_treeview_data(), self.switch_page)
+            self.treeview = MyTreeView(self.tree_window, self.switch_page)
+            self.treeview.pack_trees(ViewUtil.get_treeview_data())
             self.init_toolbar()
         except Exception as e:
-            WinMsg.error("界面数据异常： %s" % str(e))
+            WidgetTip.error("界面数据异常： %s" % str(e))
             Logger.error(traceback.format_exc())
             return
         # 定义page页接口事件回调函数
@@ -286,7 +322,7 @@ class GuiMain(GuiBase):
             self.help_window.pack(side='left')
             self.help_window.pack_propagate(0)
             MyFrame(self.help_window, Global.G_MAIN_HELP_WIDTH, Global.G_MAIN_WIN_HEIGHT, True, "帮助界面", True).master()
-            WinMsg.info("开发中，敬请期待...")
+            WidgetTip.info("开发中，敬请期待...")
         else:
             ViewUtil.set_widget_size(width=Global.G_MAIN_TREE_WIDTH + Global.G_MAIN_OPER_WIDTH,
                                      height=Global.G_MAIN_WIN_HEIGHT,
@@ -298,7 +334,7 @@ class GuiMain(GuiBase):
         try:
             self.pager.switch_page(args_tuple)
         except Exception as e:
-            WinMsg.error("切换界面异常：%s" % e)
+            WidgetTip.error("切换界面异常：%s" % e)
             Logger.error(traceback.format_exc())
             return
 
@@ -323,7 +359,7 @@ class GuiMain(GuiBase):
         elif key == 'MENU_EXIT':
             ViewUtil.close_root()
         elif key in ["TB_LAST_ONE", "TB_NEXT_ONE", "TB_SETTING", "MENU_OPEN", "MENU_IMPORT", "MENU_EXPORT", "MENU_OPTION", ]:
-            WinMsg.info("敬请期待 !")
+            WidgetTip.info("敬请期待 !")
         else:
             self.treeview.command(key)
 
