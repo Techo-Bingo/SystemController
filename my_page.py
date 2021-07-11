@@ -8,7 +8,7 @@ from my_base import Pager
 from my_handler import PageHandler
 from my_viewutil import ViewUtil, WinMsg, ToolTips
 from my_timezone import TimezonePage
-from my_module import MyFrame, TopNotebook, CreateIPBar, UploadProgress
+from my_module import MyFrame, TopNotebook, MyIPChoose, UploadProgress
 from my_bond import Caller, Bonder
 # import numpy
 import pandas as pd
@@ -115,7 +115,9 @@ class PageClass(Pager):
         self.init_cache()
         self.pack_widgets()
         if self.buttons:
-            self.progress = CreateIPBar(self.frame, self.width, self.height/4, self.ip_list, self.button_callback)
+            self.progress = MyIPChoose.show(callback=self.button_callback)
+        else:
+            self.progress = MyIPChoose.show()
 
     def init_cache(self):
         self.key_value['last'] = 0
@@ -399,9 +401,9 @@ class PageClass(Pager):
         if not ips:
             WinMsg.warn("请选择IP地址")
             return
-        in_root = True if opts[0] == 1 else False
-        in_back = True if opts[1] == 1 else False
-        handler = PageHandler(ips, self.shell, in_root, in_back)
+        root, delay, loop = opts
+        print(opts)
+        handler = PageHandler(ips, self.shell, root, True)
         if oper == 'start':
             self.start_execute(ips, handler)
         else:

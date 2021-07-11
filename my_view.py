@@ -24,13 +24,13 @@ from my_module import (SubLogin,
                        MyScreenshot,
                        MyFrame,
                        ScrollFrame,
-                       createToolTip
+                       createToolTip,
+                       MyIPChoose
                        )
 
 
 class Gui(tk.Tk):
     """ 界面入口基类 """
-    _in_main_gui = False
 
     def __init__(self):
         tk.Tk.__init__(self)
@@ -58,7 +58,7 @@ class Gui(tk.Tk):
         self.update()
 
     def close(self):
-        if self._in_main_gui and not WinMsg.ask("请确认是否退出？"):
+        if not WinMsg.ask("请确认是否退出？"):
             return
         self.destroy()
         Common.rm_dir(Global.G_TEMP_DIR)
@@ -79,12 +79,15 @@ class Gui(tk.Tk):
         # 工具栏
         tool_frame = tk.Frame(self)
         tool_frame.pack(fill='x')
-        # 主界面
+        # 主框架
         master_frame = tk.LabelFrame(self)
-        master_frame.pack(pady=5)
+        master_frame.pack()  #pady=5)
         main = GuiMain(master_frame, menu_bar, tool_frame)
         main.show()
-        self._in_main_gui = True
+        # 底部信息栏
+        foot_frame = tk.LabelFrame(self)
+        foot_frame.pack(fill='x')
+        tk.Label(foot_frame, text='this is foot label').pack(fill='both')
 
 
 class GuiLogin(GuiBase):
@@ -92,99 +95,97 @@ class GuiLogin(GuiBase):
 
     def __init__(self, master):
         self.master = master
-        self.head_win = None
-        self.func_win = None
-        self.foot_win = None
-        self.login_fm = None
-        self.login_btn = None
 
-    def init_frame(self):
-        win_style = {'master': self.master,
-                     'width': Global.G_LGN_WIN_WIDTH,
-                     'background': Global.G_DEFAULT_COLOR}
-        self.head_win = tk.Frame(height=Global.G_LGN_HEAD_HEIGHT, **win_style)
-        self.func_win = tk.Frame(height=Global.G_LGN_FUNC_HEIGHT, **win_style)
-        self.foot_win = tk.Frame(height=Global.G_LGN_FOOT_HEIGHT, **win_style)
-        self.func_fm = MyFrame(self.func_win,
-                               width=Global.G_LGN_WIN_WIDTH,
-                               height=Global.G_LGN_FUNC_HEIGHT,
-                               title="登录服务器",
-                               center=True,
-                               color=Global.G_DEFAULT_COLOR
-                               ).master()
+    def init_windows(self):
+        def init_frames():
+            win_style = {'master': self.master,
+                         'width': Global.G_LGN_WIN_WIDTH,
+                         'background': Global.G_DEFAULT_COLOR}
+            head_win = tk.Frame(height=Global.G_LGN_HEAD_HEIGHT, **win_style)
+            body_win = tk.Frame(height=Global.G_LGN_FUNC_HEIGHT, **win_style)
+            foot_win = tk.Frame(height=Global.G_LGN_FOOT_HEIGHT, **win_style)
+            body_fm = MyFrame(body_win,
+                              width=Global.G_LGN_WIN_WIDTH,
+                              height=Global.G_LGN_FUNC_HEIGHT,
+                              title="登录服务器",
+                              center=True,
+                              color=Global.G_DEFAULT_COLOR
+                              ).master()
+            head_win.pack(fill='both')
+            body_win.pack(fill='both')
+            foot_win.pack(fill='both')
+            head_win.pack_propagate(0)
+            body_win.pack_propagate(0)
+            foot_win.pack_propagate(0)
+            body_fm.pack(fill='both')
+            return head_win, body_fm, foot_win
 
-    def pack_frame(self):
-        self.head_win.pack(fill='both')
-        self.func_win.pack(fill='both')
-        self.foot_win.pack(fill='both')
-        self.head_win.pack_propagate(0)
-        self.func_win.pack_propagate(0)
-        self.foot_win.pack_propagate(0)
-        self.func_fm.pack(fill='both')
-        self.pack_subframe()
+        def pack_frames():
+            def pack_sub_head_win():
+                tk.Label(head_fm, image=ViewUtil.get_image('LGN_HEAD')).pack(fill='both')
+            def pack_sub_body_win():
+                def add_sublogin():
+                    result, index = ViewUtil.add_sublogin()
+                    if not result:
+                        WinMsg.info('最多支持%s个登录' % index)
+                        return
+                    # 通过获取当前的index值布局SubLogin
+                    SubLogin(entry_fm, index)
+
+                def pack_sub_entry_fm():
+                    # 添加第一个登录子版块
+                    add_sublogin()
+
+                def pack_sub_btn_fm():
+                    add_btn = tk.Button(sub_btn_fm, bd=0, text='✚', font=(Global.G_FONT, 10), command=add_sublogin)
+                    add_btn.pack(side='left', padx=20)
+                    # 小眼睛
+                    eye_btn = tk.Button(sub_btn_fm, image=ViewUtil.get_image('LGN_EYE'), bd=0)
+                    eye_btn.pack(side='right', padx=20)
+                    eye_btn.bind("<Button-1>", lambda event: Packer.call(Global.EVT_SEE_PSWD_ON))
+                    eye_btn.bind("<ButtonRelease-1>", lambda event: Packer.call(Global.EVT_SEE_PSWD_OFF))
+                    createToolTip(add_btn, '增加一个登录栏')
+                    createToolTip(eye_btn, '显示明文密码')
+
+                sub_btn_fm = tk.LabelFrame(body_fm, height=20)
+                scroll_fm = ScrollFrame(body_fm)
+                sub_btn_fm.pack(fill='both')
+                scroll_fm.pack(fill='both')
+                entry_fm = scroll_fm.body
+                pack_sub_entry_fm()
+                pack_sub_btn_fm()
+            def pack_sub_foot_win():
+                # 选项按钮
+                tk.Button(foot_fm,
+                          text='☰',
+                          font=(Global.G_FONT, 18),
+                          bd=0,
+                          activebackground=Global.G_DEFAULT_COLOR,
+                          bg=Global.G_DEFAULT_COLOR,
+                          command=self.show_options
+                          ).pack(side='left', padx=50)
+                # 一键登录按钮
+                self.login_btn = MyButton(foot_fm, size=14, width=26, text='一  键  登  录', command=self.click_login)
+            pack_sub_head_win()
+            pack_sub_body_win()
+            pack_sub_foot_win()
+
+        head_fm, body_fm, foot_fm = init_frames()
+        pack_frames()
         ViewUtil.set_widget_size(width=Global.G_LGN_WIN_WIDTH, height=Global.G_LGN_WIN_HEIGHT)
 
-    def pack_subframe(self):
-        def pack_sub_head_win():
-            tk.Label(self.head_win, image=ViewUtil.get_image('LGN_HEAD')).pack(fill='both')
-        def pack_sub_func_win():
-            def pack_sub_entry_fm():
-                # 添加第一个登录子版块
-                self.add_sublogin()
-            def pack_sub_btn_fm():
-                add_btn = tk.Button(sub_btn_fm, bd=0, text='✚', font=(Global.G_FONT, 10), command=self.add_sublogin)
-                add_btn.pack(side='left', padx=20)
-                # 小眼睛
-                eye_btn = tk.Button(sub_btn_fm, image=ViewUtil.get_image('LGN_EYE'), bd=0)
-                eye_btn.pack(side='right', padx=20)
-                eye_btn.bind("<Button-1>", lambda event: Packer.call(Global.EVT_SEE_PSWD_ON))
-                eye_btn.bind("<ButtonRelease-1>", lambda event: Packer.call(Global.EVT_SEE_PSWD_OFF))
-                createToolTip(add_btn, '增加一个登录栏')
-                createToolTip(eye_btn, '显示明文密码')
-            sub_btn_fm = tk.LabelFrame(self.func_fm, height=20)
-            scroll_fm = ScrollFrame(self.func_fm)
-            sub_btn_fm.pack(fill='both')
-            scroll_fm.pack(fill='both')
-            self.entry_fm = scroll_fm.body
-            pack_sub_entry_fm()
-            pack_sub_btn_fm()
-        def pack_sub_foot_win():
-            # 选项按钮
-            tk.Button(self.foot_win,
-                      text='☰',
-                      font=(Global.G_FONT, 18),
-                      bd=0,
-                      activebackground=Global.G_DEFAULT_COLOR,
-                      bg=Global.G_DEFAULT_COLOR,
-                      command=self.show_options
-                      ).pack(side='left', padx=50)
-            # 一键登录按钮
-            self.login_btn = MyButton(self.foot_win, size=14, width=26, text='一  键  登  录', command=self.click_login)
-        pack_sub_head_win()
-        pack_sub_func_win()
-        pack_sub_foot_win()
-
-    def add_sublogin(self):
-        """ 增加登录子版块 """
-        result, index = ViewUtil.add_sublogin()
-        if not result:
-            WinMsg.info('最多支持%s个登录' % index)
-            return
-        # 通过获取当前的index值布局SubLogin
-        SubLogin(self.entry_fm, index)
-
-    def _background_login(self, args=None):
-        if LoginHandler.try_login():
-            WinMsg.info('登录成功')
-            self.close()
-            # 切换到主界面
-            Caller.call(Global.EVT_MAIN_GUI)
-        else:
-            self.login_btn.config('state', 'normal')
-
     def click_login(self):
+        def _background_login(args=None):
+            if LoginHandler.try_login():
+                WinMsg.info('登录成功')
+                self.close()
+                # 切换到主界面
+                Caller.call(Global.EVT_MAIN_GUI)
+            else:
+                self.login_btn.config('state', 'normal')
+
         self.login_btn.config('state', 'disable')
-        Common.create_thread(func=self._background_login)
+        Common.create_thread(func=_background_login)
 
     def show_options(self):
         WinMsg.warn('敬请期待')
@@ -197,100 +198,142 @@ class GuiMain(GuiBase):
     """ 操作窗 """
     def __init__(self, master, menubar, toolbar):
         self.master = master
-        self.tree_window = None
-        self.help_window = None
-        self.treeview = None
-        self.info_fm = None
-        self.oper_fm = None
-        self.help_fm = None
+        self.menubar = menubar
+        self.toolbar = toolbar
         self.pager = None
-        self.toolbar_master = toolbar
-        self.init_menubar(menubar)
 
-    def init_menubar(self, menubar):
-        filemenu = tk.Menu(menubar, tearoff=0)
-        menubar.add_cascade(label="文件", menu=filemenu)
-        filemenu.add_command(label=" 打开 ", command=lambda x='MENU_OPEN': self.press_callback(x))
-        filemenu.add_separator()
-        filemenu.add_command(label=" 导入 ", command=lambda x='MENU_IMPORT': self.press_callback(x))
-        filemenu.add_command(label=" 导出 ", command=lambda x='MENU_EXPORT': self.press_callback(x))
-        filemenu.add_separator()
-        filemenu.add_command(label=" 退出 ", command=lambda x='MENU_EXIT': self.press_callback(x))
-        toolmenu = tk.Menu(menubar, tearoff=0)
-        menubar.add_cascade(label="工具", menu=toolmenu)
-        toolmenu.add_separator()
-        toolmenu.add_command(label=" 选项 ", command=lambda x='MENU_OPTION': self.press_callback(x))
-        helpmenu = tk.Menu(menubar, tearoff=0)
-        menubar.add_cascade(label="帮助", menu=helpmenu)
-        helpmenu.add_command(label=" 说明 ", command=lambda x='MENU_HELP': self.press_callback(x))
-        helpmenu.add_command(label=" 关于 ", command=lambda x='MENU_ABOUT': self.press_callback(x))
+    def init_windows(self):
+        def init_frames():
+            paned_win_outer = ttk.Panedwindow(self.master,
+                                              orient=tk.HORIZONTAL,
+                                              width=Global.G_MAIN_WIN_WIDTH,
+                                              height=Global.G_MAIN_WIN_HEIGHT)
+            win_style = {'master': paned_win_outer,
+                         'height': Global.G_MAIN_WIN_HEIGHT}
+            tree_win = tk.Frame(width=Global.G_MAIN_TREE_WIDTH, **win_style)
+            oper_win = tk.Frame(width=Global.G_MAIN_OPER_WIDTH, **win_style)
+            tree_win.pack(side='left', fill='both')
+            tree_win.pack_propagate(0)
+            oper_win.pack(side='right', fill='both')
+            oper_win.pack_propagate(0)
+            paned_win_outer.add(tree_win, weight=1)
+            paned_win_outer.add(oper_win, weight=3)
+            paned_win_outer.pack(fill='both')
+            tree_fm = MyFrame(tree_win,
+                              width=Global.G_MAIN_TREE_WIDTH + 200,  # 多200，可用于拖动窗口扩展
+                              height=Global.G_MAIN_WIN_HEIGHT,
+                              title="导航栏"
+                              ).master()
+            paned_win_inner = ttk.Panedwindow(oper_win,
+                                          orient=tk.VERTICAL,
+                                          width=Global.G_MAIN_OPER_WIDTH,
+                                          height=Global.G_MAIN_WIN_HEIGHT)
+            fm_style = {'master': paned_win_inner,
+                        'width': Global.G_MAIN_OPER_WIDTH}
+            oper_fm = tk.Frame(height=Global.G_MAIN_OPER_HEIGHT, **fm_style)
+            text_fm = tk.Frame(height=Global.G_MAIN_TEXT_HEIGHT, **fm_style)
+            oper_fm.pack(fill='both')
+            oper_fm.pack_propagate(0)
+            text_fm.pack(fill='both')
+            text_fm.pack_propagate(0)
+            paned_win_inner.add(oper_fm, weight=3)
+            paned_win_inner.add(text_fm, weight=1)
+            paned_win_inner.pack(fill='both')
+            fm_style = {'master': oper_fm,
+                        'height': Global.G_MAIN_OPER_HEIGHT + 200,
+                        'background': Global.G_MAIN_OPER_BG}
+            page_fm = tk.Frame(width=Global.G_MAIN_PAGE_WIDTH, **fm_style)
+            ips_fm = tk.Frame(width=Global.G_MAIN_IPS_WIDTH, **fm_style)
+            page_fm.pack(side='left', fill='both')
+            page_fm.pack_propagate(0)
+            ips_fm.pack(side='left', fill='both')
+            ips_fm.pack_propagate(0)
+            fm_style = {'master': text_fm,
+                        'height': Global.G_MAIN_TEXT_HEIGHT}
+            info_fm = tk.Frame(width=Global.G_MAIN_INFO_WIDTH, **fm_style)
+            note_fm = tk.Frame(width=Global.G_MAIN_NOTE_WIDTH, **fm_style)
+            info_fm.pack(side='left', fill='both')
+            info_fm.pack_propagate(0)
+            note_fm.pack(side='left', fill='both')
+            note_fm.pack_propagate(0)
+            return tree_fm, page_fm, ips_fm, info_fm, note_fm
 
-    def init_toolbar(self):
-        start = [('TB_EXPAND', "展开目录树"),
-                 ('TB_LAST_ONE', "上一页面"),
-                 ('TB_NEXT_ONE', "下一页面")]
-        end = [('TB_SCREEN_CUT', "截取屏幕"),
-               ('TB_SETTING', "设置"),
-               ('TB_HELP', "帮助信息"),
-               ('TB_INFO', "关于软件")]
-        toolbar_list = start + self.treeview.get_toolbar_keys() + end
-        MyToolBar(self.toolbar_master, toolbar_list, self.press_callback)
+        def pack_frames():
+            def pack_menubar():  # 菜单栏
+                filemenu = tk.Menu(self.menubar, tearoff=0)
+                self.menubar.add_cascade(label="文件", menu=filemenu)
+                # filemenu.add_command(label=" 打开 ", command=lambda x='MENU_OPEN': self.press_callback(x))
+                # filemenu.add_separator()
+                # filemenu.add_command(label=" 导入 ", command=lambda x='MENU_IMPORT': self.press_callback(x))
+                # filemenu.add_command(label=" 导出 ", command=lambda x='MENU_EXPORT': self.press_callback(x))
+                filemenu.add_separator()
+                filemenu.add_command(label=" 退出 ", command=lambda x='MENU_EXIT': self.press_callback(x))
+                toolmenu = tk.Menu(self.menubar, tearoff=0)
+                self.menubar.add_cascade(label="工具", menu=toolmenu)
+                toolmenu.add_separator()
+                toolmenu.add_command(label=" 选项 ", command=lambda x='MENU_OPTION': self.press_callback(x))
+                helpmenu = tk.Menu(self.menubar, tearoff=0)
+                self.menubar.add_cascade(label="帮助", menu=helpmenu)
+                helpmenu.add_command(label=" 说明 ", command=lambda x='MENU_HELP': self.press_callback(x))
+                helpmenu.add_command(label=" 关于 ", command=lambda x='MENU_ABOUT': self.press_callback(x))
+            def pack_toolbar():  # 工具栏
+                start = [('TB_EXPAND', "展开目录树"),
+                         ('TB_LAST_ONE', "上一页面"),
+                         ('TB_NEXT_ONE', "下一页面")]
+                end = [('TB_SCREEN_CUT', "截取屏幕"),
+                       ('TB_SETTING', "设置"),
+                       ('TB_HELP', "帮助信息"),
+                       ('TB_INFO', "关于软件")]
+                toolbar_list = start + treeview.get_toolbar_keys() + end
+                MyToolBar(self.toolbar, toolbar_list, self.press_callback)
+            def pack_sub_tree_fm():
+                try:
+                    treeview = MyTreeView(tree_fm, ViewUtil.get_treeview_data(), self.switch_page)
+                except Exception as e:
+                    WinMsg.error("界面数据异常： %s" % str(e))
+                    Logger.error(traceback.format_exc())
+                    return None
+                return treeview
+            def pack_sub_page_fm():
+                # 定义page页接口事件回调函数
+                Define.define(Global.EVT_PAGE_INTERFACE, self.page_interface)
+                # 初始化page
+                self.pager = PageCtrl(page_fm)
+                self.pager.default(Global.G_MAIN_PAGE_WIDTH, Global.G_MAIN_OPER_HEIGHT)
+            def pack_sub_ips_fm():
+                fm_style = {'width': Global.G_MAIN_IPS_WIDTH,
+                            'height': Global.G_MAIN_OPER_HEIGHT}
+                fm = MyFrame(master=ips_fm, title="服务器", **fm_style).master()
+                MyIPChoose.show(fm)
+            def pack_sub_info_fm():
+                # 初始化信息提示栏
+                fm = MyFrame(info_fm,
+                             width=Global.G_MAIN_INFO_WIDTH,
+                             height=Global.G_MAIN_TEXT_HEIGHT,
+                             title="信息提示栏").master()
+                InfoWindow(fm)
+            def pack_sub_note_fm():
+                fm = MyFrame(note_fm,
+                        width=Global.G_MAIN_NOTE_WIDTH,
+                        height=Global.G_MAIN_TEXT_HEIGHT,
+                        title="备注").master()
+                tk.Text(fm).pack(fill='both')
 
-    def init_frame(self):
-        paned_win_h = ttk.Panedwindow(self.master,
-                                      orient=tk.HORIZONTAL,
-                                      width=Global.G_MAIN_TREE_WIDTH + Global.G_MAIN_OPER_WIDTH,
-                                      height=Global.G_MAIN_WIN_HEIGHT)
-        win_style = {'master': paned_win_h,
-                     'height': Global.G_MAIN_WIN_HEIGHT}
-        tree_window = tk.Frame(width=Global.G_MAIN_TREE_WIDTH, **win_style)
-        oper_window = tk.Frame(width=Global.G_MAIN_OPER_WIDTH, **win_style)
-        tree_window.pack(side='left', fill='both')
-        tree_window.pack_propagate(0)
-        oper_window.pack(side='left', fill='both')
-        oper_window.pack_propagate(0)
-        paned_win_h.add(tree_window, weight=1)
-        paned_win_h.add(oper_window, weight=3)
-        paned_win_h.pack(side='left', fill='both')
-        paned_win_v = ttk.Panedwindow(oper_window,
-                                      orient=tk.VERTICAL,
-                                      width=Global.G_MAIN_OPER_WIDTH,
-                                      height=Global.G_MAIN_WIN_HEIGHT)
-        fm_style = {'master': paned_win_v,
-                    'width': Global.G_MAIN_OPER_WIDTH,
-                    'background': Global.G_MAIN_OPER_BG}
-        self.oper_fm = tk.Frame(height=Global.G_MAIN_OPER_HEIGHT, **fm_style)
-        self.info_fm = tk.Frame(height=Global.G_MAIN_INFO_HEIGHT, **fm_style)
-        self.oper_fm.pack(fill='both')
-        self.oper_fm.pack_propagate(0)
-        self.info_fm.pack(fill='both')
-        self.info_fm.pack_propagate(0)
-        paned_win_v.add(self.oper_fm, weight=3)
-        paned_win_v.add(self.info_fm, weight=1)
-        paned_win_v.pack(fill='both')
-        self.tree_window = tree_window
+            pack_menubar()
+            treeview = pack_sub_tree_fm()
+            pack_toolbar()
+            pack_sub_page_fm()
+            pack_sub_ips_fm()
+            pack_sub_info_fm()
+            pack_sub_note_fm()
 
-    def pack_frame(self):
-        self.pack_subframe()
-        ViewUtil.reposition(Global.G_MAIN_WIN_WIDTH-Global.G_MAIN_HELP_WIDTH, Global.G_MAIN_WIN_HEIGHT)
-
-    def pack_subframe(self):
-        try:
-            self.treeview = MyTreeView(self.tree_window, ViewUtil.get_treeview_data(), self.switch_page)
-            self.init_toolbar()
-        except Exception as e:
-            WinMsg.error("界面数据异常： %s" % str(e))
-            Logger.error(traceback.format_exc())
-            return
-        # 定义page页接口事件回调函数
-        Define.define(Global.EVT_PAGE_INTERFACE, self.page_interface)
-        # 初始化page
-        self.pager = PageCtrl(self.oper_fm)
-        self.pager.default(Global.G_MAIN_OPER_WIDTH, Global.G_MAIN_OPER_HEIGHT)
-        # 初始化信息提示栏
-        InfoWindow(self.info_fm)
+        tree_fm, page_fm, ips_fm, info_fm, note_fm = init_frames()
+        pack_frames()
+        ViewUtil.reposition(Global.G_APP_WIDTH, Global.G_APP_HEIGHT)
 
     def show_help_window(self, show=False):
+        pass
+        '''
         if show:
             ViewUtil.set_widget_size(width=Global.G_MAIN_WIN_WIDTH, height=Global.G_MAIN_WIN_HEIGHT, center=False)
             self.help_window = tk.Frame(self.master, width=Global.G_MAIN_HELP_WIDTH, height=Global.G_MAIN_WIN_HEIGHT)
@@ -304,6 +347,7 @@ class GuiMain(GuiBase):
                                      center=False)
             self.help_window.destroy()
             self.help_window = None
+        '''
 
     def switch_page(self, args_tuple):
         try:

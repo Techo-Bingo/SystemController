@@ -474,7 +474,12 @@ class PageHandler(object):
             Logger.info("execute_enter {} for {}".format(self.task, ip))
 
     def execute_start(self, callback, params, uploads):
+        print(self.ip_list)
         for ip in self.ip_list:
+            print(ip)
+            print(uploads)
+            print(params)
+            print(callback)
             Common.create_thread(func=self._exec_start_impl, args=(ip, uploads[ip], params[ip], callback))
             Logger.info("execute_start {} for {}, params:{}, uploads:{}".format(self.task, ip, params[ip], uploads[ip]))
 

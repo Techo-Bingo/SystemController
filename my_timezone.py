@@ -4,7 +4,7 @@ from tkinter import ttk
 import my_global as Global
 from my_base import Pager
 from my_viewutil import ToolTips, WinMsg
-from my_module import ProgressBar, MyFrame, CreateIPBar
+from my_module import ProgressBar, MyFrame, MyIPChoose
 from my_handler import PageHandler
 
 
@@ -113,7 +113,7 @@ class TimezonePage(Pager):
                     # 子窗体中的combox存入二位数组
                     self.subcmb_list[x][y] = cmb
         # IP和进度条等布局
-        self.progress = CreateIPBar(self.frame, self.width, self.height/4, self.ip_list, self.button_callback)
+        self.progress = MyIPChoose.show(callback=self.button_callback)
 
     def button_callback(self, oper, ips, opts):
         not_set = self.exist_not_set_combox()
@@ -123,11 +123,14 @@ class TimezonePage(Pager):
         if not ips:
             WinMsg.warn("请勾选IP地址")
             return
-        in_root = True if opts[0] == 1 else False
-        in_back = True if opts[1] == 1 else False
-        handler = PageHandler(ips, self.shell, in_root, in_back)
+        root, delay, loop = opts
+        handler = PageHandler(ips, self.shell, root, True)
         if oper == 'start':
-            handler.execute_start(self.callback, self.options_combine(), [])
+            params_dict, upload_dict, param_str= {}, {}, self.options_combine()
+            for ip in ips:
+                params_dict[ip] = [param_str]
+                upload_dict[ip] = []
+            handler.execute_start(self.callback, params_dict, upload_dict)
         else:
             handler.execute_stop(self.callback)
 

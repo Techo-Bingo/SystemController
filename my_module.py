@@ -358,7 +358,6 @@ class InfoWindow(object):
                                                   relief='ridge',
                                                   bg='gray90',  #Global.G_DEFAULT_COLOR,
                                                   height=40)
-        self.infotext.insert('end', Global.G_WELCOME_INFO)
         self.infotext['stat'] = 'disabled'
         self.infotext.pack(fill='both')
         # 设置infowin可以接受事件的变量为True
@@ -716,49 +715,86 @@ class MyScreenshot(object):
         self.canvas.pack(fill='both', expand=1)
 
 
-def CreateIPBar(master, width, height, ip_list, callback):
-    def execute(oper):
-        ips, opts, i = [], [], 0
-        for v in ip_vars:
-            if int(v.get()):
-                ips.append(ip_list[i])
-            i += 1
-        for v in opt_vars:
-            opts.append(int(v.get()))
-        callback(oper, ips, opts)
-    fm = tk.Frame(master, width=width)
-    fm.pack(fill='x', padx=10,)
-    opr_fm = MyFrame(fm, width, height, "服务器选择").master()
-    ips_fm = tk.LabelFrame(opr_fm, width=width / 5 * 3, height=height)
-    ips_fm.pack(fill='both', side='left', padx=10, pady=5)
-    opt_fm = tk.LabelFrame(opr_fm, width=width / 5, height=height)
-    opt_fm.pack(fill='both', side='left', padx=10, pady=5)
-    btn_fm = tk.Frame(opr_fm, width=width / 5, height=height)
-    btn_fm.pack(fill='x', side='left', padx=10)
+class MyIPChoose:
+    _master = None
+    _frame = None
 
-    progress, ip_vars, opt_vars, row = {}, [], [], 0
-    for ip in ip_list:
-        ip_vars.append(tk.IntVar())
-        tk.Checkbutton(ips_fm,
-                       text=ip,
-                       font=(Global.G_FONT, 10),
-                       anchor='w',
-                       width=16,
-                       variable=ip_vars[-1]
-                       ).grid(row=row, column=0)
-        progress[ip] = ProgressBar(master=ips_fm, row=row, column=1)
-        row += 1
-    for opt in ["root执行", "后台执行"]:
-        opt_vars.append(tk.IntVar())
-        tk.Checkbutton(opt_fm,
-                       text=opt,
-                       font=(Global.G_FONT, 10),
-                       anchor='w',
-                       width=16,
-                       variable=opt_vars[-1]
-                       ).pack()
-    # 默认勾选后台执行
-    opt_vars[1].set(1)
-    ttk.Button(btn_fm, text='执行', width=20, command=lambda op='start': execute(op)).grid(row=0, column=0, pady=15)
-    ttk.Button(btn_fm, text='停止', width=20, command=lambda op='stop': execute(op)).grid(row=1, column=0, pady=15)
-    return progress
+    @classmethod
+    def show(cls, master=None, callback=None):
+        def _execute(oper):
+            ips, opts, i = [], [], 0
+            for v in ip_vars:
+                if int(v.get()):
+                    ips.append(ip_list[i])
+                i += 1
+            opts.append(True if int(opt_vars[0].get()) == 1 else False)
+            i = 1
+            for en in [delay_en, loop_en]:
+                if int(opt_vars[i].get()) == 1:
+                    opts.append(int(en.get()))
+                else:
+                    opts.append(0)
+                i += 1
+            callback(oper, ips, opts)
+        def pack_ips():
+            sf = ScrollFrame(cls._frame, width=width, height=height / 2)
+            sf.pack(fill='both', expand=True)
+            ips_fm = sf.body
+            row = 0
+            for ip in ip_list:
+                ip_vars.append(tk.IntVar())
+                tk.Checkbutton(ips_fm,
+                               text=ip,
+                               font=(Global.G_FONT, 10),
+                               anchor='w',
+                               width=16,
+                               variable=ip_vars[-1]
+                               ).grid(row=row, column=0)
+                progress[ip] = ProgressBar(master=ips_fm, row=row, column=1)
+                row += 1
+        def pack_opts():
+            opt_fm = tk.LabelFrame(cls._frame, width=width, height=height / 2 / 3 * 2)
+            btn_fm = tk.Frame(cls._frame, width=width, height=height / 2 / 3 * 1)
+            opt_fm.pack(fill='both')
+            btn_fm.pack(fill='both')
+            ckb_style = {'master': opt_fm,
+                         'font': (Global.G_FONT, 10),
+                         'anchor': 'w',
+                         'width': 20}
+            opt_vars.append(tk.IntVar())
+            tk.Checkbutton(text="root执行", variable=opt_vars[-1], **ckb_style).grid(row=0, column=0, padx=20)
+            opt_vars.append(tk.IntVar())
+            tk.Checkbutton(text="延迟执行", variable=opt_vars[-1], **ckb_style).grid(row=1, column=0, padx=20)
+            opt_vars.append(tk.IntVar())
+            tk.Checkbutton(text="周期执行", variable=opt_vars[-1], **ckb_style).grid(row=2, column=0, padx=20)
+            delay_en = ttk.Entry(opt_fm, width=8)
+            loop_en = ttk.Entry(opt_fm, width=8)
+            delay_en.grid(row=1, column=1)
+            loop_en.grid(row=2, column=1)
+            tk.Label(opt_fm, text='分钟').grid(row=1, column=2)
+            tk.Label(opt_fm, text='分钟').grid(row=2, column=2)
+            ttk.Button(btn_fm, text='执行', width=20, command=lambda op='start': _execute(op)).grid(row=0, column=0, padx=15)
+            ttk.Button(btn_fm, text='停止', width=20, command=lambda op='stop': _execute(op)).grid(row=0, column=1, padx=15)
+            return delay_en, loop_en
+
+        if master:
+            cls._master = master
+        else:
+            master = cls._master
+        cls.close()
+        ip_list, ip_vars, opt_vars, progress = ViewUtil.get_ssh_ip_list(), [], [], {}
+        width, height = Global.G_MAIN_IPS_WIDTH, Global.G_MAIN_OPER_HEIGHT
+        delay_en, loop_en = None, None
+        cls._frame = tk.Frame(master)
+        cls._frame.pack(fill='both')
+        pack_ips()
+        if callback:
+            delay_en, loop_en = pack_opts()
+        return progress
+
+    @classmethod
+    def close(cls):
+        if cls._frame:
+            cls._frame.destroy()
+            cls._frame = None
+

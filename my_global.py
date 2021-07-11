@@ -29,8 +29,6 @@ G_RETRY_TIMES = 1
 G_TITLE = ''
 # 关于信息
 G_ABOUT_INFO = ''
-# 欢迎信息
-G_WELCOME_INFO = ''
 # 默认密码
 G_DEFAULT_PASSWORDS = []
 # 控件默认颜色
@@ -52,20 +50,52 @@ G_LGN_FOOT_HEIGHT = 60
 G_LGN_FUNC_HEIGHT = G_LGN_WIN_HEIGHT - G_LGN_HEAD_HEIGHT - G_LGN_FOOT_HEIGHT
 # 登录界面批量登录个数限制
 G_LGN_COUNT_LIMIT = 10
+# 软件总宽高
+G_APP_WIDTH = 1600
+G_APP_HEIGHT = 950
 # 主界面宽高
-G_MAIN_WIN_WIDTH = 1500
-G_MAIN_WIN_HEIGHT = 900
-# 主界面操作窗(pages)高度
-G_MAIN_OPER_HEIGHT = 600
-# 主界面信息提示栏高度
-G_MAIN_INFO_HEIGHT = G_MAIN_WIN_HEIGHT - G_MAIN_OPER_HEIGHT
-# 主界面树形导航栏宽度
-G_MAIN_TREE_WIDTH = 250
-# 主界面操作窗(pages)宽度
-G_MAIN_OPER_WIDTH = 900
-# 主界面外部扩展栏宽度
-G_MAIN_HELP_WIDTH = G_MAIN_WIN_WIDTH - G_MAIN_TREE_WIDTH - G_MAIN_OPER_WIDTH
-G_INFOWIN_LEVEL_COLOR = {'INFO': 'Blue',  # 'DarkGreen',
+G_MAIN_WIN_WIDTH = 0
+G_MAIN_WIN_HEIGHT = 0
+# 主界面树形导航栏宽高
+G_MAIN_TREE_WIDTH = 0
+# 主界面操作窗宽高
+G_MAIN_OPER_WIDTH = 0
+G_MAIN_OPER_HEIGHT = 0
+# 主界面操作页面宽高
+G_MAIN_PAGE_WIDTH = 0
+# 主界面IP执行栏宽高
+G_MAIN_IPS_WIDTH = 0
+# 主界面text栏宽高
+G_MAIN_TEXT_HEIGHT = 0
+# 主界面信息提示info栏宽高
+G_MAIN_INFO_WIDTH = 0
+# 主界面note栏宽高
+G_MAIN_NOTE_WIDTH = 0
+
+def resize():
+    global G_MAIN_WIN_WIDTH
+    global G_MAIN_WIN_HEIGHT
+    global G_MAIN_TREE_WIDTH
+    global G_MAIN_OPER_WIDTH
+    global G_MAIN_OPER_HEIGHT
+    global G_MAIN_PAGE_WIDTH
+    global G_MAIN_IPS_WIDTH
+    global G_MAIN_TEXT_HEIGHT
+    global G_MAIN_INFO_WIDTH
+    global G_MAIN_NOTE_WIDTH
+
+    G_MAIN_WIN_WIDTH = G_APP_WIDTH
+    G_MAIN_WIN_HEIGHT = G_APP_HEIGHT - 50     # 50含工具栏 + 底部信息栏高度
+    G_MAIN_TREE_WIDTH = 250
+    G_MAIN_OPER_WIDTH = G_MAIN_WIN_WIDTH - G_MAIN_TREE_WIDTH
+    G_MAIN_OPER_HEIGHT = 600
+    G_MAIN_PAGE_WIDTH = 900
+    G_MAIN_IPS_WIDTH = G_MAIN_OPER_WIDTH - G_MAIN_PAGE_WIDTH
+    G_MAIN_TEXT_HEIGHT = G_MAIN_WIN_HEIGHT - G_MAIN_OPER_HEIGHT
+    G_MAIN_INFO_WIDTH = G_MAIN_PAGE_WIDTH
+    G_MAIN_NOTE_WIDTH = G_MAIN_IPS_WIDTH
+
+G_INFOWIN_LEVEL_COLOR = {'INFO': 'Black',
                          'TIPS': 'Blue',
                          'WARN': 'DarkOrange',
                          'ERROR': 'Red'}
@@ -130,11 +160,9 @@ EVT_UPLOAD_PROGRESS_UPDATE = 'event_upload_progress_update'
 
 def reload():
     global G_TITLE
-    global G_WELCOME_INFO
     global G_SERVER_UPLOAD
     global G_SERVER_DOWNLOAD
     G_TITLE = '%s V%s' % (G_TOOL_NAMED, G_VERSION)
-    G_WELCOME_INFO= ' ' * 70 + '【 %s信息栏 】' % G_TOOL_NAMED
     G_SERVER_UPLOAD = '%s/__UPLOAD__' % G_SERVER_DIR
     G_SERVER_DOWNLOAD = '%s/__DOWNLOAD__' % G_SERVER_DIR
 

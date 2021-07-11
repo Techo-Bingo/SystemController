@@ -45,22 +45,14 @@ class GuiBase(Singleton):
     """ 子窗体的基类 """
     master = None
 
-    def init_viewmodel(self):
-        pass
-
-    def init_frame(self):
-        pass
-
-    def pack_frame(self):
+    def init_windows(self):
         pass
 
     def destroy(self):
         self.master.destroy()
 
     def show(self):
-        self.init_viewmodel()
-        self.init_frame()
-        self.pack_frame()
+        self.init_windows()
 
 
 class Pager(object):
@@ -72,11 +64,6 @@ class Pager(object):
     frame = None
     ip_choose = False
     _showing = False
-
-    #def __new__(cls, *args, **kwargs):
-    #    if not hasattr(cls, '_instance'):
-    #        cls._instance = super(Pager, cls).__new__(cls)
-    #    return cls._instance
 
     def _init(self):
         self._showing = True

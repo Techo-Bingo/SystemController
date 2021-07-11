@@ -88,27 +88,28 @@ class ViewUtil:
         w, h = screen_str.split('+')[0].split('x')
         x, y = screen_str.split('+')[1:]
         w, h = int(w), int(h)
-        cls._X = 10 if int(x) < 0 else int(x) + 10
-        cls._Y = 10 if int(y) < 0 else int(y) + 10
+        cls._X = 2 if int(x) < 0 else int(x) + 2
+        cls._Y = 2 if int(y) < 0 else int(y) + 2
         # print(w, h)
-        Global.G_MAIN_WIN_WIDTH = w
-        Global.G_MAIN_WIN_HEIGHT = h
+        Global.G_APP_WIDTH = w
+        Global.G_APP_HEIGHT = h
         if w >= 1600:
-            Global.G_MAIN_WIN_WIDTH = 1500
+            Global.G_APP_WIDTH = 1600
         elif 1500 <= w < 1600:
-            Global.G_MAIN_WIN_WIDTH = 1400
+            Global.G_APP_WIDTH = 1500
         elif 1400 <= w < 1500:
-            Global.G_MAIN_WIN_WIDTH = 1300
+            Global.G_APP_WIDTH = 1400
         elif 1300 <= w < 1400:
-            Global.G_MAIN_WIN_WIDTH = 1200
+            Global.G_APP_WIDTH = 1300
         if h >= 1000:
-            Global.G_MAIN_WIN_HEIGHT = 950
+            Global.G_APP_HEIGHT = 950
         elif 900 <= h < 1000:
-            Global.G_MAIN_WIN_HEIGHT = 850
+            Global.G_APP_HEIGHT = 850
         elif 800 <= h < 900:
-            Global.G_MAIN_WIN_HEIGHT = 750
+            Global.G_APP_HEIGHT = 750
         elif 750 <= h < 800:
-            Global.G_MAIN_WIN_HEIGHT = 700
+            Global.G_APP_HEIGHT = 700
+        Global.resize()
 
     @classmethod
     def get_screensize(cls):
