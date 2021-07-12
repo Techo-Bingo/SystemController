@@ -17,6 +17,7 @@ class ViewModel:
                  "GET_INFOWIN_EVT_FLAG": "get_infowin_flag",
                  "SET_INFOWIN_EVT_FLAG": "set_infowin_flag",
                  "TREE_VIEW_DATA_LIST": "treeview_data_list",
+                 "PAGE_WIDGETS_DICT": "page_widgets_dict",
                  "SERVER_CACHE_DICT": "server_cache_dict",
                  "REFRESH_TIMER_DICT": "refresh_timer_dict"}
 
