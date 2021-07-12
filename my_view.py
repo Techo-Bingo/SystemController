@@ -8,11 +8,10 @@ import tkinter as tk
 from tkinter import ttk
 import my_global as Global
 from my_logger import Logger
-from my_base import GuiBase
-from my_common import Common
+from my_common import Common, Singleton
 from my_page import PageCtrl
 from my_handler import LoginHandler
-from my_viewutil import WinMsg, ViewUtil
+from my_viewutil import ViewUtil
 from my_bond import Packer, Define, Caller
 from my_module import (SubLogin,
                        InfoWindow,
@@ -24,9 +23,23 @@ from my_module import (SubLogin,
                        MyScreenshot,
                        MyFrame,
                        ScrollFrame,
-                       createToolTip,
+                       WidgetTip,
                        MyIPChoose
                        )
+
+
+class GuiBase(Singleton):
+    """ 子窗体的基类 """
+    master = None
+
+    def init_windows(self):
+        pass
+
+    def destroy(self):
+        self.master.destroy()
+
+    def show(self):
+        self.init_windows()
 
 
 class Gui(tk.Tk):
@@ -38,10 +51,10 @@ class Gui(tk.Tk):
         Define.define(Global.EVT_LOGIN_GUI, self.Login)
         Define.define(Global.EVT_MAIN_GUI, self.Main)
         Define.define(Global.EVT_REFRESH_GUI, self.refresh)
-        Define.define(Global.EVT_CALL_WIN_INFO, WinMsg.info)
-        Define.define(Global.EVT_CALL_WIN_WARN, WinMsg.warn)
-        Define.define(Global.EVT_CALL_WIN_ERROR, WinMsg.error)
-        Define.define(Global.EVT_CALL_WIN_ASK, WinMsg.ask)
+        Define.define(Global.EVT_CALL_WIN_INFO, WidgetTip.info)
+        Define.define(Global.EVT_CALL_WIN_WARN, WidgetTip.warn)
+        Define.define(Global.EVT_CALL_WIN_ERROR, WidgetTip.error)
+        Define.define(Global.EVT_CALL_WIN_ASK, WidgetTip.ask)
         Define.define(Global.EVT_TOP_PROG_START, TopProgress.start)
         Define.define(Global.EVT_TOP_PROG_UPDATE, TopProgress.update)
         Define.define(Global.EVT_TOP_PROG_DESTROY, TopProgress.destroy)
@@ -58,10 +71,10 @@ class Gui(tk.Tk):
         self.update()
 
     def close(self):
-        if not WinMsg.ask("请确认是否退出？"):
+        if not WidgetTip.ask("请确认是否退出？"):
             return
         self.destroy()
-        Common.rm_dir(Global.G_TEMP_DIR)
+        Common.rm_dir(Global.G_PID_DIR)
         Packer.call(Global.EVT_CLOSE_GUI)
 
     def Login(self, msg=None):
@@ -127,7 +140,7 @@ class GuiLogin(GuiBase):
                 def add_sublogin():
                     result, index = ViewUtil.add_sublogin()
                     if not result:
-                        WinMsg.info('最多支持%s个登录' % index)
+                        WidgetTip.info('最多支持%s个登录' % index)
                         return
                     # 通过获取当前的index值布局SubLogin
                     SubLogin(entry_fm, index)
@@ -144,8 +157,8 @@ class GuiLogin(GuiBase):
                     eye_btn.pack(side='right', padx=20)
                     eye_btn.bind("<Button-1>", lambda event: Packer.call(Global.EVT_SEE_PSWD_ON))
                     eye_btn.bind("<ButtonRelease-1>", lambda event: Packer.call(Global.EVT_SEE_PSWD_OFF))
-                    createToolTip(add_btn, '增加一个登录栏')
-                    createToolTip(eye_btn, '显示明文密码')
+                    WidgetTip.enter_tips(add_btn, '增加一个登录栏')
+                    WidgetTip.enter_tips(eye_btn, '显示明文密码')
 
                 sub_btn_fm = tk.LabelFrame(body_fm, height=20)
                 scroll_fm = ScrollFrame(body_fm)
@@ -155,6 +168,18 @@ class GuiLogin(GuiBase):
                 pack_sub_entry_fm()
                 pack_sub_btn_fm()
             def pack_sub_foot_win():
+                def click_login(event=None):
+                    def _background_login(args=None):
+                        if LoginHandler.try_login():
+                            WidgetTip.info('登录成功')
+                            self.close()
+                            # 切换到主界面
+                            Caller.call(Global.EVT_MAIN_GUI)
+                        else:
+                            login_btn.config('state', 'normal')
+
+                    login_btn.config('state', 'disable')
+                    Common.create_thread(func=_background_login)
                 # 选项按钮
                 tk.Button(foot_fm,
                           text='☰',
@@ -162,10 +187,10 @@ class GuiLogin(GuiBase):
                           bd=0,
                           activebackground=Global.G_DEFAULT_COLOR,
                           bg=Global.G_DEFAULT_COLOR,
-                          command=self.show_options
+                          command=self.setting
                           ).pack(side='left', padx=50)
                 # 一键登录按钮
-                self.login_btn = MyButton(foot_fm, size=14, width=26, text='一  键  登  录', command=self.click_login)
+                login_btn = MyButton(foot_fm, size=14, width=26, text='一  键  登  录', command=click_login)
             pack_sub_head_win()
             pack_sub_body_win()
             pack_sub_foot_win()
@@ -174,21 +199,8 @@ class GuiLogin(GuiBase):
         pack_frames()
         ViewUtil.set_widget_size(width=Global.G_LGN_WIN_WIDTH, height=Global.G_LGN_WIN_HEIGHT)
 
-    def click_login(self):
-        def _background_login(args=None):
-            if LoginHandler.try_login():
-                WinMsg.info('登录成功')
-                self.close()
-                # 切换到主界面
-                Caller.call(Global.EVT_MAIN_GUI)
-            else:
-                self.login_btn.config('state', 'normal')
-
-        self.login_btn.config('state', 'disable')
-        Common.create_thread(func=_background_login)
-
-    def show_options(self):
-        WinMsg.warn('敬请期待')
+    def setting(self):
+        WidgetTip.warn('敬请期待')
 
     def close(self):
         self.destroy()
@@ -259,6 +271,27 @@ class GuiMain(GuiBase):
             return tree_fm, page_fm, ips_fm, info_fm, note_fm
 
         def pack_frames():
+            def _switch_page(args_tuple):
+                try:
+                    pager.switch_page(args_tuple)
+                except Exception as e:
+                    WidgetTip.error("切换界面异常：%s" % e)
+                    Logger.error(traceback.format_exc())
+                    return
+            def _press_callback(key):
+                if key == 'TB_EXPAND':
+                    treeview.expand_trees()
+                elif key in ['TB_INFO', "MENU_ABOUT"]:
+                    TopAbout.show()
+                elif key == 'TB_SCREEN_CUT':
+                    MyScreenshot(self.master)
+                elif key == 'MENU_EXIT':
+                    ViewUtil.close_root()
+                elif key in ["TB_LAST_ONE", "TB_NEXT_ONE", "TB_SETTING", "TB_HELP",
+                             "MENU_OPEN", "MENU_IMPORT", "MENU_EXPORT", "MENU_OPTION", "MENU_HELP"]:
+                    WidgetTip.info("敬请期待 !")
+                else:
+                    treeview.command(key)
             def pack_menubar():  # 菜单栏
                 filemenu = tk.Menu(self.menubar, tearoff=0)
                 self.menubar.add_cascade(label="文件", menu=filemenu)
@@ -267,15 +300,15 @@ class GuiMain(GuiBase):
                 # filemenu.add_command(label=" 导入 ", command=lambda x='MENU_IMPORT': self.press_callback(x))
                 # filemenu.add_command(label=" 导出 ", command=lambda x='MENU_EXPORT': self.press_callback(x))
                 filemenu.add_separator()
-                filemenu.add_command(label=" 退出 ", command=lambda x='MENU_EXIT': self.press_callback(x))
+                filemenu.add_command(label=" 退出 ", command=lambda x='MENU_EXIT': _press_callback(x))
                 toolmenu = tk.Menu(self.menubar, tearoff=0)
                 self.menubar.add_cascade(label="工具", menu=toolmenu)
                 toolmenu.add_separator()
-                toolmenu.add_command(label=" 选项 ", command=lambda x='MENU_OPTION': self.press_callback(x))
+                toolmenu.add_command(label=" 选项 ", command=lambda x='MENU_OPTION': _press_callback(x))
                 helpmenu = tk.Menu(self.menubar, tearoff=0)
                 self.menubar.add_cascade(label="帮助", menu=helpmenu)
-                helpmenu.add_command(label=" 说明 ", command=lambda x='MENU_HELP': self.press_callback(x))
-                helpmenu.add_command(label=" 关于 ", command=lambda x='MENU_ABOUT': self.press_callback(x))
+                helpmenu.add_command(label=" 说明 ", command=lambda x='MENU_HELP': _press_callback(x))
+                helpmenu.add_command(label=" 关于 ", command=lambda x='MENU_ABOUT': _press_callback(x))
             def pack_toolbar():  # 工具栏
                 start = [('TB_EXPAND', "展开目录树"),
                          ('TB_LAST_ONE', "上一页面"),
@@ -285,44 +318,49 @@ class GuiMain(GuiBase):
                        ('TB_HELP', "帮助信息"),
                        ('TB_INFO', "关于软件")]
                 toolbar_list = start + treeview.get_toolbar_keys() + end
-                MyToolBar(self.toolbar, toolbar_list, self.press_callback)
+                MyToolBar(self.toolbar, toolbar_list, _press_callback)
             def pack_sub_tree_fm():
                 try:
-                    treeview = MyTreeView(tree_fm, ViewUtil.get_treeview_data(), self.switch_page)
+                    treeview = MyTreeView(tree_fm, _switch_page)
+                    treeview.pack_trees(ViewUtil.get_treeview_data())
                 except Exception as e:
-                    WinMsg.error("界面数据异常： %s" % str(e))
+                    WidgetTip.error("界面数据异常： %s" % str(e))
                     Logger.error(traceback.format_exc())
                     return None
                 return treeview
             def pack_sub_page_fm():
+                def page_interface(msg):
+                    # 预留界面接口
+                    pass
                 # 定义page页接口事件回调函数
-                Define.define(Global.EVT_PAGE_INTERFACE, self.page_interface)
+                Define.define(Global.EVT_PAGE_INTERFACE, page_interface)
                 # 初始化page
-                self.pager = PageCtrl(page_fm)
-                self.pager.default(Global.G_MAIN_PAGE_WIDTH, Global.G_MAIN_OPER_HEIGHT)
+                pager = PageCtrl(page_fm)
+                pager.default(Global.G_MAIN_PAGE_WIDTH, Global.G_MAIN_OPER_HEIGHT)
+                return pager
             def pack_sub_ips_fm():
                 fm_style = {'width': Global.G_MAIN_IPS_WIDTH,
                             'height': Global.G_MAIN_OPER_HEIGHT}
-                fm = MyFrame(master=ips_fm, title="服务器", **fm_style).master()
+                fm = MyFrame(master=ips_fm, title="选择栏", **fm_style).master()
                 MyIPChoose.show(fm)
             def pack_sub_info_fm():
                 # 初始化信息提示栏
                 fm = MyFrame(info_fm,
                              width=Global.G_MAIN_INFO_WIDTH,
-                             height=Global.G_MAIN_TEXT_HEIGHT,
-                             title="信息提示栏").master()
+                             height=Global.G_MAIN_TEXT_HEIGHT + 200,  # 预留 200高度用于支持窗口大小调整
+                             title="提示栏").master()
                 InfoWindow(fm)
             def pack_sub_note_fm():
                 fm = MyFrame(note_fm,
                         width=Global.G_MAIN_NOTE_WIDTH,
                         height=Global.G_MAIN_TEXT_HEIGHT,
-                        title="备注").master()
+                        title="备注栏").master()
                 tk.Text(fm).pack(fill='both')
 
             pack_menubar()
             treeview = pack_sub_tree_fm()
             pack_toolbar()
-            pack_sub_page_fm()
+            pager = pack_sub_page_fm()
             pack_sub_ips_fm()
             pack_sub_info_fm()
             pack_sub_note_fm()
@@ -331,54 +369,4 @@ class GuiMain(GuiBase):
         pack_frames()
         ViewUtil.reposition(Global.G_APP_WIDTH, Global.G_APP_HEIGHT)
 
-    def show_help_window(self, show=False):
-        pass
-        '''
-        if show:
-            ViewUtil.set_widget_size(width=Global.G_MAIN_WIN_WIDTH, height=Global.G_MAIN_WIN_HEIGHT, center=False)
-            self.help_window = tk.Frame(self.master, width=Global.G_MAIN_HELP_WIDTH, height=Global.G_MAIN_WIN_HEIGHT)
-            self.help_window.pack(side='left')
-            self.help_window.pack_propagate(0)
-            MyFrame(self.help_window, Global.G_MAIN_HELP_WIDTH, Global.G_MAIN_WIN_HEIGHT, "帮助界面", True).master()
-            WinMsg.info("开发中，敬请期待...")
-        else:
-            ViewUtil.set_widget_size(width=Global.G_MAIN_TREE_WIDTH + Global.G_MAIN_OPER_WIDTH,
-                                     height=Global.G_MAIN_WIN_HEIGHT,
-                                     center=False)
-            self.help_window.destroy()
-            self.help_window = None
-        '''
-
-    def switch_page(self, args_tuple):
-        try:
-            self.pager.switch_page(args_tuple)
-        except Exception as e:
-            WinMsg.error("切换界面异常：%s" % e)
-            Logger.error(traceback.format_exc())
-            return
-
-    def page_interface(self, msg):
-        if msg == 'PAGE_SIZE':
-            return Global.G_MAIN_OPER_WIDTH, Global.G_MAIN_OPER_HEIGHT
-        elif msg == 'show_help':
-            self.show_help_window(True)
-        elif msg == 'hide_help':
-            self.show_help_window(False)
-
-    def press_callback(self, key):
-        # print(key)
-        if key == 'TB_EXPAND':
-            self.treeview.expand_trees()
-        elif key in ['TB_HELP', "MENU_HELP"]:
-            self.show_help_window(False) if self.help_window else self.show_help_window(True)
-        elif key in ['TB_INFO', "MENU_ABOUT"]:
-            TopAbout.show()
-        elif key == 'TB_SCREEN_CUT':
-            MyScreenshot(self.master)
-        elif key == 'MENU_EXIT':
-            ViewUtil.close_root()
-        elif key in ["TB_LAST_ONE", "TB_NEXT_ONE", "TB_SETTING", "MENU_OPEN", "MENU_IMPORT", "MENU_EXPORT", "MENU_OPTION", ]:
-            WinMsg.info("敬请期待 !")
-        else:
-            self.treeview.command(key)
 
