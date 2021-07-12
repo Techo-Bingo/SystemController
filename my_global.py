@@ -25,6 +25,8 @@ G_VERSION = ''
 G_FONT = '微软雅黑'
 # 登录/上传等失败重试次数
 G_RETRY_TIMES = 1
+# ssh 保活周期
+G_KEEPALIVE_INT = 10
 # 工具标题
 G_TITLE = ''
 # 关于信息
@@ -115,21 +117,21 @@ G_SUPPORTED_WIDGETS = ['Label',
                        'MultiCombobox',
                        "PlotNotebook"]
 # 运行环境相关定义
-G_LOG_DIR = '.\\log'
-G_CONF_DIR = '.\\conf'
-G_CMDS_DIR = '.\\cmds'
-G_SHELL_DIR = '.\\cmds\\shell'
-G_TEMP_DIR = '.\\cmds\\temp'
-G_PID_FILE = '.\\cmds\\temp\\tool.pid'
-G_DOWNLOAD_DIR = '.\\download'
+G_REQUIRED_DIR = '.\\Required'
+G_DEPEND_FILE = '.\\Required\\dependance.json'
+G_SETTING_FILE = '.\\Required\\settings.json'
+G_RESOURCE_DIR = '.\\Required\\Resource'
+G_INTERFACE_DIR = '.\\Interface'
+G_SCRIPTS_DIR = '.\\Interface\\Scripts'
+G_RUN_DIR = '.\\Run'
+G_LOG_PATH = '.\\Run\\tool.log'
+G_PID_DIR = ''
+G_DOWNLOAD_DIR = '.\\Download'
 G_SERVER_DIR = '/home/Bingo'
 G_SERVER_UPLOAD = ''
 G_SERVER_DOWNLOAD = ''
 # 日志回滚大小
 G_LOG_SIZE = 10485760
-G_LOG_PATH = '\\'.join([G_LOG_DIR, 'tool.log'])
-G_DEPEND_FILE = '\\'.join([G_CONF_DIR, 'dependance.json'])
-G_SETTING_FILE = '\\'.join([G_CONF_DIR, 'settings.json'])
 G_LOG_LEVEL = 'info'
 
 # 事件相关定义
