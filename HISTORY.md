@@ -91,4 +91,15 @@
   * 界面优化：左上角新增界面名称显示；
   * BUGFIX: 解决Entry控件中默认初始文字不显示的问题;
   * BUGFIX: 解决多实例时,关闭某个实例后导致其他实例切换界面失败问题;
-  * BUGFIX: 解决下载root文件失败的问题;
+  * BUGFIX: 解决多实例任务冲突问题,不同实例使用PID区分工作目录;
+
+### v4.0
+  > 发布于 2021-07-12
+  * 工具界面调整, 支持自定义登录管理的服务器个数, 不再限制为4台;
+  * 工具各目录名称修改: cmd->Interface,shell->Scripts,conf->Required,images->Resource
+  * 工具log目录删除, tool.log和PID实例目录放入新增的Run目录, Resource目录放入Required目录;
+  * 工具界面配置文件 dependance.json 中Tree拆分为Tree和Widgets分为两部分,结构更清晰;
+  * 界面支持'延迟执行'和'周期执行'两种方式, 去除'后台执行'复选框, 界面点击默认为后台执行;
+  * 新增备注栏(text输入框), 可用于临时做笔记和记录等;
+  * 其他优化;
+  
