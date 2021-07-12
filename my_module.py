@@ -3,59 +3,134 @@
 View板块的单个子模块
 """
 import tkinter as tk
-from tkinter import ttk, scrolledtext
+from tkinter import ttk, scrolledtext, messagebox
 from PIL import ImageGrab
 from threading import Lock
 from collections import OrderedDict
 import my_global as Global
 from my_common import Common
 from my_bond import Bonder, Define, Caller
-from my_viewutil import WinMsg, ToolTips, ViewUtil
-# from my_logger import Logger
+from my_viewutil import ViewUtil
 
 
-class WidgetTip(object):
-    def __init__(self, widget):
-        self.widget = widget
-        self.tipwindow = None
-        self.id = None
-        self.x = self.y = 0
+class WidgetTip:
+    _toplevel = None
 
-    def showtip(self, text):
-        # Display text in tooltip window
-        self.text = text
-        if self.tipwindow or not self.text:
+    @classmethod
+    def color_tips(cls, widget, region='background', back=Global.G_DEFAULT_COLOR):
+        Common.create_thread(cls._change_color, args=(widget, region, back))
+
+    @classmethod
+    def enter_tips(cls, widget, text):
+        def enter(event):
+            cls._enter_tip(widget, text)
+        def leave(event):
+            cls._hide_tip()
+        widget.bind('<Enter>', enter)
+        widget.bind('<Leave>', leave)
+
+    @classmethod
+    def info(cls, info):
+        messagebox.showinfo('提示', info)
+
+    @classmethod
+    def error(cls, info):
+        messagebox.showerror('错误', info)
+
+    @classmethod
+    def ask(cls, info):
+        return messagebox.askokcancel('请确认', info)
+
+    @classmethod
+    def warn(cls, info):
+        messagebox.showwarning('警告', info)
+
+    @classmethod
+    def _change_color(cls, widget, region, back):
+        sleep = 0.3
+        widget[region] = 'red'
+        Common.sleep(sleep)
+        widget[region] = 'Gold'
+        Common.sleep(sleep)
+        widget[region] = 'red'
+        Common.sleep(sleep)
+        widget[region] = 'Gold'
+        Common.sleep(sleep)
+        widget[region] = 'red'
+        Common.sleep(sleep)
+        widget[region] = 'Gold'
+        Common.sleep(sleep)
+        widget[region] = back
+
+    @classmethod
+    def _enter_tip(cls, widget, text):
+        if cls._toplevel:
             return
-        x, y, _cx, cy = self.widget.bbox("insert")
-        x = x + self.widget.winfo_rootx() + 27
-        y = y + cy + self.widget.winfo_rooty() - 10
-        tw = self.tipwindow = tk.Toplevel(self.widget)
+        x, y, _cx, cy = widget.bbox("insert")
+        x = x + widget.winfo_rootx() + 27
+        y = y + cy + widget.winfo_rooty() - 10
+        cls._toplevel = tw = tk.Toplevel(widget)
         tw.wm_overrideredirect(1)
         tw.wm_geometry("+%d+%d" % (x, y))
         tk.Label(tw,
-                 text=self.text,
-                 justify='left',
-                 background="#ffffe0",
-                 relief=tk.SOLID,
-                 borderwidth=1,
+                 text = text,
+                 justify = 'left',
+                 background = "#ffffe0",
+                 relief = tk.SOLID,
+                 borderwidth = 1,
                  font=("tahoma", "8")
                  ).pack(ipadx=1)
 
-    def hidetip(self):
-        tw = self.tipwindow
-        self.tipwindow = None
-        if tw:
-            tw.destroy()
+    @classmethod
+    def _hide_tip(cls):
+        if cls._toplevel:
+            cls._toplevel.destroy()
+            cls._toplevel = None
 
 
-def createToolTip(widget, text):
-    toolTip = WidgetTip(widget)
-    def enter(event):
-        toolTip.showtip(text)
-    def leave(event):
-        toolTip.hidetip()
-    widget.bind('<Enter>', enter)
-    widget.bind('<Leave>', leave)
+class Pager(object):
+    interface = None
+    master = None
+    title = None
+    width = None
+    height = None
+    frame = None
+    _showing = False
+    _page_fm = None
+
+    def _init(self):
+        self._showing = True
+        self._page_fm = tk.Frame(self.master)
+        self._page_fm.pack()
+        fm_style = {"width": self.width,
+                    "height": self.height + 200   # 预留 200高度用于支持窗口大小调整
+                    }
+        fm = MyFrame(self._page_fm, title=self.title, **fm_style).master()
+        sf = ScrollFrame(fm, **fm_style)
+        sf.pack(fill='both')
+        sf.pack_propagate(0)
+        self.frame = sf.body
+
+    def pack(self):
+        self._init()
+        self.pack_frame()
+
+    def pack_frame(self):
+        pass
+
+    def alive(self):
+        return self._showing
+
+    def destroy_frame(self):
+        pass
+
+    def destroy(self):
+        self._showing = False
+        try:
+            self.destroy_frame()
+            self._page_fm.destroy()
+        except:
+            pass
 
 
 class SubLogin(object):
@@ -146,16 +221,17 @@ class SubLogin(object):
 
     def widget_tips(self, which):
         """ 用于提示具体的entry填入的值有误 """
+        """ TODO ttk 控件导致这个提示会失效 """
         try:
-            ToolTips.widget_tips(eval('self.{}_en'.format(which)))
+            WidgetTip.color_tips(eval('self.{}_en'.format(which)))
         except:
             pass
 
     def bind_tips(self):
-        createToolTip(self.ip_en, 'IP地址')
-        createToolTip(self.user_en, '用户名')
-        createToolTip(self.userpwd_en, '用户密码')
-        createToolTip(self.rootpwd_en, 'root密码')
+        WidgetTip.enter_tips(self.ip_en, 'IP地址')
+        WidgetTip.enter_tips(self.user_en, '用户名')
+        WidgetTip.enter_tips(self.userpwd_en, '用户密码')
+        WidgetTip.enter_tips(self.rootpwd_en, 'root密码')
 
     def destroy(self):
         _index = self.index
@@ -177,17 +253,8 @@ class SubLogin(object):
 class TtkProgress(object):
     """ Ttk 实现的进度条 """
 
-    def __init__(self,
-                 master,
-                 name,
-                 width=200,
-                 size=2,
-                 row=1,
-                 column=0):
-        self.prog = ttk.Progressbar(master,
-                                    length=width,
-                                    mode="determinate",
-                                    orient=tk.HORIZONTAL)
+    def __init__(self, master, name, width=200, size=2, row=1, column=0):
+        self.prog = ttk.Progressbar(master, length=width, mode="determinate", orient=tk.HORIZONTAL)
         self.prog["maximum"] = 100
         self.prog["value"] = 0
         tk.Label(master, text=name, font=(Global.G_FONT, 9+size)).grid(row=row, column=column)
@@ -250,43 +317,39 @@ class MyToolBar(object):
                              style="MyToolBar.TButton",
                              command=lambda x=image: callback(x))
             btn.pack(side='left')
-            createToolTip(btn, text)
+            WidgetTip.enter_tips(btn, text)
 
 
 class MyTreeView(object):
     """ 侧边折叠菜单栏 """
-    def __init__(self, master, treelist, callback):
+    def __init__(self, master, callback):
         self.callback = callback
-        self.widgets = None
         self.sub_id = []
         self.toolbar_id = OrderedDict()
         self.treeview = ttk.Treeview(master, height=50, show="tree", selectmode='browse')
         self.treeview.tag_configure('tree.sub', font=('宋体', 12))
         self.treeview.tag_configure('tree.root', font=('宋体', 12, 'bold'))
         self.treeview.bind('<<TreeviewSelect>>', lambda k=None: self.command())
-        [self._add_subtree(root) for root in treelist]
         self.treeview.pack(fill='both')
         # 可选绑定滑块
         # vbar = tk.Scrollbar(self.master, orient=tk.VERTICAL, command=self.treeview.yview)
         # self.treeview.configure(yscrollcommand=vbar.set)
         # vbar.pack(side='left', fill='y')
 
-    def parser_ploter(self, text, attrs):
-        if "AutoPlot" in attrs:
-            if "ManualPlot" in attrs or "OperateButtons" in attrs:
-                raise Exception("{}: AutoPlot不能与ManualPlot或OperateButtons同时存在".format(text))
-        if "AutoPlot" in attrs:
-            return "AutoPlot"
-        elif "ManualPlot" in attrs:
-            return "ManualPlot"
-        else:
-            return ""
+    def pack_trees(self, tree_list):
+        [self._add_subtree(root) for root in tree_list]
 
     def _add_subtree(self, root, id=''):
-        if '__ThisIsPageWidgets__' in root:
-            self.widgets = root
-            return
-        text = ' ' + root['Text']
+        def parser_ploter():
+            if "AutoPlot" in attrs:
+                if "ManualPlot" in attrs or "OperateButtons" in attrs:
+                    raise Exception("{}: AutoPlot不能与ManualPlot或OperateButtons同时存在".format(text))
+                return "AutoPlot"
+            elif "ManualPlot" in attrs:
+                return "ManualPlot"
+            return ""
+
+        text = ' %s' % root['Text']
         image = root['Image']
         pages = root['Page']
         subtree = root['SubTree']
@@ -297,7 +360,7 @@ class MyTreeView(object):
             widgets = pages['Widgets']
             shell = pages['Shell']
             attrs = pages['Attrs']
-            ploter = self.parser_ploter(text, attrs)
+            ploter = parser_ploter()
             buttons = 'True' if "OperateButtons" in attrs else 'False'
             window = 'True' if "ResultWindow" in attrs else 'False'
             tag, values = 'tree.sub', [text, widgets, shell, ploter, buttons, window]
@@ -320,14 +383,11 @@ class MyTreeView(object):
         if len(args_tuple) == 0:
             return
         text, widgets, shell, ploter, buttons, window = args_tuple
+        # treeview values中取出来的都是字符串,所以这里需要转换一下 #
         buttons = True if buttons == 'True' else False
         window = True if window == 'True' else False
-        try:
-            back_tuple = (text, self.widgets[widgets], shell, ploter, buttons, window)
-        except Exception as e:
-            ToolTips.message_tips(e)
-        else:
-            self.callback(back_tuple)
+        back_tuple = (text, widgets, shell, ploter, buttons, window)
+        self.callback(back_tuple)
 
     def get_toolbar_keys(self):
         out = []
@@ -348,13 +408,17 @@ class InfoWindow(object):
         self.init_event()
         self.init_frame()
 
+    @classmethod
+    def insert(cls, info, level='INFO'):
+        Caller.call(Global.EVT_INSERT_INFOWIN_TEXT, (info, level))
+
     def init_event(self):
         Define.define(Global.EVT_INSERT_INFOWIN_TEXT, self.insert_text)
 
     def init_frame(self):
         self.infotext = scrolledtext.ScrolledText(self.master,
                                                   font=(Global.G_FONT, 9),
-                                                  bd=2,
+                                                  bd=1,
                                                   relief='ridge',
                                                   bg='gray90',  #Global.G_DEFAULT_COLOR,
                                                   height=40)
@@ -709,9 +773,9 @@ class MyScreenshot(object):
             pic.save(save_name)
             self.top.destroy()
             Common.remove(self.temp_png)
-            WinMsg.info("截图成功: {0}\n截图保存在工具家目录（工具exe同级目录）下".format(save_name))
+            WidgetTip.info("截图成功: {0}\n截图保存在工具家目录（工具exe同级目录）下".format(save_name))
         self.canvas.bind('<ButtonRelease-1>', onLeftButtonUp)
-        #让canvas充满窗口，并随窗口自动适应大小
+        # 让canvas充满窗口，并随窗口自动适应大小
         self.canvas.pack(fill='both', expand=1)
 
 
