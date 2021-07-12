@@ -3,60 +3,8 @@
 View板块相关公共子模块;
 提供接口，不参与处理逻辑
 """
-import time
 import my_global as Global
-from tkinter import messagebox
-from my_common import Common
-from my_bond import Caller
 from my_viewmodel import ViewModel
-
-
-class WinMsg:
-    """ windows提示窗 """
-
-    @classmethod
-    def info(cls, info):
-        messagebox.showinfo('提示', info)
-
-    @classmethod
-    def error(cls, info):
-        messagebox.showerror('错误', info)
-
-    @classmethod
-    def ask(cls, info):
-        return messagebox.askokcancel('请确认', info)
-
-    @classmethod
-    def warn(cls, info):
-        messagebox.showwarning('警告', info)
-
-
-class ToolTips:
-
-    @classmethod
-    def message_tips(cls, info, level='INFO'):
-        Caller.call(Global.EVT_INSERT_INFOWIN_TEXT, (info, level))
-
-    @classmethod
-    def widget_tips(cls, widget, region='background', back=Global.G_DEFAULT_COLOR):
-        Common.create_thread(cls._change_color, args=(widget, region, back))
-
-    @classmethod
-    def _change_color(cls, widget, region, back):
-        sleep = 0.3
-        widget[region] = 'red'
-        time.sleep(sleep)
-        widget[region] = 'Gold'
-        time.sleep(sleep)
-        widget[region] = 'red'
-        time.sleep(sleep)
-        widget[region] = 'Gold'
-        time.sleep(sleep)
-        widget[region] = 'red'
-        time.sleep(sleep)
-        widget[region] = 'Gold'
-        time.sleep(sleep)
-        widget[region] = back
 
 
 class ViewUtil:
@@ -175,3 +123,7 @@ class ViewUtil:
     @classmethod
     def get_treeview_data(cls):
         return ViewModel.cache('TREE_VIEW_DATA_LIST', type='QUE')[-1]
+
+    @classmethod
+    def get_widgets_data(cls):
+        return ViewModel.cache('PAGE_WIDGETS_DICT', type='QUE')
