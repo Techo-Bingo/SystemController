@@ -3,7 +3,7 @@
 Model板块，定义数据模型
 """
 import my_global as Global
-from my_base import Singleton
+from my_common import Singleton
 
 
 class Settings(Singleton):
@@ -21,6 +21,7 @@ class Settings(Singleton):
             Global.G_SERVER_DIR = setting_map['server_home']
             Global.G_RETRY_TIMES = setting_map['retry_times']
             Global.G_LGN_COUNT_LIMIT = setting_map['login_count_limit']
+            Global.G_KEEPALIVE_INT = setting_map['keepalive_interval']
             Global.G_ABOUT_INFO = '\n'.join(setting_map['about_info'])
             _default = setting_map['passwords']
             Global.G_DEFAULT_PASSWORDS = [_default['username'],
@@ -42,6 +43,7 @@ class Cache(Singleton):
         self._logon_ssh = {}
         self._conf_image = {}
         self._treeview_data = []
+        self._widgets_data = {}
         self._server_cache = {}
         self._refresh_data = {}
 
@@ -70,6 +72,10 @@ class Cache(Singleton):
     @property
     def treeview_data_list(self):
         return self._treeview_data
+
+    @property
+    def page_widgets_dict(self):
+        return self._widgets_data
 
     @property
     def server_cache_dict(self):
