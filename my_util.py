@@ -8,7 +8,6 @@ from my_logger import Logger
 from my_viewmodel import ViewModel
 from PIL import Image, ImageTk
 from my_common import Common, JSONParser
-from my_base import FileError
 from my_bond import Caller, Define
 
 
@@ -81,18 +80,18 @@ class Init:
 
     @classmethod
     def check_file(cls):
-        for path in [Global.G_CONF_DIR,
-                     Global.G_SHELL_DIR,
+        for path in [Global.G_RESOURCE_DIR,
                      Global.G_DEPEND_FILE,
-                     Global.G_SETTING_FILE]:
+                     Global.G_SETTING_FILE,
+                     Global.G_SCRIPTS_DIR]:
             if not Common.is_exists(path):
                 Logger.error("{} is not exist".format(path))
                 Utils.windows_error("{} is not exist".format(path))
                 return False
-        Common.mkdir(Global.G_LOG_DIR)
+        Global.G_PID_DIR = "{}\\{}".format(Global.G_RUN_DIR, Common.get_pid())
         Common.mkdir(Global.G_DOWNLOAD_DIR)
-        Common.mkdir(Global.G_TEMP_DIR)
-        Common.record_pid(Global.G_PID_FILE)
+        Common.mkdir(Global.G_RUN_DIR)
+        Common.mkdir(Global.G_PID_DIR)
         # 日志大于阈值，清空
         if Common.file_size(Global.G_LOG_PATH) > Global.G_LOG_SIZE:
             Common.write_to_file(Global.G_LOG_PATH, 'Rollback init')
@@ -102,8 +101,9 @@ class Init:
     def _image_init(cls, image_data):
         _photo = {}
         for name, path in image_data.items():
+            path = "{}\\{}".format(Global.G_RESOURCE_DIR, path)
             if not Common.is_file(path):
-                raise FileError("%s is not exist !" % path)
+                raise Exception("%s is not exist !" % path)
             _photo[name] = path if name == 'ICO' else ImageTk.PhotoImage(image=Image.open(path))
         ViewModel.cache('CONF_IMAGE_DICT', type='ADD', data=_photo)
 
@@ -125,13 +125,15 @@ class Init:
             _setting_data = JSONParser.parser(Global.G_SETTING_FILE)
             # ViewModel初始化
             if not ViewModel.init(_setting_data['Setting']):
-                raise FileError("Settings init failed !")
+                raise Exception("Settings init failed !")
             # 数据更新定时器
             ViewModel.cache('REFRESH_TIMER_DICT', 'ADD', _setting_data['Timer'])
             # 图片数据
             cls._image_init(_depend_data['Images'])
             # TreeView数据
             ViewModel.cache('TREE_VIEW_DATA_LIST', 'ADD', _depend_data['Tree'])
+            # 界面Widgets数据
+            ViewModel.cache('PAGE_WIDGETS_DICT', 'ADD', _depend_data['Widgets'])
         except Exception as e:
             Logger.error(e)
             Utils.windows_error(e)
