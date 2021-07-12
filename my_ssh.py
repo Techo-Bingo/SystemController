@@ -3,7 +3,6 @@
 import os
 import time
 import paramiko
-from my_base import SSHError
 
 
 class SSH(object):
@@ -20,33 +19,24 @@ class SSH(object):
     def execute(self, cmd, root=False):
         if root:
             cmd = '''echo "%s"|su - -c "%s"''' % (self._root_pwd, cmd)
-        try:
-            if not self._ssh_client:
-                self._ssh_client = paramiko.SSHClient()
-                self._ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-                self._ssh_client.connect(self._host_ip, username=self._user_name, password=self._user_pwd)
-            return self._ssh_client.exec_command(cmd)
-        except Exception as e:
-            raise SSHError(e)
+        if not self._ssh_client:
+            self._ssh_client = paramiko.SSHClient()
+            self._ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            self._ssh_client.connect(self._host_ip, username=self._user_name, password=self._user_pwd)
+        return self._ssh_client.exec_command(cmd)
 
     def upload(self, local_path, server_path, callback=None):
-        try:
-            trans = paramiko.Transport(self._host_ip, self._port)
-            trans.connect(username=self._user_name, password=self._user_pwd)
-            # 可以解决大文件上传问题
-            with paramiko.SFTPClient.from_transport(trans) as ftp:
-                ftp.put(local_path, server_path, callback=callback)
-        except Exception as e:
-            raise SSHError(e)
+        trans = paramiko.Transport(self._host_ip, self._port)
+        trans.connect(username=self._user_name, password=self._user_pwd)
+        # 可以解决大文件上传问题
+        with paramiko.SFTPClient.from_transport(trans) as ftp:
+            ftp.put(local_path, server_path, callback=callback)
 
     def download(self, server_path, local_path, callback=None):
-        try:
-            trans = paramiko.Transport(self._host_ip, self._port)
-            trans.connect(username=self._user_name, password=self._user_pwd)
-            with paramiko.SFTPClient.from_transport(trans) as ftp:
-                ftp.get(server_path, local_path, callback=callback)
-        except Exception as e:
-            raise SSHError(e)
+        trans = paramiko.Transport(self._host_ip, self._port)
+        trans.connect(username=self._user_name, password=self._user_pwd)
+        with paramiko.SFTPClient.from_transport(trans) as ftp:
+            ftp.get(server_path, local_path, callback=callback)
 
     def close(self):
         self._ssh_client.close()
@@ -75,7 +65,7 @@ class SSHUtil:
                 return False, None
             else:
                 return True, None
-        except SSHError as e:
+        except Exception as e:
             return False, e
 
     @classmethod
@@ -99,7 +89,7 @@ class SSHUtil:
             ssh_inst.upload(local, remote, callback)
             #if not cls.exec_ret(ssh_inst, check_cmd)[0]:
             #    return False, "uploaded size not equal"
-        except SSHError as e:
+        except Exception as e:
             return False, e
         else:
             return True, None
@@ -108,7 +98,7 @@ class SSHUtil:
     def download_file(cls, ssh_inst, remote, local):
         try:
             ssh_inst.download(remote, local)
-        except SSHError as e:
+        except Exception as e:
             return False, e
         else:
             return True, None
