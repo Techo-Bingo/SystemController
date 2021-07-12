@@ -1,19 +1,18 @@
 # -*- coding: UTF-8 -*-
 import tkinter as tk
 from tkinter import ttk, scrolledtext, filedialog
-import my_global as Global
-from collections import defaultdict
-from my_common import Common
-from my_base import Pager
-from my_handler import PageHandler
-from my_viewutil import ViewUtil, WinMsg, ToolTips
-from my_timezone import TimezonePage
-from my_module import MyFrame, TopNotebook, MyIPChoose, UploadProgress
-from my_bond import Caller, Bonder
 # import numpy
 import pandas as pd
 import matplotlib
 import matplotlib.pyplot as plt
+import my_global as Global
+from collections import defaultdict
+from my_common import Common
+from my_bond import Caller, Bonder
+from my_handler import PageHandler
+from my_viewutil import ViewUtil
+from my_timezone import TimezonePage
+from my_module import Pager, MyFrame, TopNotebook, MyIPChoose, UploadProgress, InfoWindow, WidgetTip
 
 
 class PlotMaker:
@@ -54,7 +53,7 @@ class PlotMaker:
             # plt.savefig('aa.png', dpi=200)
             plt.show()
         except Exception as e:
-            WinMsg.error(str(e))
+            WidgetTip.error(str(e))
 
     @classmethod
     def auto(cls, plot_param, detail=False):
@@ -70,7 +69,7 @@ class PlotMaker:
             file = "{}\\{}\\__FILE_DATA__\\{}".format(Global.G_DOWNLOAD_DIR, ip, file_name)
             if not Common.is_file(file):
                 raise Exception("{} 不存在\n如果是首次登录，请等待30秒再进此界面".format(file))
-            png = "{}\\{}_{}.png".format(Global.G_TEMP_DIR, ip, file_name.split('.')[0])
+            png = "{}\\{}_{}.png".format(Global.G_PID_DIR, ip, file_name.split('.')[0])
             data = pd.read_csv(file, parse_dates=True, index_col=0)
             data.plot(title="{}: {}".format(ip, file_name), grid=True, figsize=(width, height))
             if not detail:
@@ -143,6 +142,8 @@ class PageClass(Pager):
             # 预留一个位置
             return can_null, False
         def enter_callback(ip, out_print):
+            if not self.alive():
+                return
             for key, inst in result_widget:
                 if key == 'Label':
                     inst.set("{0}\n【 {1} 】\n{2}".format(inst.get(), ip, out_print))
@@ -329,7 +330,7 @@ class PageClass(Pager):
                 _v = instance.get('1.0', 'end').strip()
                 if not _v and not can_be_null:
                     return False
-                f = '{0}\\__{1}_{2}__.txt'.format(Global.G_TEMP_DIR, widget, index)
+                f = '{0}\\__{1}_{2}__.txt'.format(Global.G_PID_DIR, widget, index)
                 Common.write_to_file(f, _v)
                 [shell_params[ip].append(f) for ip in ips]
             return True
@@ -346,7 +347,7 @@ class PageClass(Pager):
                         if not showUpload and Common.file_size(_local_f) > 10485760:
                             showUpload = True
                 else:
-                    WinMsg.error("Not support WidgetAction: {}".format(act))
+                    WidgetTip.error("Not support WidgetAction: {}".format(act))
                     continue
             UploadProgress.init()
             if showUpload:
@@ -360,7 +361,7 @@ class PageClass(Pager):
             index += 1
             # 1.1 获取控件输入信息
             if not get_widget_input():
-                WinMsg.warn("第{0}个必要控件{1}输入为空 !".format(index, widget))
+                WidgetTip.warn("第{0}个必要控件{1}输入为空 !".format(index, widget))
                 return None
             # 1.2 解析actions
             parser_widget_actions()
@@ -395,11 +396,11 @@ class PageClass(Pager):
             # 进度与上次一致时也不显示在Tips
             if progress == 1 or self.key_value['last'] == progress:
                 return
-            ToolTips.message_tips(out_print)
+            InfoWindow.insert(out_print)
 
     def button_callback(self, oper, ips, opts):
         if not ips:
-            WinMsg.warn("请选择IP地址")
+            WidgetTip.warn("请选择IP地址")
             return
         root, delay, loop = opts
         print(opts)
@@ -415,16 +416,19 @@ class PageCtrl(object):
 
     def __init__(self, master):
         self.master = master
+        self.width = None
+        self.height = None
         self.current_text = None
         self.current_page = None
         Bonder('__PageCtrl__').bond(Global.EVT_CLOSE_GUI, PlotMaker.close)
 
     def default(self, width, height):
-        _master = tk.Frame(self.master, width=width, height=height)
-        _master.pack(fill='both')
-        _master.pack_propagate(0)
+        self.width = width
+        self.height = height
+        _master = tk.Frame(self.master)
+        _master.pack()
         self.current_page = _master
-        my_fm = MyFrame(_master, 900, 600, "简 单 向 导", True).master()
+        my_fm = MyFrame(_master, width, height, "简 单 向 导", True).master()
         fm = tk.Frame(my_fm)
         fm.pack(fill='both')
         tk.Label(fm, image=ViewUtil.get_image('GUIDE')).pack()
@@ -441,6 +445,7 @@ class PageCtrl(object):
             self.current_text = text
             return False
         def widget_type():
+            widgets = ViewUtil.get_widgets_data()[widgeter]
             page_class, widget_types = 'PageClass', []
             for one in widgets:
                 widget = one['WidgetType']
@@ -453,20 +458,19 @@ class PageCtrl(object):
                     raise Exception("Not support widget of {}".format(widget))
             if len(set(widget_types)) != 1:
                 raise Exception("<Self>自定义控件界面不能使用<Template>模板控件")
-            return page_class
+            return page_class, widgets
 
-        text, widgets, shell, ploter, buttons, window = args_tuple
+        text, widgeter, shell, ploter, buttons, window = args_tuple
         if is_current():
             return
         if not PageHandler.try_switch():
             return
         destroy_page()
-        class_name = widget_type()
-        width, height = Caller.call(Global.EVT_PAGE_INTERFACE, 'PAGE_SIZE')
+        class_name, widgets = widget_type()
         pager_params = {'master': self.master,
                         'title': text,
-                        'width': width,
-                        'height': height,
+                        'width': self.width,
+                        'height': self.height,
                         'ip_list': ViewUtil.get_ssh_ip_list(),
                         'shell': shell,
                         'ploter': ploter,
