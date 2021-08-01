@@ -2,7 +2,7 @@
     "Settings": {
         "tool_alias": "System Controller",
         "tool_version": "4.0.0",
-        "log_level": "debug",
+        "log_level": "info",
         "server_home": "/home/Bingo",
         "retry_times": 2,
         "keepalive_period": 30,
