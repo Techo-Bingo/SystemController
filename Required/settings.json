@@ -1,0 +1,44 @@
+{
+    "Settings": {
+        "tool_alias": "System Controller",
+        "tool_version": "4.0.0",
+        "log_level": "debug",
+        "server_home": "/home/Bingo",
+        "retry_times": 2,
+        "keepalive_period": 30,
+        "refresh_json_period": 20,
+        "login_count_limit": 10,
+        "preference_ip": [
+            "192.168.0.100",
+            "192.168.0.200"
+        ],
+        "passwords": {
+            "username": "ubp",
+            "userpassword": "eLTE@com123",
+            "rootpassword": "eLTE@com"
+        },
+        "about_information": [
+            "    功能:    Linux服务器管理维护",
+            "    特点:",
+            "             1. 支持自定义操作界面控件布局和功能实现;",
+            "             2. 修改并保存界面控件配置文件即可动态刷新界面布局;",
+            "             3. 功能高度配置和脚本化， 具有高度灵活性和扩展性;"
+        ]
+    },
+    "Timer": {
+        "refresh_cache": {
+            "period": 30,
+            "scripts": [
+                "get_cache_key_values.sh __IP__NETCARD__",
+                "get_cache_key_values.sh __UBP_PROC__"
+            ]
+        },
+        "refresh_file": {
+            "period": 60,
+            "scripts": [
+                "refresh_resource.sh",
+                "watch_system.sh"
+            ]
+        }
+    }
+}
