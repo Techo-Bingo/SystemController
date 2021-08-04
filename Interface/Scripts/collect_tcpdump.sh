@@ -11,12 +11,12 @@ OTHER=$*
 
 function main()
 {
-	[ "$(whoami)" != 'root' ] && report_err "20" "Please switch root !"
+	[ "$(whoami)" != 'root' ] && report_err "20" "请使用 root 执行"
 
   [ "${NET}" = '__None__' ] && NET='' || NET="-i ${NET}"
-  [ "${PROTO}" = '0' ] && PROTO=''
-  [ "${PROTO}" = '1' ] && PROTO='tcp'
-  [ "${PROTO}" = '2' ] && PROTO='udp'
+  [ "${PROTO}" = '__None__' ] && PROTO=''
+  [ "${PROTO}" = 'TCP' ] && PROTO='tcp'
+  [ "${PROTO}" = 'UDP' ] && PROTO='udp'
   [ "${COUNT}" = '__None__' ] && COUNT='' || COUNT="-c ${COUNT}"
   [ "${PORT}" = '__None__' ] && PORT='' || PORT="port ${PORT}"
   if [ "${HOST}" = '__None__' ]
@@ -35,8 +35,8 @@ function main()
   cd ${g_task_dir}
 	report_info '30' "start tcpdump ${PROTO} -vv ${NET} ${COUNT} ${PORT} ${HOST} ${OTHER} -w tcpdump.cap"
 	sleep 1
-	tcpdump ${PROTO} -vv ${NET} ${COUNT} ${PORT} ${HOST} ${OTHER} -w tcpdump.cap 2>${g_error}
-	[ $? -ne 0 ] && report_err '90' "tcpdump failed: $(tail -1 ${g_error})"
+	tcpdump ${PROTO} -vv ${NET} ${COUNT} ${PORT} ${HOST} ${OTHER} -w tcpdump.cap 2>${g_stderr}
+	[ $? -ne 0 ] && report_err '90' "tcpdump failed: $(tail -1 ${g_stderr})"
 
   chmod 777 ${g_task_dir}/*
   report_info "100" "${g_task_dir}/tcpdump.cap"
