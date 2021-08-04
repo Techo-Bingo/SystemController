@@ -18,6 +18,7 @@
         "TV_OAM_3": "treeview_oam.png",
         "TV_OAM_4": "treeview_oam.png",
         "TV_OAM_5": "treeview_oam.png",
+        "TV_OAM_6": "treeview_oam.png",
         "TV_OAM_SET": "treeview_oam_set.png",
         "TV_OAM_SET_1": "treeview_oam_set.png",
         "TV_STATE": "treeview_state.png",
@@ -294,6 +295,16 @@
                     "Page": "NA",
                     "SubTree": [
                         {
+                            "Text": "主备容灾拆单",
+                            "Image": "TV_OAM_6",
+                            "Page": {
+                                "Widgets": "AutoHAStandaloneWidgets",
+                                "Shell": "auto_ha_standalone.sh",
+                                "Attrs": ["OperateButtons"]
+                            },
+                            "SubTree": []
+                        },
+                        {
                             "Text": "主备容灾配置",
                             "Image": "TV_OAM_5",
                             "Page": {
@@ -372,8 +383,8 @@
             {
                 "WidgetType": "Label",
                 "WidgetTips": ["提示"],
-                "WidgetValues": ["以下选项都是可选项，不填则该项参数值为空; 为避免包过大，请严格过滤", "*开头为必填项"],
-                "WidgetParams": {"Size": [900, 50, 600, 30]},
+                "WidgetValues": ["以下选项都是可选项，不填则该项参数值为空; 为避免包过大，请严格过滤"],
+                "WidgetParams": {"Size": [900, 50, 100, 10]},
                 "WidgetAttrs": [],
                 "WidgetActions": []
             },
@@ -431,7 +442,7 @@
                 "WidgetType": "Label",
                 "WidgetTips": ["警告"],
                 "WidgetValues": ["eAPP版本将强制回退至升级前的旧版本", "此回滚动作只适用于TTR5.x及以上版本", "请谨慎操作！"],
-                "WidgetParams": {"Size": [900, 100, 900, 100]},
+                "WidgetParams": {"Size": [900, 100, 100, 10]},
                 "WidgetAttrs": [],
                 "WidgetActions": []
             }
@@ -441,7 +452,7 @@
                 "WidgetType": "Label",
                 "WidgetTips": ["警告"],
                 "WidgetValues": ["eAPP版本将升级至上传的目标版本", "此升级动作只适用于TTR5.x及以上版本", "请谨慎操作！"],
-                "WidgetParams": {"Size": [900, 100, 900, 100]},
+                "WidgetParams": {"Size": [900, 100, 100, 10]},
                 "WidgetAttrs": [],
                 "WidgetActions": []
             },
@@ -490,7 +501,7 @@
             {
                 "WidgetType": "Combobox",
                 "WidgetTips": ["协议版本"],
-                "WidgetValues": ["B-Trunc R2", "3GPP"],
+                "WidgetValues": ["B-Trunc", "3GPP"],
                 "WidgetParams": {"Size": [900, 40, 20, 1]},
                 "WidgetAttrs": [],
                 "WidgetActions": []
@@ -547,7 +558,7 @@
                 "WidgetType": "Label",
                 "WidgetTips": ["说明"],
                 "WidgetValues": ["选择对应的进程名称和资源项后", "点击执行按钮即可绘制对应的资源使用曲线图"],
-                "WidgetParams": {"Size": [900, 60, 900, 60]},
+                "WidgetParams": {"Size": [900, 60, 100, 10]},
                 "WidgetAttrs": [],
                 "WidgetActions": []
             },
@@ -623,7 +634,7 @@
                 "WidgetType": "Label",
                 "WidgetTips": ["提示"],
                 "WidgetValues": ["路径为文件夹时将会打包下载（暂不支持正则表达式）"],
-                "WidgetParams": {"Size": [900, 50, 400, 40]},
+                "WidgetParams": {"Size": [900, 50, 100, 10]},
                 "WidgetAttrs": [],
                 "WidgetActions": []
             },
@@ -670,12 +681,80 @@
                 "WidgetActions": []
             }
         ],
+        "AutoHAStandaloneWidgets": [
+            {
+                "WidgetType": "InfoText",
+                "WidgetTips": ["当前主备容灾状态"],
+                "WidgetValues": [],
+                "WidgetParams": {"Size": [900, 400, 900, 400]},
+                "WidgetAttrs": ["ShowEnterResult"],
+                "WidgetActions": []
+            }
+        ],
         "AutoHAConfigWidgets": [
             {
                 "WidgetType": "Label",
                 "WidgetTips": ["提示"],
-                "WidgetValues": ["自动化进行主备容灾配置, 轻松一键搞定!"],
-                "WidgetParams": {"Size": [900, 50, 400, 50]},
+                "WidgetValues": ["一键式配置主备(2台)或主备容灾(4台)环境; 只适用于TTR6.0及以上主备容灾版本",
+                    "1. 浮动IP只需填写IP和掩码,网卡和网关会自动识别" ,
+                    "2. 密码默认均一致, 如有特例,请参照帮助增加相应控件或修改密码"],
+                "WidgetParams": {"Size": [900, 70, 100, 10]},
+                "WidgetAttrs": [],
+                "WidgetActions": []
+            },
+            {
+                "WidgetType": "Entry",
+                "WidgetTips": ["浮动IP-IP/掩码 [例如:192.168.0.1/24  多个时以逗号隔开]"],
+                "WidgetValues": [],
+                "WidgetParams": {"Size": [900, 35, 80, 1]},
+                "WidgetAttrs": [],
+                "WidgetActions": []
+            },
+            {
+                "WidgetType": "Combobox",
+                "WidgetTips": ["生产主机-IP"],
+                "WidgetValues": ["", "__LOGGED__"],
+                "WidgetParams": {"Size": [900, 35, 30, 1]},
+                "WidgetAttrs": [],
+                "WidgetActions": []
+            },
+            {
+                "WidgetType": "Combobox",
+                "WidgetTips": ["生产备机-IP"],
+                "WidgetValues": ["", "__LOGGED__"],
+                "WidgetParams": {"Size": [900, 35, 30, 1]},
+                "WidgetAttrs": [],
+                "WidgetActions": []
+            },
+            {
+                "WidgetType": "Combobox",
+                "WidgetTips": ["容灾主机-IP"],
+                "WidgetValues": ["", "__LOGGED__"],
+                "WidgetParams": {"Size": [900, 35, 30, 1]},
+                "WidgetAttrs": [],
+                "WidgetActions": []
+            },
+            {
+                "WidgetType": "Combobox",
+                "WidgetTips": ["容灾备机-IP"],
+                "WidgetValues": ["", "__LOGGED__"],
+                "WidgetParams": {"Size": [900, 35, 30, 1]},
+                "WidgetAttrs": [],
+                "WidgetActions": []
+            },
+            {
+                "WidgetType": "Entry",
+                "WidgetTips": ["[ALL] ubp密码"],
+                "WidgetValues": ["eLTE@com123"],
+                "WidgetParams": {"Size": [900, 35, 30, 1]},
+                "WidgetAttrs": [],
+                "WidgetActions": []
+            },
+            {
+                "WidgetType": "Entry",
+                "WidgetTips": ["[ALL] 数据库密码"],
+                "WidgetValues": ["eLTE@com123"],
+                "WidgetParams": {"Size": [900, 35, 30, 1]},
                 "WidgetAttrs": [],
                 "WidgetActions": []
             }
@@ -684,8 +763,8 @@
             {
                 "WidgetType": "Label",
                 "WidgetTips": ["提示"],
-                "WidgetValues": ["自动化进行主备容灾升级, 轻松一键搞定!"],
-                "WidgetParams": {"Size": [900, 50, 400, 50]},
+                "WidgetValues": ["自动化进行主备容灾升级","输入IP密码后一键式升级主备(2台)或主备容灾(4台)环境"],
+                "WidgetParams": {"Size": [900, 50, 100, 10]},
                 "WidgetAttrs": [],
                 "WidgetActions": []
             }
