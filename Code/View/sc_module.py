@@ -398,39 +398,38 @@ class TreeView(object):
                 out.append((image, text))
         return out
 
-class InfoWindow(object):
+class InfoText(object):
     """ 消息提示栏 """
-    def __init__(self, master):
+    def __init__(self, master, height=40):
         self.master = master
         self.infotext = None
         self.index = 0
         self.lock = Lock()
-        self.init_frame()
+        self.init_frame(height)
 
-    def init_frame(self):
+    def init_frame(self, height):
         self.infotext = scrolledtext.ScrolledText(self.master,
                                                   font=(Global.G_DEFAULT_FONT, 9),
-                                                  bd=1,
+                                                  # bd=1,
                                                   relief='ridge',
-                                                  bg=Global.G_DEFAULT_COLOR,   #  'gray90'
-                                                  height=40)
+                                                  bg=Global.G_DEFAULT_COLOR,
+                                                  height=height)
         self.infotext['stat'] = 'disabled'
         self.infotext.pack(fill='both')
 
-    def insert_text(self, info, level):
-        color = Global.G_INFOWIN_LEVEL_COLOR[level.upper()]
-        info = "\n[{0}] {1}: {2}".format(level.upper(), Common.get_time(), str(info))
+    def insert_text(self, info, color=False):
         # 多线程打印可能会串行等问题, 加锁
         self.lock.acquire()
         try:
             self.infotext['stat'] = 'normal'
-            self.infotext.insert('end', info)
-            self.index += 1
-            line_num = len(info.split('\n'))
-            line_end = int(self.infotext.index('end').split('.')[0])
-            line_start = line_end - line_num + 1
-            self.infotext.tag_add('BINGO%s' % self.index, '%s.0' % line_start, '%s.end' % line_end)
-            self.infotext.tag_config('BINGO%s' % self.index, foreground=color)
+            self.infotext.insert('end', '{}\n'.format(info))
+            if color:
+                self.index += 1
+                line_num = len(info.split('\n'))
+                line_end = int(self.infotext.index('end').split('.')[0]) - 1   # 减去换行那行
+                line_start = line_end - line_num
+                self.infotext.tag_add('TextS%s' % self.index, '%s.0' % line_start, '%s.end' % line_end)
+                self.infotext.tag_config('TextS%s' % self.index, foreground=color)
             self.infotext.see('end')
             self.infotext['stat'] = 'disabled'
         finally:
@@ -634,7 +633,7 @@ class TopNotebook:
             return
         instance = cls.instance[ip]
         instance['stat'] = 'normal'
-        # instance.delete('0.0', 'end')
+        instance.delete('0.0', 'end')
         instance.insert('end', '{}\n'.format(info))
         instance.see('end')
         instance['stat'] = 'disabled'
