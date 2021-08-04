@@ -15,7 +15,7 @@ function init_task()
 
     export g_task_dir=${g_home_dir}/${task}
     cd ${g_task_dir}
-    report_info "10" "server init ok"
+    report_info "1" "server init ok"
 }
 
 function sync_call_shell()
@@ -27,7 +27,7 @@ function sync_call_shell()
     init_task ${task}
     # to_unix ${g_home_dir}/${shell}
     echo "$(whoami): sh ${g_home_dir}/${shell} ${params}" >${g_task_dir}/${g_call}
-    sh ${g_home_dir}/${shell} ${params} >${g_task_dir}/${g_print} 2>${g_task_dir}/${g_error}
+    sh ${g_home_dir}/${shell} ${params} >${g_task_dir}/${g_stdout} 2>${g_task_dir}/${g_stderr}
     return $?
 }
 
@@ -40,7 +40,7 @@ function async_call_shell()
     init_task ${task}
     # to_unix ${g_home_dir}/${shell}
     echo "$(whoami): sh ${g_home_dir}/${shell} ${params}" >${g_task_dir}/${g_call}
-    sh ${g_home_dir}/${shell} ${params} >${g_task_dir}/${g_print} 2>${g_task_dir}/${g_error} &
+    sh ${g_home_dir}/${shell} ${params} >${g_task_dir}/${g_stdout} 2>${g_task_dir}/${g_stderr} &
     return $?
 }
 
@@ -58,7 +58,7 @@ function get_task_stdout()
 {
     local task=$1
     echo "${g_split_flag}"
-    cat ${g_home_dir}/${task}/${g_print}
+    cat ${g_home_dir}/${task}/${g_stdout}
     echo "${g_split_flag}"
 }
 
