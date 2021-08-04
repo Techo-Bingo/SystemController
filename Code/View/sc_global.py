@@ -54,6 +54,7 @@ class Global:
                            'Combobox',
                            'Entry',
                            'Text',
+                           'InfoText',
                            'Button',
                            'Notebook',
                            'MultiCombobox',
