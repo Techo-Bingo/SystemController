@@ -202,6 +202,8 @@ class ExecHandler(object):
                 retry += 1
                 if retry < model_gate.settings_data.retry_times:
                     continue
+                if not isinstance(progress, int):
+                    progress = 2
                 self.return_exec_start_result(ip, progress, result, False)
                 self.insert_text_info(ip, progress, "{}, retry:{}".format(str(e), retry), 'ERROR')
                 break
