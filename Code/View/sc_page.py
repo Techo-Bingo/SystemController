@@ -9,7 +9,7 @@ from Utils.sc_func import Common
 from View.sc_global import Global
 from View.sc_timezone import TimezonePage
 from View.Datamation.sc_provide import view_gate
-from View.sc_module import WidgetTip, TitleFrame, ScrollFrame, TopNotebook
+from View.sc_module import WidgetTip, TitleFrame, ScrollFrame, TopNotebook, InfoText
 
 class PlotMaker:
 
@@ -170,7 +170,13 @@ class PageClass(Pager):
             var.set('\n'.join(widget_values))
             return 'Label', var
         def widget_combobox():
-            combobox = ttk.Combobox(master, width=width, values=widget_values, state='readonly')
+            turned_values = []
+            for key in widget_values:
+                if key in ['__LOGGED__']:
+                    turned_values += self.ip_list
+                else:
+                    turned_values.append(key)
+            combobox = ttk.Combobox(master, width=width, values=turned_values, state='readonly')
             combobox.current(0)
             combobox.pack(side='left', padx=10, pady=2)
             return 'Combobox', combobox
@@ -229,6 +235,9 @@ class PageClass(Pager):
                                              width=width)
             text.pack()
             return 'Text', text
+        def widget_infotext():
+            info_text = InfoText(master, height=height)
+            return 'InfoText', info_text
         def widget_button():
             interface, types = widget_values[:2]
             if interface == 'ChooseFile':
@@ -293,7 +302,7 @@ class PageClass(Pager):
             top_w, top_h, widget_w, widget_h = widget_params['Size']
             if widget_type == 'MultiCombobox':
                 c = len(self.ip_list)
-                top_h = (c//4 + (1 if c%4 else 0)) * 60
+                top_h = (c//4 + (1 if c%4 else 0)) * 50
             return (top_w, top_h), (widget_w, widget_h)
         def get_widget_attrs():
             if 'ShowEnterResult' in widget_attrs:
@@ -306,7 +315,7 @@ class PageClass(Pager):
         ''' 1. 控件解析和布局 '''
         edt_fm = tk.Frame(self.frame, width=self.width)
         edt_fm.pack(fill='x', padx=5, pady=5)
-        plot_widget, readonly_widget = [], ["Label", "Notebook"]
+        plot_widget, readonly_widget = [], ["Label", "InfoText", "Notebook"]
         for widget in self.widgets:
             # 解析控件数据
             widget_type, widget_tips, widget_values, widget_params, widget_attrs, widget_actions = parser_widget()
@@ -339,7 +348,8 @@ class PageClass(Pager):
     def combine_input(self, ips):
         def get_widget_input():
             if widget == 'Combobox':  # 默认选择了第一个
-                [shell_params[ip].append(str(instance.current())) for ip in ips]
+                #[shell_params[ip].append(str(instance.current())) for ip in ips]
+                [shell_params[ip].append(instance.get()) for ip in ips]
             elif widget == 'MultiCombobox':  # 默认选择第一个，但可能是”“
                 for ip, inst in instance:
                     if ip not in ips:
@@ -408,7 +418,9 @@ class PageClass(Pager):
             return
         for key, inst in self.enter_widgets_inst:
             if key == 'Label':
-                inst.set("{0}\n【 {1} 】\n{2}".format(inst.get(), ip, result))
+                inst.set("{}\n{:20} {}".format(inst.get(), ip, result))
+            elif key == 'InfoText':
+                inst.insert_text("{:20} {}".format(ip, result))
             elif key == 'Notebook':
                 text = inst[ip]
                 text['stat'] = 'normal'
