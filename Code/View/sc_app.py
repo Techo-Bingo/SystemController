@@ -22,7 +22,7 @@ from View.sc_module import (WidgetTip,
                         ScreenShot,
                         TreeView,
                         SelectionBar,
-                        InfoWindow,
+                        InfoText,
                         #UploadProgress
                         )
 
@@ -238,7 +238,7 @@ class GuiLogin(GuiBase):
                                  'bd': 0}
                     add_btn = tk.Button(text='✚', command=add_sublogin, **btn_style)
                     add_btn.pack(side='left', padx=20)
-                    eye_btn = tk.Button(text='👀', **btn_style)
+                    eye_btn = tk.Button(text='�', **btn_style)
                     eye_btn.pack(side='right', padx=20)
                     eye_btn.bind("<Button-1>", lambda event,t=True: see_password(t))
                     eye_btn.bind("<ButtonRelease-1>", lambda event, t=False: see_password(t))
@@ -484,7 +484,7 @@ class GuiMain(GuiBase):
                              width=Global.G_MAIN_INFO_WIDTH,
                              height=Global.G_MAIN_TEXT_HEIGHT + 200,  # 预留 200高度用于支持窗口大小调整
                              title="提示栏").master()
-                return InfoWindow(fm)
+                return InfoText(fm)
             def pack_sub_note_fm():
                 fm = TitleFrame(note_fm,
                         width=Global.G_MAIN_NOTE_WIDTH,
@@ -563,7 +563,9 @@ class GuiMain(GuiBase):
 
     def insert_text_info(self, data):
         info, level = data
-        self.info_inst.insert_text(info, level)
+        color = Global.G_INFOWIN_LEVEL_COLOR[level.upper()]
+        info = "[{0}] {1}: {2}".format(level.upper(), Common.get_time(), info)
+        self.info_inst.insert_text(info, color)
 
     def update_ip_state(self, data):
         for ip, item in data.items():
