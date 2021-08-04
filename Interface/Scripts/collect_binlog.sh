@@ -1,25 +1,27 @@
 #!/bin/bash
 source ${g_home_dir}/common_function.sh
-[ -f /opt/UBP/svc_profile.sh ] || report_err "15" "Miss Env file"
+
+[ "$(whoami)" = 'root' ] || report_err 10 "请使用 root 执行"
+[ -f /opt/UBP/svc_profile.sh ] || report_err 15 "环境不支持"
+
 source /opt/UBP/svc_profile.sh
 source /etc/profile
 
 DAYS_INDEX=$1
 
-if [ "${DAYS_INDEX}" = '0' ]
+if [ "${DAYS_INDEX}" = "一天" ]
 then
 	DAYS=1
-elif [ "${DAYS_INDEX}" = '1' ]
+elif [ "${DAYS_INDEX}" = "三天" ]
 then
 	DAYS=3
-elif [ "${DAYS_INDEX}" = '2' ]
+elif [ "${DAYS_INDEX}" = "一周" ]
 then
 	DAYS=7
 fi
 LIMIT_SIZE=2147483648
 START_DATE="$(date -d "-${DAYS} DAY" '+%Y-%m-%d') 00:00:00"
 END_DATE="$(date +'%Y-%m-%d') 23:59:59"
-
 
 function get_binlog()
 {
