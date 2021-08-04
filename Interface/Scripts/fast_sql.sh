@@ -5,7 +5,7 @@ FILE_NAME=$1
 
 function runsql()
 {
-    [ ! -f "/opt/UBP/bin/exec_sql" ] && report_err "20" "exec_sql don't exist !"
+    [ ! -f "/opt/UBP/bin/exec_sql" ] && report_err "20" "环境不支持"
     local sql=$(cat ${g_upload_dir}/${FILE_NAME})
     . /opt/UBP/svc_profile.sh
     /opt/UBP/bin/exec_sql <<EOF
