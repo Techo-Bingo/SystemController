@@ -1,7 +1,8 @@
 #!/bin/bash
-g_print="__print__"
-g_error="__error__"
+g_stdout="__stdout__"
+g_stderr="__stderr__"
 g_call="__call__"
+g_log="__log__"
 g_progress="__progress__"
 g_split_flag="____BINGO_FILTER____"
 g_cache_split="____BINGO_CACHE____"
@@ -26,7 +27,14 @@ function report_err()
 
 function echo_info()
 {
-  echo "$(date +'%F %T'): $1"
+  echo "$(date +'%F %T'): $1" >> ${g_task_dir}/${g_stdout}
+  chmod 777 ${g_task_dir}/${g_stdout}
+}
+
+function echo_log()
+{
+    echo "$(date +'%F %T') $1" >> "${g_task_dir}/${g_log}"
+    chmod 777 "${g_task_dir}/${g_log}"
 }
 
 function report_func()
