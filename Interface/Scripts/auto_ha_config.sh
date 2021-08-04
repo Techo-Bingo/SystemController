@@ -208,6 +208,8 @@ EOF
 
 function config_start()
 {
+  my_report_func 0 "配置中,请稍候" 50
+
   if [ "$WHOAMI" = 'LOCAL_ACTIVE' ]
   then
     python /opt/UBP/bin/ha/ha_config.pyc no AUTO-HA-CONFIG@2@admin@2@$(date +'%F-%T')@1@1@1@1@1 <<EOF
