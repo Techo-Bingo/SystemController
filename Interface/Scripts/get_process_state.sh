@@ -5,6 +5,7 @@ OP_TYPE=$1
 
 function get_status()
 {
+  [ ! -f /opt/UBP/svc_profile.sh ] && report_err 10 "环境不支持"
 	. /opt/UBP/svc_profile.sh
 	ubp_adm -cmd status
 }
