@@ -14,18 +14,18 @@ function download()
 	if [ -f "${FILE_PATH}" ]
 	then
 		report_info "30" "Copying file..."
-		cp -f ${FILE_PATH} ${g_task_dir}/${pack_name} 2>${g_error}
-		[ $? -ne 0 ] && report_err '60' "$(head -1 ${g_error})"
+		cp -f ${FILE_PATH} ${g_task_dir}/${pack_name} 2>${g_stderr}
+		[ $? -ne 0 ] && report_err '60' "$(head -1 ${g_stderr})"
 	else
 		report_info "30" "Copying directory..."
-		cp -rf ${FILE_PATH} ${g_task_dir}/ 2>${g_error}
-		[ $? -ne 0 ] && report_err '60' "$(head -1 ${g_error})"
+		cp -rf ${FILE_PATH} ${g_task_dir}/ 2>${g_stderr}
+		[ $? -ne 0 ] && report_err '60' "$(head -1 ${g_stderr})"
 		
 		report_info "90" "Compress start"
 		local pack_name=$(compress ${pack_name})
 		[ $? -ne 0 ] && report_err '95' "Compress ${pack_name} failed"
 	fi
-	
+
 	chmod 777 "${pack_name}"
 	report_info "100" "${g_task_dir}/${pack_name}"
 }
