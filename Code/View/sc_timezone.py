@@ -1,10 +1,9 @@
 # -*- coding: UTF-8 -*-
 import tkinter as tk
-from tkinter import ttk, scrolledtext
-from threading import Lock
+from tkinter import ttk
 from View.sc_global import Global
 from View.Datamation.sc_provide import view_gate
-from View.sc_module import TitleFrame, WidgetTip, ScrollFrame
+from View.sc_module import TitleFrame, WidgetTip, ScrollFrame, InfoText
 
 class Pager(object):
     interface = None
@@ -49,42 +48,6 @@ class Pager(object):
             self._page_fm.destroy()
         except:
             pass
-
-class TextShower(object):
-    """ 消息提示栏 """
-    def __init__(self, master):
-        self.master = master
-        self.infotext = None
-        self.index = 0
-        self.lock = Lock()
-        self.init_frame()
-
-    def init_frame(self):
-        self.infotext = scrolledtext.ScrolledText(self.master,
-                                                  font=(Global.G_DEFAULT_FONT, 9),
-                                                  bd=1,
-                                                  relief='ridge',
-                                                  bg=Global.G_DEFAULT_COLOR,
-                                                  height=40)
-        self.infotext['stat'] = 'disabled'
-        self.infotext.pack(fill='both')
-
-    def insert_text(self, info):
-        # 多线程打印可能会串行等问题, 加锁
-        self.lock.acquire()
-        try:
-            self.infotext['stat'] = 'normal'
-            self.infotext.insert('end', '{}\n'.format(info))
-            self.index += 1
-            line_num = len(info.split('\n'))
-            line_end = int(self.infotext.index('end').split('.')[0])
-            line_start = line_end - line_num + 1
-            self.infotext.tag_add('TextS%s' % self.index, '%s.0' % line_start, '%s.end' % line_end)
-            self.infotext.tag_config('TextS%s' % self.index, foreground='Black')
-            self.infotext.see('end')
-            self.infotext['stat'] = 'disabled'
-        finally:
-            self.lock.release()
 
 class TimezonePage(Pager):
     def __init__(self, master, title, width, height, ip_list, shell, **argv):
@@ -158,7 +121,7 @@ class TimezonePage(Pager):
             state_fm = tk.Frame(self.frame)
             state_fm.pack(fill='x', padx=5)
             shw_fm = TitleFrame(state_fm, self.width - 30, 250, '当前状态').master()
-            self.text_shower = TextShower(shw_fm)
+            self.text_shower = InfoText(shw_fm)
             view_gate.enter_exec_data.set_data([self.ip_list, self.shell])
         show_current_status()
         bg_color = Global.G_DEFAULT_COLOR
@@ -857,6 +820,4 @@ class TimezonePage(Pager):
         self.opts_dict = optsdict
         self.opts_dict['ZONET'] = self.opts_dict['ZONET'].replace(':','').replace('GMT','')
     """
-
-
 
