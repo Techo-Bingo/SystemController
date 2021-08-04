@@ -14,11 +14,12 @@ function get_ip_netcard()
     echo "${g_split_flag}"
 }
 
-function get_resource_name()
+function get_ubp_process_name()
 {
-    echo "${g_split_flag}"
-    echo "__RESOURCE__ ${g_cache_split} PROC_1 PROC_2"
-    echo "${g_split_flag}"
+	local ubp_list=$(su - ubp -c ". /opt/UBP/svc_profile.sh;ubp_adm -cmd status"|grep -v '^query'|awk -F"(" '{print $1}'|awk -F. '{print $1}'|grep -v 'All Services')
+	echo "${g_split_flag}"
+	echo "__UBP_PROC__ ${g_cache_split} $(echo ${ubp_list}|tr '\n' ' ')"
+	echo "${g_split_flag}"
 }
 
 function _default_()
@@ -33,9 +34,9 @@ function main()
 	if [ "${TYPE}" = '__IP__NETCARD__' ]
 	then
 		get_ip_netcard
-	elif [ "${TYPE}" = '__RESOURCE__' ]
+	elif [ "${TYPE}" = '__UBP_PROC__' ]
 	then
-		get_resource_name
+		get_ubp_process_name
 	else
 	  _default_
 	fi
