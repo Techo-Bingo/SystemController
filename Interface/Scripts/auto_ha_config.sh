@@ -248,9 +248,9 @@ function main()
 {
   who_am_i
   check_env
-  set_ubp_trust
   config_vip
   [ -n "$PREV_IPS" ] && wait_prev_ips
+  set_ubp_trust
   config_start
   post_done
   report_info "100" "NULL"
