@@ -239,6 +239,14 @@ EOF
 
 function post_done()
 {
+  if [ "$WHOAMI" = 'LOCAL_ACTIVE' ]
+  then
+    for i in {1..30}
+	do
+	  sleep 10
+	  [ "$(/opt/UBP/bin/consultool -q)" = 'Active' ] && break
+	done
+  fi
   echo "DONE" > $ready_flag
   chown ubp:ubpsysm $ready_flag
   my_report_func 0 "本机配置完成" 100
