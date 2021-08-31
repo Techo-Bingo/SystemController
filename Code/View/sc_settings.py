@@ -71,6 +71,7 @@ class GuiSettings:
 
     @classmethod
     def confirm(cls):
+        cls.top.wm_attributes('-topmost', 0)
         data = {}
         data['tool_alias'] = cls.tool_alias.get()
         data['tool_version'] = cls.tool_version.get()
