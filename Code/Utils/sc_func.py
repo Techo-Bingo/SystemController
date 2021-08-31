@@ -69,7 +69,7 @@ class Common:
     @classmethod
     def system_open(cls, file):
         try:
-            os.system(file)
+            os.startfile(file)
         except:
             pass
 
