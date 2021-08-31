@@ -22,7 +22,7 @@ class GuiSettings:
         cls.top = top = tk.Toplevel()
         top.geometry('{}x{}'.format(width, height))
         top.resizable(False, False)
-        # top.wm_attributes('-topmost', 1)
+        top.wm_attributes('-topmost', 1)
         top.protocol("WM_DELETE_WINDOW", cls.cancel)
         center_window(top)
         master = TitleFrame(cls.top, width=width, height=height).master()
