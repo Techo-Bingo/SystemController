@@ -788,7 +788,7 @@ class SelectionBar(object):
                                text=ip,
                                #font=(Global.G_DEFAULT_FONT, 10),
                                #anchor='w',
-                               width=13,
+                               width=15,
                                variable=ip_vars[-1]
                                ).grid(row=row, column=1)
                 self.progress[ip] = ProgressBar(master=ips_fm, row=row, column=2)
