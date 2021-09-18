@@ -13,5 +13,5 @@
  * Bingo (LiBin)
 
 ### 2021-08-31 之后项目转到 gitee: 
-### [SystemController](https://gitee.com/BingoBrother/SystemController)
+### [SystemController](https://gitee.com/TechorBingo/SystemController)
 
